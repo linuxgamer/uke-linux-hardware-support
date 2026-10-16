@@ -3,23 +3,12 @@
   "device": "uke",
   "soc": "SM7675",
   "profile": "upstream-desktop-policy-metadata",
-  "desktop_package": "kde-plasma-uke-meta",
   "default_desktop": "console-first",
   "boot_tested": false,
   "hardware_tested": false,
   "display_gpu_touch": "not-qualified",
   "automatic_session_or_display_configuration": false,
-  "runtime_policy": "native-and-shell-only-no-Python",
-  "native_runtime_capabilities": [
-    "senemos-native-runtime(libstdc++)"
-  ],
-  "kde_application_policy": "Use original distribution packages; never clone, fork or rebuild KDE applications as Uke variants",
+  "runtime_policy": "Fedora distribution packages and their dependencies",
   "graphical_admission": "optional original Fedora package selection; dependency closure and tablet acceptance remain separate",
-  "desktop_dependency_exception": {
-    "date": "2026-10-14",
-    "scope": "Unmodified original Fedora desktop RPMs may retain their distribution-provided Python dependencies on the Fedora root only",
-    "project_owned_python": false,
-    "applies_to_core_console": false,
-    "applies_to_initramfs_recovery_or_installers": false
-  }
+  "desktop_dependency_policy": "Keep original Fedora dependencies"
 }

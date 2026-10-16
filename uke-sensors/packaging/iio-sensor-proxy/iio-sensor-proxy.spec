@@ -1,6 +1,6 @@
 Name: iio-sensor-proxy
 Version: 3.9
-Release: 5%{?dist}
+Release: 6%{?dist}
 Summary: Standard desktop sensor proxy with Qualcomm SSC support
 License: GPL-3.0-or-later
 URL: https://gitlab.freedesktop.org/hadess/iio-sensor-proxy
@@ -41,7 +41,6 @@ grep -q '^#define HAS_LIBSSC "1"' build/src/config.h
 %install
 DESTDIR=%{buildroot} meson install -C build --no-rebuild
 install -Dm644 %{SOURCE1} %{buildroot}%{_datadir}/selinux/packages/uke-ssc.cil
-if find %{buildroot} -type f \( -name '*.py' -o -iname '*python*' \) | grep -q .; then exit 1; fi
 
 %post
 if /usr/bin/selinuxenabled; then
@@ -70,6 +69,9 @@ fi
 %{_datadir}/selinux/packages/uke-ssc.cil
 
 %changelog
+* Thu Oct 15 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 3.9-6
+- Drop the unnecessary Python file exclusion check.
+
 * Wed Oct 14 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 3.9-5
 - Publish the reviewed SSC preview with numeric RPM release metadata.
 

@@ -2,7 +2,7 @@
 
 14 October 2026. Fedora Rawhide AArch64 preview sources:
 
-- `libssc`: native SSC client library; Python mock servers are excluded.
+- `libssc`: native SSC client library and diagnostic client.
 - `iio-sensor-proxy`: upstream desktop D-Bus API with SSC enabled and the
   previously checked startup-order correction. A narrow SELinux module permits
   its own QRTR sockets.
@@ -14,10 +14,9 @@
 workers build without network access. Upstream C code retains its native build;
 new protocol fixtures use C++ where applicable.
 
-Upstream Meson needs Python on the host; replacing the build engine is outside
-this packaging change. BuildRequires pins Python `3.15.0-1.fc46` and Meson
-`1.12.1-2.fc46`. No Python interpreter, script or mock server is installed in
-the target payload. Build-time host tools do not imply target dependencies.
+Upstream Meson uses Python during the build. The current source recipe pins
+Python `3.15.0-1.fc46` and Meson `1.12.1-2.fc46`. Build dependencies do not
+automatically become target dependencies.
 
 The file-service package requires separately admitted device-local firmware
 and configuration. Factory persist remains read-only; copies and any registry

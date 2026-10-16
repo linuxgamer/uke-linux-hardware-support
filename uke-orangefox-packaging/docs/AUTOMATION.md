@@ -1,28 +1,34 @@
-# Release delivery and automatic rebuilds
+# Release delivery and rebuild history
 
-COPR uses the `main` branch, `.copr/Makefile`, `make_srpm` and the normal RPM spec.
-Source generation downloads the locked GitHub assets, checks every SHA-256 and
-verifies the public Uke validation manifest. Binary packaging runs offline.
-Source snapshots are offered alongside the original release and identified in
-each package's lock file; the SRPM rebuilds image delivery rather than compiling
+The automatic COPR and daily stable workflow described below was part of the
+14 October 2026 development setup. Its `.copr/Makefile` and GitHub workflow
+have since been removed. The commands below describe the former release gate;
+they are not active release automation.
+
+The former COPR setup used the `main` branch, `.copr/Makefile`, `make_srpm` and
+the normal RPM spec.
+Source generation downloaded the locked GitHub assets, checked every SHA-256 and
+verified the public Uke validation manifest. Binary packaging ran offline.
+Source snapshots were offered alongside the original release and identified in
+each package's lock file; the SRPM rebuilt image delivery rather than compiling
 OrangeFox from scratch.
 
-A GitHub push webhook rebuilds accepted packaging changes. The daily workflow
-calls `make track-stable`, selecting the newest published non-draft,
-non-prerelease release. It admits only the explicit stable tag format
+The former GitHub push webhook rebuilt accepted packaging changes. The daily
+workflow called `make track-stable`, selecting the newest published non-draft,
+non-prerelease release. It admitted only the explicit stable tag format
 `rMAJOR.MINOR-uke.YYYYMMDD`, all six delivery assets and both corresponding
-source snapshots with GitHub SHA-256 digests. The artifact manifest must retain
+source snapshots with GitHub SHA-256 digests. The artifact manifest had to retain
 the reviewed Uke firmware profile and pass compile, header, ZIP, installer,
-source, privacy and Python gates. Unknown profiles, missing assets and disguised
-alphas fail before changing the source pin.
+source and privacy gates. Unknown profiles, missing assets and disguised
+alphas failed before changing the source pin.
 
-When eligible stable inputs change, the workflow audits the image ramdisk,
+When eligible stable inputs changed, the workflow audited the image ramdisk,
 the nonempty extracted target, ELF dependencies and the ZIP on its host runner,
-then commits the new lock/spec and explicitly requests a COPR build. This
-does not execute any image or installer. `COPR_RECOVERY_BUILD_HOOK` is a GitHub
-secret and is excluded from public source and reports. `releases_file=PATH` is
-an optional local metadata fixture input; scheduled runs always use the project
-GitHub API. The preview pin remains intentional until a stable release qualifies.
+then committed the new lock/spec and explicitly requested a COPR build. This
+did not execute any image or installer. `COPR_RECOVERY_BUILD_HOOK` was a GitHub
+secret and was excluded from public source and reports. `releases_file=PATH` was
+an optional local metadata fixture input; scheduled runs used the project GitHub
+API.
 
 DNF makes accepted images available through ordinary package upgrades. It
 does not flash them, change Android firmware or schedule device writes. The

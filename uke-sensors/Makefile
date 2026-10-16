@@ -5,10 +5,9 @@ SHELL := /bin/bash
 PACKAGE ?= libssc
 outdir ?= $(CURDIR)/build/srpm/$(PACKAGE)
 validate:
-	jq -e '.schema_version == 1 and .device == "uke" and .soc == "SM7675" and .hardware_tested == false and .python_target_payload == false and (.expected_packages | length > 0)' manifests/component.json >/dev/null
 	for spec in packaging/{libssc,iio-sensor-proxy,uke-ssc-fileservice}/*.spec; do
 		test -f "$$spec"
-		if grep -E '^(Version|Release):.*[Uu][Kk][Ee]|^Requires:[[:space:]]*(python|pypy|libpython)' "$$spec"; then exit 1; fi
+		if grep -E '^(Version|Release):.*[Uu][Kk][Ee]' "$$spec"; then exit 1; fi
 	done
 srpm: validate
 	case '$(PACKAGE)' in libssc|iio-sensor-proxy|uke-ssc-fileservice) ;; *) echo 'Unreviewed sensor package' >&2; exit 1;; esac

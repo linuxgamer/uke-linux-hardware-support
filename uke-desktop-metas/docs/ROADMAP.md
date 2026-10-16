@@ -6,7 +6,7 @@
 
 - Validate kernel/boot and console before desktop admission.
 - Resolve closure on target AArch64.
-- Preserve stock KDE behavior unless a measured Uke issue requires a change.
+- Preserve distribution desktop behavior unless a measured Uke issue requires a change.
 
 4. Build and audit AArch64 RPM/SRPM payloads and their complete dependency closure.
 5. Test installation, upgrade and removal in an isolated target environment.

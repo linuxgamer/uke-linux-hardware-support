@@ -15,6 +15,7 @@
 
 The initial alpha delivery now has real RPM/SRPM, extracted payload, AArch64
 DNF install/upgrade/removal and signed COPR repository records. The SCM source
-build and stable polling workflow also passed. A fresh complete OrangeFox source
-build, the first positive stable advancement and physical boot/rollback remain
-separate next gates. See `reports/RECOVERY-RAWHIDE-2026-10-04.json`.
+build and stable polling workflow also passed at the time. That automation is
+no longer present in this repository. A fresh complete OrangeFox source build,
+the first positive stable advancement and physical boot/rollback remain
+separate next gates.

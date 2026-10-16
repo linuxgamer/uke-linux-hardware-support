@@ -16,8 +16,7 @@
     "protocol": "Linux multitouch protocol B",
     "slots": 12,
     "physical_multitouch_acceptance": false,
-    "private_calibration_payload": false,
-    "python_payload": false
+    "private_calibration_payload": false
   },
   "remaining": ["packaged kernel IRQ transport", "physical coordinate and multitouch acceptance", "cold boot", "display and suspend lifecycle", "refresh-rate and power-profile integration"]
 }

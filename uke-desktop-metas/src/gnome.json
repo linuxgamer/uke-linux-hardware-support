@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "device": "uke",
+  "soc": "SM7675",
+  "distribution": "fedora",
+  "release": "rawhide",
+  "architecture": "aarch64",
+  "profile": "gnome-original-fedora",
+  "package": "gnome-uke-meta",
+  "package_policy": "Original Fedora GNOME packages and their distribution dependencies",
+  "login_manager_policy": "Preserve the existing login manager; no installation preset or session activation",
+  "automatic_session_or_display_configuration": false,
+  "boot_tested": false,
+  "hardware_tested": false,
+  "packages": [
+    "firefox", "gnome-calendar", "gnome-console", "gnome-control-center",
+    "gnome-session-wayland-session", "gnome-settings-daemon", "gnome-shell",
+    "gnome-software", "gnome-text-editor", "loupe", "nautilus", "papers",
+    "xdg-desktop-portal-gnome"
+  ]
+}

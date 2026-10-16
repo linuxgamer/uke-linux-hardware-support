@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "target": "fedora-rawhide-aarch64",
-  "policy": "Preserve native runtime APIs; exclude optional Python bindings and host-only utilities",
+  "policy": "Build a Fedora package variant only for a reviewed device-specific fix",
   "source_kind": "official-Fedora-Koji-source-RPM",
   "source_signature": "Koji source builds are not asserted to carry a release signature; exact HTTPS source and SHA-256 are pinned",
   "hardware_tested": false,
@@ -13,54 +13,8 @@
       "native_release": "2",
       "sha256": "fef94c6e88df2b9b1495b71d421a0dd021cf4de8337263350d559b7a33ce9451",
       "delta": "Preserve AArch64 JIT feature detection; name exact Adreno 732 chips and accept their fuse-ID wildcard without changing GPU properties"
-    },
-    {
-      "name": "at-spi2-core",
-      "version": "2.62.0.1",
-      "release": "1.fc46",
-      "native_release": "2",
-      "sha256": "4e755fccee238ad95b8daa2d592e9697a96eeb9beb222eb82bd5c4a113d004b9",
-      "delta": "Exclude the optional Python GI override; retain native accessibility libraries and service"
-    },
-    {
-      "name": "gstreamer1",
-      "version": "1.28.7",
-      "release": "1.fc46",
-      "native_release": "2",
-      "sha256": "4a185341084890377e537eea0569a715f19c620e5e4c007ebe05c44252f2708f",
-      "delta": "Exclude installed host documentation scanners; retain media libraries, native CLI and plugin scanner"
-    },
-    {
-      "name": "libaccounts-glib",
-      "version": "1.25",
-      "release": "28.fc46",
-      "native_release": "29",
-      "sha256": "d9895473a2e6fe342f8a3975148166aa3bbf74580dee7da4bf57300664efdbcb",
-      "delta": "Exclude optional Python GI override and its matching explicit dependency; retain native account API"
-    },
-    {
-      "name": "libwacom",
-      "version": "2.20.0",
-      "release": "1.fc46",
-      "native_release": "2",
-      "sha256": "1578133a5ae62096e74c53540aea79b38f537f8e65ff59ecc373c61fd964ae89",
-      "delta": "Exclude Python DB updater and Python stylus viewer; retain native library, device listings and upstream data"
-    },
-    {
-      "name": "libstdcxx-uke-runtime",
-      "source_name": "gcc",
-      "version": "16.2.1",
-      "release": "2.fc46.1",
-      "native_release": "3",
-      "sha256": "b8f6cc1f055a057233a3b807bf5e9cc2a43836c025ba664b1231c79d86271175",
-      "delta": "Compile the native GNU C++ runtime without optional GDB Python helpers; verify the original versioned symbol set and run a native smoke fixture"
     }
   ],
-  "baseline": {
-    "package": "libstdc++-16.2.1-2.fc46.1.aarch64",
-    "symbol_count": 6100,
-    "symbol_sha256": "db74b5e1acc6e2a6ce6182c63d57ad61cc79278daa811c0fde65bd0a411ec1fd"
-  },
   "withdrawn_packages": [
     {
       "name": "plasma-workspace",

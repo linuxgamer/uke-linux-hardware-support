@@ -13,10 +13,9 @@ and ten simultaneous touch contacts worked in the 14 October tablet test.
 Power and volume buttons and manual backlight control also worked in that test.
 Backlight adjustment is linear and difficult to use comfortably; a logarithmic
 curve is planned. Permanent desktop sensor support remains incomplete.
-See the [hardware table](https://github.com/MCC45TR/uke-linux#hardware-support)
-for tested functions and limitations. Experimental changes remain on separate
-branches until reviewed; a folder in this repository does not imply a working
-package or device feature.
+These are results from specific development tests, not a complete hardware
+qualification. A folder in this repository does not imply a working package or
+device feature.
 
 ## Components
 
@@ -36,25 +35,16 @@ package or device feature.
 | [uke-hardware-provenance](uke-hardware-provenance) | Hardware source records |
 
 KDE applications come from the distribution. They are not cloned, forked or
-rebuilt as Uke applications. Current upstream desktop dependencies conflict
-with the Python-free tablet policy; a compliant desktop release is still blocked.
+rebuilt as Uke applications. Fedora Python dependencies are allowed; desktop
+package composition and tablet behavior still need separate validation.
 
 ## Checks and builds
 
-```sh
-make validate
-make test-native
-```
+Each component README lists its own available checks and package build commands.
+These are source or host checks; passing them does not establish tablet support.
+Run `make validate` here to run the offline checks of components with active
+package or source recipes.
 
-These commands check component rules and existing native tests. They do not
-test tablet hardware. [SOURCE-IMPORTS.json](SOURCE-IMPORTS.json) records the
-original source imports and their Git history.
-
-COPR builds configured package sources after GitHub changes. Shared-rule changes
-request the affected builds through the root workflow. The daily stable workflow
-checks Material Decoration and eligible recovery releases. Active workflows
-live in [`.github/workflows/`](.github/workflows/).
-
-The kernel, image builder, recovery device tree and UEFI port have separate
-repositories linked from [Uke Linux](https://github.com/MCC45TR/uke-linux#project-repositories).
-Detailed build readiness is in the [private package hub](https://github.com/MCC45TR/uke-linux-docs/blob/main/docs/PACKAGE-HUB.md).
+The kernel and Fedora image builder are pinned separately by the parent
+`uke-fedora` repository. Recovery and UEFI development also have separate source
+trees.

@@ -6,7 +6,6 @@ version := $(shell jq -r .rpm_version manifests/release-lock.json)
 outdir ?= $(CURDIR)/build/srpm
 releases_file ?=
 validate:
-	jq -e '.schema_version == 1 and .device == "uke" and .python_target_payload == false' manifests/component.json >/dev/null
 	jq -e '.device == "uke" and .rpm_version == "$(version)" and (.rpm_version|test("uke";"i")|not) and .physical_device == false and (.assets|length == 6) and (.source_snapshots|length == 2) and all(.assets[],.source_snapshots[]; (.sha256|test("^[a-f0-9]{64}$$")) and (.name|test("^[A-Za-z0-9][A-Za-z0-9._-]*$$")) and (.url|startswith("https://github.com/MCC45TR/orangefox_device_xiaomi_uke/releases/download/")))' manifests/release-lock.json >/dev/null
 	test "$$(awk '/^Version:/ {print $$2}' packaging/uke-orangefox-recovery.spec)" = "$(version)"
 srpm: validate
@@ -24,7 +23,7 @@ srpm: validate
 		test "$$(sha256sum "$$cache/$$name" | cut -d ' ' -f1)" = "$$expected"
 		cp "$$cache/$$name" "$$payload/"
 	done < <(jq -r '.assets[]|[.name,.url,.sha256]|@tsv' manifests/release-lock.json)
-	jq -e --arg profile "$$(jq -er .firmware_profile manifests/release-lock.json)" '.device == "uke" and .firmware_profile == $$profile and .validation.no_python_payload == true and .validation.payload_privacy == true and .validation.compile == true and .validation.physical_device == false' "$$payload/ARTIFACT-MANIFEST.json" >/dev/null
+	jq -e --arg profile "$$(jq -er .firmware_profile manifests/release-lock.json)" '.device == "uke" and .firmware_profile == $$profile and .validation.payload_privacy == true and .validation.compile == true and .validation.physical_device == false' "$$payload/ARTIFACT-MANIFEST.json" >/dev/null
 	cp manifests/release-lock.json "$$payload/"
 	cp docs/{DELIVERY,SOURCE-OFFER}.md LICENSE "$$payload/"
 	cp -r licenses "$$payload/"
@@ -66,7 +65,7 @@ track-stable:
 	url=$$(jq -er '.assets[]|select(.name == "ARTIFACT-MANIFEST.json")|.url' build/tracking/release-lock.json)
 	curl -fL --retry 3 "$$url" -o build/tracking/artifact-manifest.json
 	test "$$(sha256sum build/tracking/artifact-manifest.json|cut -d ' ' -f1)" = "$$(jq -er '.assets[]|select(.name == "ARTIFACT-MANIFEST.json")|.sha256' build/tracking/release-lock.json)"
-	jq -e --arg profile "$$(jq -er .firmware_profile manifests/release-lock.json)" '.schema_version == 1 and .device == "uke" and .firmware_profile == $$profile and (.classification == "stable" or .classification == "reviewed-stable") and .validation.compile == true and .validation.header_sections == true and .validation.zip_integrity == true and .validation.static_installer == true and .validation.payload_privacy == true and .validation.no_python_payload == true and .validation.source_identification == true' build/tracking/artifact-manifest.json >/dev/null
+	jq -e --arg profile "$$(jq -er .firmware_profile manifests/release-lock.json)" '.schema_version == 1 and .device == "uke" and .firmware_profile == $$profile and (.classification == "stable" or .classification == "reviewed-stable") and .validation.compile == true and .validation.header_sections == true and .validation.zip_integrity == true and .validation.static_installer == true and .validation.payload_privacy == true and .validation.source_identification == true' build/tracking/artifact-manifest.json >/dev/null
 	cp build/tracking/release-lock.json manifests/release-lock.json
 	sed -i "s/^Version:.*/Version: $$new_version/; s/^Release:.*/Release: 1%{?dist}/" packaging/uke-orangefox-recovery.spec
 	$(MAKE) validate
@@ -92,12 +91,6 @@ audit: srpm
 	if rg '(^/|(^|/)\.\.(/|$$))' build/audit/files.txt; then exit 1; fi
 	(cd build/audit/extracted; lz4 -dc ../ramdisk.lz4 | cpio -idm --quiet)
 	test -s build/audit/extracted/system/bin/recovery
-	if find build/audit/extracted \( -name '*.py' -o -name '*.pyc' -o -name '*.pyo' -o -name '*.pyz' -o -name python -o -name 'python[0-9]*' -o -name 'libpython*' -o -name 'pypy*' \) -print | grep .; then exit 1; fi
-	if rg -a -l --hidden --no-ignore '/home/[^/[:space:]]+/|/Users/[^/[:space:]]+/|^#!.*(python|pypy)' build/audit/extracted; then exit 1; fi
-	find build/audit/extracted -type f -print0 | while IFS= read -r -d '' file; do
-		if test "$$(od -An -tx1 -N4 "$$file"|tr -d ' \n')" = 7f454c46; then
-			if readelf -d "$$file" 2>/dev/null | grep -F 'NEEDED' | grep -F libpython >/dev/null; then exit 1; fi
-		fi
-	done
+	if rg -a -l --hidden --no-ignore '/home/[^/[:space:]]+/|/Users/[^/[:space:]]+/' build/audit/extracted; then exit 1; fi
 	while IFS= read -r archive; do unzip -t "$$cache/$$archive"; done < <(jq -r '.assets[].name|select(endswith(".zip"))' manifests/release-lock.json)
-	printf '%s\n' 'Pinned image ramdisk, nonempty extracted payload, Python/privacy and ZIP integrity passed.'
+	printf '%s\n' 'Pinned image ramdisk, nonempty extracted payload, privacy and ZIP integrity passed.'

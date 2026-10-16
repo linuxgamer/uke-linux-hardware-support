@@ -1,7 +1,7 @@
 %global debug_package %{nil}
 Name: uke-touchscreen
 Version: 0.1.0
-Release: 3%{?dist}
+Release: 4%{?dist}
 Summary: Native Novatek NT36532 touchscreen input for Xiaomi Uke
 License: GPL-3.0-or-later AND Apache-2.0
 ExclusiveArch: aarch64
@@ -9,7 +9,7 @@ Source0: %{name}-%{version}.tar.xz
 BuildRequires: gcc-c++ openssl-devel systemd-rpm-macros
 Requires: kernel-uname-r(7.2.9-senemos-uke)
 Requires: /usr/lib/modules/7.2.9-senemos-uke/kernel/drivers/input/misc/uinput.ko.zst
-Requires: senemos-native-runtime(libstdc++) kmod systemd systemd-udev
+Requires: kmod systemd systemd-udev
 
 %description
 Native C++ THP processing with standard Linux multitouch input. The foreground
@@ -63,6 +63,9 @@ install -Dm644 LICENSE.GPL-3.0 %{buildroot}/usr/share/licenses/%{name}/GPL-3.0
 %license /usr/share/licenses/%{name}/GPL-3.0
 
 %changelog
+* Thu Oct 15 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 0.1.0-4
+- Use the Fedora C++ runtime without a special Python-free package dependency.
+
 * Wed Oct 14 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 0.1.0-3
 - Match the Uke OEM command cadence and wait for baseline readiness before queries.
 - Report input readiness separately from the first touch and test bounded command retries.

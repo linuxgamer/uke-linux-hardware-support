@@ -1,7 +1,7 @@
 %global debug_package %{nil}
 Name: uke-boot-integration
 Version: 0.1.0
-Release: 11%{?dist}
+Release: 12%{?dist}
 Summary: Uke image configuration and read-only boot prerequisite inspection
 License: MIT
 URL: https://github.com/MCC45TR/uke-linux-hardware-support/tree/main/uke-boot
@@ -9,7 +9,6 @@ Source0: %{name}-%{version}.tar.xz
 ExclusiveArch: aarch64
 BuildRequires: gcc-c++ make systemd-rpm-macros
 BuildRequires: pkgconfig(libsystemd) pkgconfig(wayland-client) pkgconfig(wayland-server)
-Requires: senemos-native-runtime(libstdc++)
 Requires: kmod bash systemd NetworkManager openssh-server
 
 %description
@@ -23,7 +22,7 @@ does not establish RAM/UFS/firmware handoff or physical tablet boot.
 %package -n uke-esp32-cdc
 Summary: Native ESP32-S3 CDC journal forwarding for the Uke Core debug profile
 Requires: %{name} = %{version}-%{release}
-Requires: systemd senemos-native-runtime(libstdc++)
+Requires: systemd
 %description -n uke-esp32-cdc
 Native raw-TTY configuration and real-root journal forwarding to an explicitly
 configured ttyACM USB-host port. Core composition may apply the separate original
@@ -52,7 +51,7 @@ The console grants local root access over USB. USB networking stays optional.
 
 %package -n uke-wifi-factory
 Summary: Read-only Uke factory WLAN identity for NetworkManager
-Requires: systemd NetworkManager senemos-native-runtime(libstdc++)
+Requires: systemd NetworkManager
 %description -n uke-wifi-factory
 Reads and validates each installation's factory WLAN address from its physical
 read-only persist partition. Publishes a private runtime NetworkManager default
@@ -131,6 +130,9 @@ ln -s ../../../usr/bin/uke-reboot %{buildroot}/usr/local/sbin/reboot
 %{_prefix}/lib/dracut/modules.d/93uke-boot-guard
 
 %changelog
+* Thu Oct 15 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 0.1.0-12
+- Use the Fedora C++ runtime without a special Python-free package dependency.
+
 * Wed Oct 14 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 0.1.0-11
 - Read the local factory WLAN identity from protected persist before NetworkManager.
 - Validate unicast records without shipping device-specific addresses.

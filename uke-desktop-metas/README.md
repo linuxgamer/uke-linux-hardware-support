@@ -1,30 +1,37 @@
 # Uke desktop selections
 
-`uke-desktop-metas` records the console-first desktop policy. The optional
-`kde-plasma-uke-meta` selects original Fedora Rawhide AArch64 Plasma applications.
-It includes Discover's PackageKit backend, Dolphin plugins and administrative
-access, KWrite, Chromium, display settings and the common desktop utilities.
-Neither package contains a desktop application fork or a hardware service.
+`uke-desktop-metas` records the console-first policy without selecting a desktop
+environment. Optional packages select original Fedora applications:
 
-The Plasma selection retains the installed login manager. It installs no login
-preset and does not start a graphical session. The core console selection keeps
-its strict no-Python policy. Since 14 October 2026, unmodified original Fedora
-desktop RPMs may retain their Fedora-provided Python dependencies on the Fedora
-root. This exception does not cover project-owned code, recovery, initramfs or
-installers. The Plasma meta is independent of the strict console meta so these
-policies do not conflict during dependency resolution.
+| Package | Selection | Status |
+| --- | --- | --- |
+| `kde-plasma-uke-meta` | Plasma Desktop and common applications | Package candidate |
+| `gnome-uke-meta` | GNOME Wayland and common applications | Package candidate |
+| `plasma-mobile-uke-meta` | Plasma Mobile and on-screen keyboard | Experimental |
+| `phosh-uke-meta` | Phosh with Fedora's dependency closure | Experimental |
 
-The application list was compared with the Nabu KDE manifest and image profile at
-[`03a5bdf09ce206410e7f7f1f97871110e66ffa82`](https://github.com/MCC45TR/Nabu-Fedora-Rawhide-Builder/tree/03a5bdf09ce206410e7f7f1f97871110e66ffa82).
-Nabu hardware packages and its login-manager migration are excluded. Uke display,
-touch, graphics and sensors require their own drivers and physical tests.
+Each optional RPM owns a matching JSON profile in `src/`. Dependencies retain
+Fedora's original package names and normal helpers, including Python. None of
+these RPMs installs a login-manager preset, enables a session or changes device
+drivers. The existing login manager must support the selected Wayland session.
+Profiles still identify Rawhide; the Fedora 44 migration is a separate change.
 
-Run `make validate`, `make test-native` and `make srpm` for source and policy
-checks. COPR's root `.copr/Makefile` builds both RPMs from this source family.
-The optional Plasma RPM owns `plasma.json`, which records its exact application
-selection for image composition. Install it explicitly on a Fedora graphical
-root; installing the console metadata alone does not select Plasma.
+The Plasma Desktop list was compared with the Nabu KDE manifest and image profile
+at [`03a5bdf09ce206410e7f7f1f97871110e66ffa82`](https://github.com/MCC45TR/Nabu-Fedora-Rawhide-Builder/tree/03a5bdf09ce206410e7f7f1f97871110e66ffa82).
+Nabu hardware packages and its login-manager migration are excluded. GNOME,
+Plasma Mobile and Phosh names were checked against Fedora package listings:
+[GNOME session](https://packages.fedoraproject.org/pkgs/gnome-session/gnome-session-wayland-session/),
+[Plasma Mobile](https://packages.fedoraproject.org/pkgs/plasma-mobile/plasma-mobile/)
+and [Phosh](https://packages.fedoraproject.org/pkgs/phosh/phosh/).
 
-As of 14 October 2026, the profile is a package candidate. RPM build, dependency
-resolution, graphical application behavior and tablet hardware acceptance are
-separate checks. Detailed test records remain in the private project journal.
+Run `make validate` and `make srpm` for source checks and an SRPM candidate.
+The current rootfs recipe remains console-only and pins an older
+`uke-desktop-metas` RPM; it does not include these new selections. Full
+AArch64 dependency resolution, a graphical root build and tablet behavior each
+need separate validation. Display, touch, rotation and on-screen keyboards are
+not qualified by selecting a package.
+
+On 16 October 2026, source checks, availability of all new direct dependencies
+and builds of one SRPM and five AArch64 RPMs passed in a Fedora 44 container.
+Package profiles, direct requirements and absence of activation scriptlets were
+checked. Installation, graphical images and new tablet sessions remain untested.

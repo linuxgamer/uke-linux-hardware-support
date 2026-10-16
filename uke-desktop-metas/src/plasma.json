@@ -12,8 +12,6 @@
   "automatic_session_or_display_configuration": false,
   "boot_tested": false,
   "hardware_tested": false,
-  "python_target_payload": false,
-  "original_fedora_dependency_exception_date": "2026-10-14",
   "reference": {
     "repository": "https://github.com/MCC45TR/Nabu-Fedora-Rawhide-Builder",
     "commit": "03a5bdf09ce206410e7f7f1f97871110e66ffa82",

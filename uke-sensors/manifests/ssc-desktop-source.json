@@ -11,7 +11,6 @@
       "0002-report-qrtr-error.patch",
       "0003-gyroscope-cli-units.patch"
     ],
-    "python_runtime": false,
     "cli_sha256": "905007dd7d2642428d3a297019807e2b5bc4f53f4dfffe1f1b8a265c745323f2"
   },
   "iio_sensor_proxy": {
@@ -34,8 +33,7 @@
     "iio_sensor_proxy": "sha256:bd8083b65020395b6b94ea4c26df66564dfc404dfba55b34bbdb872b80c4dc56",
     "meson": "1.12.1-2.fc46",
     "python": "3.15.0-1.fc46",
-    "gcc": "16.2.1-2.fc46.1",
-    "python_scope": "Host-only upstream Meson; no Python mock server or target runtime"
+    "gcc": "16.2.1-2.fc46.1"
   },
   "observed": {
     "motion_samples": true,
@@ -68,7 +66,7 @@
     "Rear-light units and lux conversion",
     "Controlled physical axes and desktop rotation",
     "Cold boot, restart and suspend/resume",
-    "Complete package and no-Python target audit"
+    "Complete package and target payload audit"
   ],
   "permanent_activation": false,
   "package_ready": false,

@@ -101,15 +101,14 @@ The first packaging target is Fedora Rawhide AArch64 in
 DEB and Alpine APK targets require their own native rules later.
 Unimplemented targets fail explicitly rather than producing placeholder RPMs.
 
-Use `make validate` to check this repository's manifest contract. Native device
+Use `make validate` for available source and package checks. Native device
 applications use C++; upstream C/assembly interfaces retain their original
-languages. Host automation uses Bash or Make. Python does not enter tablet
-payloads. Source archives belong in `referances/`, development in `src/`.
+languages. Host automation may use Python where appropriate. Source archives belong in
+`referances/`, development in `src/`.
 Public records exclude personal paths, unit identifiers and calibration data.
 
-See [the roadmap](docs/ROADMAP.md), [source policy](docs/SOURCE-POLICY.md) and
-[manifest](manifests/component.json). New material findings are recorded in
-`docs/lessons/`; source, package, emulation and physical evidence stay distinct.
+See [the roadmap](docs/ROADMAP.md).
+Keep source, package, emulation and physical evidence distinct.
 # Read-only OEM calibration
 
 The development image mounts `PARTLABEL=persist` at `/mnt/vendor/persist` with

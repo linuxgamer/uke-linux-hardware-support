@@ -4,7 +4,7 @@
 
 Name: uke-orangefox-recovery
 Version: 12.0~preview3.20261010
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: OrangeFox recovery preview images for Xiaomi Pad 7 and POCO Pad X1
 License: GPL-2.0-only AND GPL-3.0-or-later AND Apache-2.0 AND MIT AND BSD-2-Clause
 URL: https://github.com/MCC45TR/uke-linux-hardware-support/tree/main/uke-orangefox-packaging
@@ -25,7 +25,7 @@ The source snapshots and exact upstream revisions are listed in SOURCE-OFFER.
 %prep
 %setup -q
 sha256sum -c PACKAGE-SHA256SUMS
-jq -e '.device == "uke" and .validation.no_python_payload == true and .validation.payload_privacy == true and .validation.physical_device == false' ARTIFACT-MANIFEST.json
+jq -e '.device == "uke" and .validation.payload_privacy == true and .validation.physical_device == false' ARTIFACT-MANIFEST.json
 
 %build
 # Images were built at the exact published source checkpoint; this package
@@ -51,6 +51,9 @@ sha256sum -c PACKAGE-SHA256SUMS
 %{_datadir}/senemos/recovery/uke/%{version}/
 
 %changelog
+* Thu Oct 15 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 12.0~preview3.20261010-2
+- Allow Python in the pinned recovery payload while retaining privacy and image checks.
+
 * Wed Oct 14 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 12.0~preview3.20261010-1
 - Deliver the published v003 preview and matching source records.
 - Remove the dependency on the withdrawn Alpha 1 release.

@@ -17,9 +17,10 @@ and rollback records before a device trial.
 package, and `make audit` inspects the locked image ramdisk and ZIP on the host.
 `make track-stable` admits eligible stable releases only after their complete
 artifact/source checks pass. Preview updates require an explicit reviewed pin.
-Build dependencies are host-only; Python is excluded from tablet payloads.
+The package delivers the pinned recovery images as data. Python is no longer
+an admission blocker; the image still needs its normal payload and device checks.
 
 [Delivery](docs/DELIVERY.md) · [Source offer](docs/SOURCE-OFFER.md) ·
-[Automation](docs/AUTOMATION.md) ·
+[Former automation](docs/AUTOMATION.md) ·
 [Recovery source](https://github.com/MCC45TR/orangefox_device_xiaomi_uke) ·
 [COPR](https://copr.fedorainfracloud.org/coprs/mcc45tr/uke-linux-test/)

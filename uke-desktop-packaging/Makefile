@@ -5,17 +5,13 @@ SHELL := /bin/bash
 PACKAGE ?= plymouth-uke
 outdir ?= $(CURDIR)/build/srpm/$(PACKAGE)
 validate:
-	jq -e '.device == "uke" and .hardware_tested == false and .python_target_payload == false' manifests/component.json >/dev/null
 	jq -e '(.commit|test("^[a-f0-9]{40}$$")) and (.sha256|test("^[a-f0-9]{64}$$")) and (.version|test("^[0-9]+[.][0-9]+$$")) and .hardware_specific==false and .hardware_tested==false' manifests/material-decoration.json >/dev/null
 	test "$$(sed -n 's/^%global upstream_commit //p' packaging/material-decoration/material-decoration.spec)" = "$$(jq -r .commit manifests/material-decoration.json)"
-	! grep -Eq '^(Requires|Recommends):.*(python|pypy|libpython|nabu)' packaging/*/*.spec
-	jq -e '.hardware_tested==false and (.packages|length==6) and all(.packages[]; (.sha256|test("^[a-f0-9]{64}$$")) and (.native_release|test("^[0-9]+([.][0-9]+)*$$")) and (.version|test("uke";"i")|not) and .name!="plasma-workspace" and .name!="dolphin")' manifests/native-runtime.json >/dev/null
-	test "$$(awk '/^Release:/ {print $$2}' packaging/libstdcxx-uke-runtime/libstdcxx-uke-runtime.spec)" = "$$(jq -r '.packages[]|select(.name=="libstdcxx-uke-runtime")|.native_release' manifests/native-runtime.json)%{?dist}"
-	test "$$(sha256sum src/native-runtime/fedora-exported-symbols.txt | cut -d ' ' -f1)" = "$$(jq -er .baseline.symbol_sha256 manifests/native-runtime.json)"
-	test "$$(wc -l < src/native-runtime/fedora-exported-symbols.txt)" = "$$(jq -er .baseline.symbol_count manifests/native-runtime.json)"
+	! grep -Eq '^(Requires|Recommends):.*nabu' packaging/*/*.spec
+	jq -e '.hardware_tested==false and (.packages|length==1) and .packages[0].name=="mesa" and (.packages[0].sha256|test("^[a-f0-9]{64}$$"))' manifests/native-runtime.json >/dev/null
 	bash -n src/native-runtime/prepare-source.sh
 srpm: validate
-	case '$(PACKAGE)' in material-decoration|plymouth-uke|at-spi2-core|gstreamer1|libaccounts-glib|libwacom|libstdcxx-uke-runtime|mesa) ;; *) echo 'Unsupported or withdrawn package' >&2; exit 1;; esac
+	case '$(PACKAGE)' in material-decoration|plymouth-uke|mesa) ;; *) echo 'Unsupported or withdrawn package' >&2; exit 1;; esac
 	top="$$(realpath -m "$(outdir)/rpmbuild")"
 	mkdir -p "$$top"/{BUILD,BUILDROOT,RPMS,SRPMS,SOURCES,SPECS}
 	if jq -e --arg name '$(PACKAGE)' 'any(.packages[]; .name==$$name)' manifests/native-runtime.json >/dev/null; then
@@ -57,7 +53,7 @@ track-stable:
 	mkdir -p "$$(dirname "$$archive")"
 	curl -fL --retry 3 "https://codeload.github.com/guiodic/material-decoration/tar.gz/$$commit" -o "$$archive.part"
 	tar -tzf "$$archive.part" > build/tracking/files.txt
-	! grep -E '(^/|(^|/)[.][.](/|$$)|[.]py(c|o)?$$)' build/tracking/files.txt
+	! grep -E '(^/|(^|/)[.][.](/|$$))' build/tracking/files.txt
 	tar -xOzf "$$archive.part" "material-decoration-$$commit/LICENSE" | grep -F 'GNU GENERAL PUBLIC LICENSE' >/dev/null
 	sha=$$(sha256sum "$$archive.part" | cut -d ' ' -f1)
 	jq --arg tag "$$tag" --arg commit "$$commit" --arg version "$$version" --arg sha "$$sha" '.tag=$$tag | .commit=$$commit | .version=$$version | .sha256=$$sha' manifests/material-decoration.json > manifests/material-decoration.json.part
@@ -65,6 +61,3 @@ track-stable:
 	mv manifests/material-decoration.json.part manifests/material-decoration.json
 	sed -i "s/^%global upstream_commit .*/%global upstream_commit $$commit/; s/^Version:.*/Version:        $$version/" packaging/material-decoration/material-decoration.spec
 	$(MAKE) validate
-.PHONY: test-native
-test-native:
-	bash tests/native-migrations.sh

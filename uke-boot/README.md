@@ -22,8 +22,7 @@ selector; a later foreign root argument overrides either one and is rejected.
 
 The independent Uke UEFI port, exact firmware RAM handoff, UFS DT/binding support
 and Android return remain separate prerequisites.
-Nabu binary/geometry defaults cannot supply them. Detailed records are in
-[private engineering documentation](https://github.com/MCC45TR/uke-linux-docs).
+Nabu binary/geometry defaults cannot supply them.
 
 Run `make validate`, `make test-native` or `make srpm`. Source archives remain in
 `referances/`; package/host output is ignored under `build/`.
@@ -81,14 +80,9 @@ development ACM shell. A production-equivalent runtime override stopped in
 42 ms in two physical trials while retaining the bounded identity/TTY gate.
 Startup still takes about 15 seconds; bidirectional ACM data remains unqualified.
 
-Release 6 removes the system-wide Python conflicts from both native packages.
-A development exception covers Python in signed, original Fedora KDE
-dependencies. A compliant Python-free KDE release remains blocked. Neither package contains or requires Python, and project startup,
-service and test helpers remain native or shell. The default Core image and
-early initramfs retain their independent no-Python audits. A KDE composer must
-record the original signed package closure and audit its extracted payload;
-this packaging change alone does not authorize arbitrary Python applications
-or establish a working graphical session.
+Fedora Python dependencies are allowed in the Core and desktop selections.
+Recovery and initramfs payloads require separate validation. Package
+installation alone does not establish a working graphical session.
 
 The host-only `src/audit-kernel-inputs.sh EXTRACTED_ROOT REPORT_JSON` checks the
 installed kernel configuration and exact Uke DTB, traverses enabled nodes and

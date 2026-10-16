@@ -1,7 +1,6 @@
 SHELL := /bin/bash
 .PHONY: validate srpm
 validate:
-	jq -e '.schema_version == 1 and .device == "uke" and .soc == "SM7675" and .hardware_tested == false and .python_target_payload == false and (.expected_packages | length > 0)' manifests/component.json >/dev/null
 	jq -e '.schema_version==1 and .device=="uke" and (.admitted_files|length)==0 and .firmware_blob_package_ready==false' manifests/firmware-lock.json >/dev/null
 	bash -n src/audit-admission.sh
 srpm:

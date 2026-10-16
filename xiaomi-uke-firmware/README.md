@@ -25,10 +25,10 @@ The first packaging target is Fedora Rawhide AArch64 in
 DEB and Alpine APK targets require their own native rules later.
 Unimplemented targets fail explicitly rather than producing placeholder RPMs.
 
-Use `make validate` to check this repository's manifest contract. Native device
+Use `make validate` for available source and package checks. Native device
 applications use C++; upstream C/assembly interfaces retain their original
-languages. Host automation uses Bash or Make. Python does not enter tablet
-payloads. Source archives belong in `referances/`, development in `src/`.
+languages. Host automation may use Python where appropriate. Source archives
+belong in `referances/`, development in `src/`.
 Public records exclude personal paths, unit identifiers and calibration data.
 
 The [firmware lock](manifests/firmware-lock.json) pins the inspected upstream
@@ -54,5 +54,5 @@ make audit-admission LOCK=reviewed-lock.json ARCHIVE=referances/source-tree REQU
 
 Generate `kernel-inputs.json` using the host-only audit in `uke-boot/src/`.
 An empty request list from an incomplete device tree does not prove that the
-physical tablet needs no firmware. Engineering lessons and raw evidence live
-in the private `uke-linux-docs` repository.
+physical tablet needs no firmware. Keep raw evidence in the parent repository's
+ignored `private/` directory.

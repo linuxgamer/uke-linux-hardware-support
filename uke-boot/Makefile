@@ -5,10 +5,9 @@ SHELL := /bin/bash
 version := 0.1.0
 outdir ?= $(CURDIR)/build/srpm
 validate:
-	jq -e '.schema_version == 1 and .device == "uke" and .soc == "SM7675" and .hardware_tested == false and .python_target_payload == false' manifests/component.json >/dev/null
 	jq -e '.device=="uke" and .partitions.esp=="esp" and .partitions.linux=="linux" and .filesystem_labels.esp=="UKE_ESP" and .filesystem_labels.linux=="UKE_LINUX" and .partition_offsets==null and .automatic_activation==false and .android_partition_writes==false and .uefi_binary_included==false and .handoff_accepted==false' src/profiles/image-contract.json >/dev/null
 	! grep -Eq '^%(post|pre|trigger|transfiletrigger)' packaging/uke-boot-integration.spec
-	! grep -Eq '^Requires:.*(python|pypy|nabu)' packaging/uke-boot-integration.spec
+	! grep -Eq '^Requires:.*nabu' packaging/uke-boot-integration.spec
 	bash -n src/audit-kernel-inputs.sh
 	sh -n src/uke-usb-network.sh
 	bash -n tests/startup-native.sh src/dracut/93uke-boot-guard/module-setup.sh

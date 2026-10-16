@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "device": "uke",
+  "soc": "SM7675",
+  "distribution": "fedora",
+  "release": "rawhide",
+  "architecture": "aarch64",
+  "profile": "phosh-original-fedora",
+  "package": "phosh-uke-meta",
+  "experimental": true,
+  "package_policy": "Original Fedora Phosh package and its distribution dependencies",
+  "login_manager_policy": "Preserve the existing login manager; no installation preset or session activation",
+  "automatic_session_or_display_configuration": false,
+  "boot_tested": false,
+  "hardware_tested": false,
+  "packages": ["phosh"]
+}

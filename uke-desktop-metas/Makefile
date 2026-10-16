@@ -6,10 +6,10 @@ version := 1.0.0
 package := $(notdir $(CURDIR))
 outdir ?= $(CURDIR)/build/srpm
 validate:
-	jq -e '.schema_version == 1 and .device == "uke" and .soc == "SM7675" and .hardware_tested == false and .python_target_payload == false' manifests/component.json >/dev/null
 	jq -e '.device == "uke" and .hardware_tested == false and .boot_tested == false' src/profile.json >/dev/null
-	if grep -Eq '^(Requires|Recommends):.*(python|pypy|libpython|nabu)' packaging/*.spec; then exit 1; fi
+	if grep -Eq '^(Requires|Recommends):.*nabu' packaging/*.spec; then exit 1; fi
 	bash tests/plasma-profile.sh
+	bash tests/other-desktop-profiles.sh
 test-native: validate
 srpm: validate
 	top="$$(realpath -m "$(outdir)/rpmbuild")"

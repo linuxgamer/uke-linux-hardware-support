@@ -9,8 +9,5 @@
   "hardware_tested": false,
   "firmware_delivery": "not-admitted",
   "boot_selection": "external-independent-qualification",
-  "runtime_policy": "native-and-shell-only-no-Python",
-  "native_runtime_capabilities": [
-    "senemos-native-runtime(libstdc++)"
-  ]
+  "runtime_policy": "Fedora distribution packages and their dependencies"
 }

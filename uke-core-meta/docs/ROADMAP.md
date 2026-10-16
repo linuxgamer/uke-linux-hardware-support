@@ -5,7 +5,6 @@
 3. Implement the intended packages and complete these gates:
 
 - Resolve only available Uke package families.
-- Audit the complete installed closure for Python.
 - Separate kernel package installation from boot selection.
 
 4. Build and audit AArch64 RPM/SRPM payloads and their complete dependency closure.

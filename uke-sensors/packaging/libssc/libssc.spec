@@ -1,6 +1,6 @@
 Name: libssc
 Version: 0.4.4
-Release: 2%{?dist}
+Release: 3%{?dist}
 Summary: Native Qualcomm Sensor Core client library
 License: GPL-3.0-or-later
 URL: https://codeberg.org/DylanVanAssche/libssc
@@ -16,8 +16,8 @@ BuildRequires: pkgconfig(libprotobuf-c) protobuf-c-compiler protobuf-compiler
 ExclusiveArch: aarch64
 
 %description
-Upstream SSC library and diagnostic client. Python mock servers are excluded
-from the runtime. Sensor availability and calibration depend on device firmware.
+Upstream SSC library and diagnostic client. Sensor availability and calibration
+depend on device firmware.
 
 %package devel
 Summary: Development files for libssc
@@ -40,7 +40,6 @@ DESTDIR=%{buildroot} meson install -C build --no-rebuild
 
 %check
 test -s build/src/libssc.so.2
-if find %{buildroot} -type f \( -name '*.py' -o -iname '*python*' \) | grep -q .; then exit 1; fi
 
 %files
 %license LICENSE
@@ -53,6 +52,9 @@ if find %{buildroot} -type f \( -name '*.py' -o -iname '*python*' \) | grep -q .
 %{_libdir}/pkgconfig/libssc.pc
 
 %changelog
+* Thu Oct 15 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 0.4.4-3
+- Drop the unnecessary Python file exclusion check.
+
 * Wed Oct 14 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 0.4.4-2
 - Publish the reviewed SSC preview with numeric RPM release metadata.
 
