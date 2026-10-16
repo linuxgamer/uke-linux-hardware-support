@@ -9,7 +9,7 @@ version=$(jq -er .version <<< "$profile")
 release=$(jq -er .release <<< "$profile")
 native_release=$(jq -er .native_release <<< "$profile")
 source_name=$(jq -er '.source_name // .name' <<< "$profile")
-archive="$project/referances/fedora-srpms/$source_name-$version-$release.src.rpm"
+archive="$project/private/fedora-srpms/$source_name-$version-$release.src.rpm"
 mkdir -p "$top"/{BUILD,BUILDROOT,RPMS,SRPMS,SOURCES,SPECS} "$(dirname "$archive")"
 if [[ ! -s $archive ]]; then
     curl -fL --retry 3 "https://kojipkgs.fedoraproject.org/packages/$source_name/$version/$release/src/$source_name-$version-$release.src.rpm" -o "$archive.part"

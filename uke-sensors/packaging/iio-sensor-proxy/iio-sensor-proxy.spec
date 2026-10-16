@@ -1,6 +1,6 @@
 Name: iio-sensor-proxy
 Version: 3.9
-Release: 6%{?dist}
+Release: 7%{?dist}
 Summary: Standard desktop sensor proxy with Qualcomm SSC support
 License: GPL-3.0-or-later
 URL: https://gitlab.freedesktop.org/hadess/iio-sensor-proxy
@@ -8,8 +8,7 @@ Source0: %{name}-%{version}.tar.bz2
 Source1: uke-ssc.cil
 Patch0: 0001-initialize-before-dbus-name.patch
 BuildRequires: gcc meson ninja-build pkgconf-pkg-config systemd-rpm-macros
-BuildRequires: python3 = 3.15.0-1.fc46
-BuildRequires: meson = 1.12.1-2.fc46
+BuildRequires: python3
 BuildRequires: pkgconfig(udev) pkgconfig(systemd) pkgconfig(gio-2.0)
 BuildRequires: pkgconfig(gudev-1.0) pkgconfig(polkit-gobject-1) pkgconfig(libssc)
 Requires: dbus
@@ -69,6 +68,9 @@ fi
 %{_datadir}/selinux/packages/uke-ssc.cil
 
 %changelog
+* Fri Oct 16 2026 Uke maintainers <213606978+linuxgamer@users.noreply.github.com> - 3.9-7
+- Use distribution build tools without exact Rawhide package pins.
+
 * Thu Oct 15 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 3.9-6
 - Drop the unnecessary Python file exclusion check.
 

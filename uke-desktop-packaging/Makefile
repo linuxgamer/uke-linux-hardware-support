@@ -22,7 +22,7 @@ srpm: validate
 	fi
 	if test '$(PACKAGE)' = material-decoration; then
 		commit=$$(jq -er .commit manifests/material-decoration.json)
-		archive="$(CURDIR)/referances/material-decoration/$$commit.tar.gz"
+		archive="$(CURDIR)/private/material-decoration/$$commit.tar.gz"
 		mkdir -p "$$(dirname "$$archive")"
 		if test ! -s "$$archive"; then
 			curl -fL --retry 3 "https://codeload.github.com/guiodic/material-decoration/tar.gz/$$commit" -o "$$archive.part"
@@ -49,7 +49,7 @@ track-stable:
 	commit=$$(jq -er '.sha | select(test("^[a-f0-9]{40}$$"))' build/tracking/commit.json)
 	version=$$(jq -er '.published_at' build/tracking/release.json | date -u -f - +%Y%m%d.%H%M%S)
 	[[ "$$version" > "$$(jq -er .version manifests/material-decoration.json)" ]] || { echo 'Stable source version did not advance' >&2; exit 1; }
-	archive="$(CURDIR)/referances/material-decoration/$$commit.tar.gz"
+	archive="$(CURDIR)/private/material-decoration/$$commit.tar.gz"
 	mkdir -p "$$(dirname "$$archive")"
 	curl -fL --retry 3 "https://codeload.github.com/guiodic/material-decoration/tar.gz/$$commit" -o "$$archive.part"
 	tar -tzf "$$archive.part" > build/tracking/files.txt

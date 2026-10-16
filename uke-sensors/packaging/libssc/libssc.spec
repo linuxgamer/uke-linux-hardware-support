@@ -1,6 +1,6 @@
 Name: libssc
 Version: 0.4.4
-Release: 3%{?dist}
+Release: 4%{?dist}
 Summary: Native Qualcomm Sensor Core client library
 License: GPL-3.0-or-later
 URL: https://codeberg.org/DylanVanAssche/libssc
@@ -8,9 +8,9 @@ Source0: libssc-v%{version}.tar.gz
 Patch0: 0001-optional-python-mocks.patch
 Patch1: 0002-report-qrtr-error.patch
 Patch2: 0003-gyroscope-cli-units.patch
-BuildRequires: gcc meson ninja-build pkgconf-pkg-config
-BuildRequires: python3 = 3.15.0-1.fc46
-BuildRequires: meson = 1.12.1-2.fc46
+BuildRequires: gcc ninja-build pkgconf-pkg-config
+BuildRequires: meson >= 1.4.0
+BuildRequires: python3
 BuildRequires: pkgconfig(glib-2.0) pkgconfig(gio-2.0) pkgconfig(qmi-glib)
 BuildRequires: pkgconfig(libprotobuf-c) protobuf-c-compiler protobuf-compiler
 ExclusiveArch: aarch64
@@ -52,6 +52,9 @@ test -s build/src/libssc.so.2
 %{_libdir}/pkgconfig/libssc.pc
 
 %changelog
+* Fri Oct 16 2026 Uke maintainers <213606978+linuxgamer@users.noreply.github.com> - 0.4.4-4
+- Use distribution build tools without exact Rawhide package pins.
+
 * Thu Oct 15 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 0.4.4-3
 - Drop the unnecessary Python file exclusion check.
 

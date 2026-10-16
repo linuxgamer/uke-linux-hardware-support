@@ -10,7 +10,7 @@ validate:
 	test "$$(awk '/^Version:/ {print $$2}' packaging/uke-orangefox-recovery.spec)" = "$(version)"
 srpm: validate
 	tag=$$(jq -er .tag manifests/release-lock.json)
-	cache="$(CURDIR)/referances/releases/$$tag"
+	cache="$(CURDIR)/private/releases/$$tag"
 	top="$$(realpath -m "$(outdir)/rpmbuild")"
 	mkdir -p "$$cache" "$$top"/{BUILD,BUILDROOT,RPMS,SRPMS,SOURCES,SPECS}
 	payload="$$top/payload/uke-orangefox-recovery-$(version)"
@@ -72,7 +72,7 @@ track-stable:
 
 audit: srpm
 	tag=$$(jq -er .tag manifests/release-lock.json)
-	cache="$(CURDIR)/referances/releases/$$tag"
+	cache="$(CURDIR)/private/releases/$$tag"
 	mkdir -p build/audit
 	# Android boot header v4 has a 4096-byte page and a kernel-size field at 8.
 	while IFS= read -r image; do

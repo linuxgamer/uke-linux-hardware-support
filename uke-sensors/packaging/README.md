@@ -1,6 +1,6 @@
 # SSC sensor packages
 
-14 October 2026. Fedora Rawhide AArch64 preview sources:
+16 October 2026. AArch64 sensor preview sources:
 
 - `libssc`: native SSC client library and diagnostic client.
 - `iio-sensor-proxy`: upstream desktop D-Bus API with SSC enabled and the
@@ -10,13 +10,14 @@
   storage. Symlink escapes and incomplete shell inputs are rejected.
 
 `make srpm PACKAGE=NAME` downloads the exact upstream archive below
-`referances/`, verifies SHA-256 and packages the attributed patches. COPR binary
+`private/`, verifies SHA-256 and packages the attributed patches. COPR binary
 workers build without network access. Upstream C code retains its native build;
 new protocol fixtures use C++ where applicable.
 
-Upstream Meson uses Python during the build. The current source recipe pins
-Python `3.15.0-1.fc46` and Meson `1.12.1-2.fc46`. Build dependencies do not
-automatically become target dependencies.
+Upstream Meson uses distribution Python and Meson during the build. `libssc`
+requires Meson 1.4 or newer; exact Rawhide package versions are not required.
+Build dependencies do not automatically become target dependencies. Fedora 44
+binary builds and physical sensor behavior remain unqualified.
 
 The file-service package requires separately admitted device-local firmware
 and configuration. Factory persist remains read-only; copies and any registry

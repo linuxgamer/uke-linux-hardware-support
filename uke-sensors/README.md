@@ -104,7 +104,7 @@ Unimplemented targets fail explicitly rather than producing placeholder RPMs.
 Use `make validate` for available source and package checks. Native device
 applications use C++; upstream C/assembly interfaces retain their original
 languages. Host automation may use Python where appropriate. Source archives belong in
-`referances/`, development in `src/`.
+`private/`, development in `src/`.
 Public records exclude personal paths, unit identifiers and calibration data.
 
 See [the roadmap](docs/ROADMAP.md).
@@ -121,7 +121,7 @@ The FastRPC fileservice candidate uses pinned original
 C sources. The read-only backend triggers a SEE registry assertion on Uke.
 The pinned write-capable comparison, identified in `manifests/hexagonrpc-source.json`,
 is qualified with descriptor, native format and OEM `/odm` mapping patches.
-Place its exact archive at `referances/hexagonrpc-write/source.tar.gz`, then run
+Place its exact archive at `private/hexagonrpc-write/source.tar.gz`, then run
 `make test-hexagonrpc` on the host. This exercises RPC, buffer, mapped-file and
 actual registry create/write/rename/read contracts without Python.
 Original `persist` stays read-only; SEE writes belong in a separate runtime cache

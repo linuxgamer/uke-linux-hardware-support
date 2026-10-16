@@ -11,7 +11,7 @@ Package builds and install, upgrade and removal tests require separate checks.
 No repository, kernel boot selection, Android partition or service preset is
 modified by this package's own payload; it has no scriptlets.
 
-Source archives stay in `referances/`.
+Source archives stay in `private/`.
 Nabu's core specification at commit `98188b595b42ba975f5bc238e596f330d3994ed8`
 was read as a role reference; its boot, calibration, panel, SSC and firmware
 payloads were not copied into this Uke package.

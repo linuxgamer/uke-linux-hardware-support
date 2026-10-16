@@ -1,5 +1,4 @@
-/referances/*
-!/referances/README.md
+/private/
 /build/
 /src/upstream/
 /artifacts/

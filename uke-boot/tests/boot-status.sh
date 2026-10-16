@@ -27,6 +27,13 @@ jq -e '.uke_root_command_line' build/tests/filesystem-label.json >/dev/null
 printf 'root=PARTLABEL=linux rw rootwait\n' > "$fixture/proc/cmdline"
 build/tests/uke-boot-status --root "$fixture" > build/tests/physical-partition-name.json
 jq -e '.uke_root_command_line' build/tests/physical-partition-name.json >/dev/null
+printf 'root=PARTLABEL=userdata rw rootwait\n' > "$fixture/proc/cmdline"
+build/tests/uke-boot-status --root "$fixture" > build/tests/userdata-partition-name.json
+jq -e '.uke_root_command_line and (.storage_verified|not) and (.hardware_acceptance_granted|not)' build/tests/userdata-partition-name.json >/dev/null
+printf 'root=PARTLABEL=userdata root=LABEL=foreign rw\n' > "$fixture/proc/cmdline"
+if build/tests/uke-boot-status --root "$fixture" >/dev/null; then exit 1; else test "$?" -eq 2; fi
+printf 'root=LABEL=foreign root=PARTLABEL=userdata rw\n' > "$fixture/proc/cmdline"
+build/tests/uke-boot-status --root "$fixture" >/dev/null
 printf 'root=PARTLABEL=linux root=LABEL=foreign rw\n' > "$fixture/proc/cmdline"
 if build/tests/uke-boot-status --root "$fixture" >/dev/null; then exit 1; else test "$?" -eq 2; fi
 printf 'root=LABEL=UKE_LINUX root=LABEL=foreign rw\n' > "$fixture/proc/cmdline"

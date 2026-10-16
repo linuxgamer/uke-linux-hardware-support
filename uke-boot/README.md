@@ -3,7 +3,7 @@
 Image input templates and a native read-only boot prerequisite inspector for
 Xiaomi Pad 7 / POCO Pad X1 (`uke`, SM7675).
 
-`uke-boot-integration` supplies the fastboot `esp`/`linux` role contract, EXT4/FAT
+`uke-boot-integration` supplies the legacy fastboot `esp`/`linux` role contract, EXT4/FAT
 fstab template, kernel command line and portable dracut settings. A host image
 composer must apply them explicitly. Package installation does not change
 fstab, generate an initramfs, select a boot entry, modify EFI variables or write
@@ -17,15 +17,18 @@ observations do not grant storage, peripheral or physical acceptance.
 Images use filesystem labels `UKE_ESP` and `UKE_LINUX`, with composer-selected
 sizes and no fixed GPT offsets. Target fastboot capacity, sector size and UEFI
 partition visibility still require inspection before installation. The native
-inspector accepts `root=PARTLABEL=linux`, `root=LABEL=UKE_LINUX` and the legacy `PARTLABEL=uke_linux`
-selector; a later foreign root argument overrides either one and is rejected.
+inspector accepts `root=PARTLABEL=userdata`, `root=PARTLABEL=linux`,
+`root=LABEL=UKE_LINUX` and the legacy `PARTLABEL=uke_linux` selector. A later
+foreign root argument overrides any of these and is rejected. Whole-`userdata`
+Linux composition replaces Android user data; accepting the selector does not
+verify partition identity, a backup or an Android recovery path.
 
 The independent Uke UEFI port, exact firmware RAM handoff, UFS DT/binding support
 and Android return remain separate prerequisites.
 Nabu binary/geometry defaults cannot supply them.
 
 Run `make validate`, `make test-native` or `make srpm`. Source archives remain in
-`referances/`; package/host output is ignored under `build/`.
+`private/`; package/host output is ignored under `build/`.
 
 On 2026-10-14, `uke-wifi-factory` passed host parser and wrong-partition rejection
 checks. Its C++ helper reads each tablet's own `persist/wlan/wlan_mac.bin` before

@@ -7,7 +7,7 @@ These rules apply to the workspace and every project-owned component. Read compo
 - Use C++ for new native device applications and recovery management tools. Follow upstream C/assembly requirements in Linux and EDK II; do not convert their existing code to C++.
 - Use a suitable language for host automation and device tools. Python is allowed in project code and tablet packages when it fits the task.
 - Keep Fedora package dependencies and upstream helpers intact unless a device-specific reason requires a change. Validate recovery and initramfs payloads for their own requirements.
-- Keep source archives below the owning component's `referances/`. Do not modify or execute donor scripts as a shortcut. Development happens in `src/`, patches, configuration and project code.
+- Keep source archives below the owning component's ignored `private/`. Do not modify or execute donor scripts as a shortcut. Development happens in `src/`, patches, configuration and project code.
 - Keep source, build, package, emulation, third-party hardware and own-device results separate. Never infer hardware success from a build.
 - Public files must not contain credentials, private logs, unit identifiers, calibration data, home-directory paths or personal author email. Use the account's GitHub no-reply email locally.
 - Preserve stock early firmware and a documented recovery route. Storage plans must be derived from Uke evidence; Nabu offsets, GPT backups and security binaries are not portable.

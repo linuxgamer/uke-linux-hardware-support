@@ -28,7 +28,7 @@ Unimplemented targets fail explicitly rather than producing placeholder RPMs.
 Use `make validate` for available source and package checks. Native device
 applications use C++; upstream C/assembly interfaces retain their original
 languages. Host automation may use Python where appropriate. Source archives
-belong in `referances/`, development in `src/`.
+belong in `private/`, development in `src/`.
 Public records exclude personal paths, unit identifiers and calibration data.
 
 The [firmware lock](manifests/firmware-lock.json) pins the inspected upstream
@@ -43,13 +43,13 @@ OS3.0.304.0 modem extraction, WPSS split-file hashes and O82 board candidates.
 It grants no firmware admission or redistribution permission. The ELF32 WPSS
 image fits the OEM reserved region, but exact board selection, Linux power/DMA
 bindings and physical firmware startup still require validation. Candidate
-bytes remain below this component's ignored `referances/` directory.
+bytes remain below this component's ignored `private/` directory.
 
 On the build host, run `make test-admission` for synthetic acceptance/rejection
 fixtures. For real candidate bytes, run:
 
 ```bash
-make audit-admission LOCK=reviewed-lock.json ARCHIVE=referances/source-tree REQUESTS=kernel-inputs.json
+make audit-admission LOCK=reviewed-lock.json ARCHIVE=private/source-tree REQUESTS=kernel-inputs.json
 ```
 
 Generate `kernel-inputs.json` using the host-only audit in `uke-boot/src/`.

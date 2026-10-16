@@ -29,7 +29,7 @@ Unimplemented targets fail explicitly rather than producing placeholder RPMs.
 Native device
 applications use C++; upstream C/assembly interfaces retain their original
 languages. Host automation may use Python where appropriate. Source archives belong in
-`referances/`, development in `src/`.
+`private/`, development in `src/`.
 Public records exclude personal paths, unit identifiers and calibration data.
 
 See [the roadmap](docs/ROADMAP.md).

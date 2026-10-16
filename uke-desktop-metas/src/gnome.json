@@ -3,7 +3,7 @@
   "device": "uke",
   "soc": "SM7675",
   "distribution": "fedora",
-  "release": "rawhide",
+  "release": "44",
   "architecture": "aarch64",
   "profile": "gnome-original-fedora",
   "package": "gnome-uke-meta",

@@ -1,7 +1,7 @@
 %global debug_package %{nil}
 Name: uke-desktop-metas
 Version: 1.0.0
-Release: 7%{?dist}
+Release: 8%{?dist}
 Summary: Explicit desktop package selections for the Uke development platform
 License: MIT
 URL: https://github.com/MCC45TR/uke-linux-hardware-support/tree/main/uke-desktop-metas
@@ -84,7 +84,7 @@ Requires: xsettingsd
 # END ORIGINAL FEDORA PLASMA PACKAGES
 
 %description -n kde-plasma-uke-meta
-An optional application selection for Fedora Rawhide AArch64. All desktop
+An optional application selection for Fedora 44 AArch64. All desktop
 applications remain the original Fedora packages, including their original
 distribution-provided helpers. The selection installs no Uke desktop fork,
 login-manager preset, display configuration or hardware startup service.
@@ -177,6 +177,9 @@ bash tests/other-desktop-profiles.sh
 %{_datadir}/senemos/uke/desktops/phosh.json
 
 %changelog
+* Fri Oct 16 2026 Uke maintainers <213606978+linuxgamer@users.noreply.github.com> - 1.0.0-8
+- Target Fedora 44 in the desktop profile metadata.
+
 * Fri Oct 16 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.0.0-7
 - Add optional Fedora GNOME selection and experimental Plasma Mobile and Phosh selections.
 
