@@ -42,6 +42,16 @@ printf 'root=LABEL=foreign root=LABEL=UKE_LINUX rw\n' > "$fixture/proc/cmdline"
 build/tests/uke-boot-status --root "$fixture" >/dev/null
 printf 'root=PARTLABEL=uke_linux rw rootwait\n' > "$fixture/proc/cmdline"
 build/tests/uke-boot-status --identity --root "$fixture" > build/tests/identity.json
+printf 'qcom,cliffs-mtp\0qcom,cliffs\0qcom,mtp\0' > "$fixture/sys/firmware/devicetree/base/compatible"
+printf 'Qualcomm Technologies, Inc. Uke based on SM8635\0' > "$fixture/sys/firmware/devicetree/base/model"
+build/tests/uke-boot-status --identity --root "$fixture" > build/tests/stock-identity.json
+jq -e '.uke_compatible and .selected_kernel_release' build/tests/stock-identity.json >/dev/null
+printf 'Qualcomm Technologies, Inc. Other based on SM8635\0' > "$fixture/sys/firmware/devicetree/base/model"
+if build/tests/uke-boot-status --identity --root "$fixture" >/dev/null; then exit 1; else test "$?" -eq 2; fi
+printf 'Qualcomm Technologies, Inc. Uke based on SM8635\0' > "$fixture/sys/firmware/devicetree/base/model"
+printf 'qcom,cliffs-mtp\0qcom,mtp\0' > "$fixture/sys/firmware/devicetree/base/compatible"
+if build/tests/uke-boot-status --identity --root "$fixture" >/dev/null; then exit 1; else test "$?" -eq 2; fi
+rm "$fixture/sys/firmware/devicetree/base/model"
 printf 'xiaomi,nabu\0qcom,sm8150\0' > "$fixture/sys/firmware/devicetree/base/compatible"
 if build/tests/uke-boot-status --root "$fixture" > build/tests/foreign.json; then exit 1; else test "$?" -eq 2; fi
 if build/tests/uke-boot-status --identity --root "$fixture" >/dev/null; then exit 1; else test "$?" -eq 2; fi

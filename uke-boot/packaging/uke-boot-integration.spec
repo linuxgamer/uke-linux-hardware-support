@@ -1,7 +1,7 @@
 %global debug_package %{nil}
 Name: uke-boot-integration
 Version: 0.1.0
-Release: 13%{?dist}
+Release: 14%{?dist}
 Summary: Uke image configuration and read-only boot prerequisite inspection
 License: MIT
 URL: https://github.com/MCC45TR/uke-linux-hardware-support/tree/main/uke-boot
@@ -130,6 +130,9 @@ ln -s ../../../usr/bin/uke-reboot %{buildroot}/usr/local/sbin/reboot
 %{_prefix}/lib/dracut/modules.d/93uke-boot-guard
 
 %changelog
+* Sat Oct 17 2026 Uke maintainers <213606978+linuxgamer@users.noreply.github.com> - 0.1.0-14
+- Recognize the reviewed OEM Uke device-tree identity during stock boot.
+
 * Fri Oct 16 2026 Uke maintainers <213606978+linuxgamer@users.noreply.github.com> - 0.1.0-13
 - Accept an explicitly selected userdata Linux root in read-only boot inspection.
 

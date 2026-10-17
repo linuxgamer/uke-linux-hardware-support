@@ -1,7 +1,7 @@
 %global debug_package %{nil}
 Name: uke-desktop-metas
 Version: 1.0.0
-Release: 8%{?dist}
+Release: 9%{?dist}
 Summary: Explicit desktop package selections for the Uke development platform
 License: MIT
 URL: https://github.com/MCC45TR/uke-linux-hardware-support/tree/main/uke-desktop-metas
@@ -51,7 +51,7 @@ Requires: kwalletmanager5
 Requires: kwin
 Requires: kwrite
 Requires: lcms2
-Requires: libcanberra-backend-pulse
+Requires: libcanberra-gtk3
 Requires: mesa-vulkan-drivers
 Requires: nano
 Requires: okular
@@ -177,6 +177,9 @@ bash tests/other-desktop-profiles.sh
 %{_datadir}/senemos/uke/desktops/phosh.json
 
 %changelog
+* Sat Oct 17 2026 Uke maintainers <213606978+linuxgamer@users.noreply.github.com> - 1.0.0-9
+- Select the Fedora 44 libcanberra GTK3 package available for AArch64.
+
 * Fri Oct 16 2026 Uke maintainers <213606978+linuxgamer@users.noreply.github.com> - 1.0.0-8
 - Target Fedora 44 in the desktop profile metadata.
 

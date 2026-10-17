@@ -30,7 +30,7 @@
     "dolphin", "dolphin-plugins", "fastfetch", "filesystem", "firewalld", "glibc-all-langpacks",
     "gstreamer1-plugins-good-qt6", "gwenview", "gzip", "kde-connect", "kde-gtk-config",
     "kdeplasma-addons", "kdialog", "kinfocenter", "kio-admin", "konsole", "kscreen",
-    "kwalletmanager5", "kwin", "kwrite", "lcms2", "libcanberra-backend-pulse",
+    "kwalletmanager5", "kwin", "kwrite", "lcms2", "libcanberra-gtk3",
     "mesa-vulkan-drivers", "nano", "okular", "pipewire-utils", "plasma-camera",
     "plasma-desktop", "plasma-discover", "plasma-discover-notifier",
     "plasma-discover-offline-updates", "plasma-discover-packagekit", "plasma-keyboard",

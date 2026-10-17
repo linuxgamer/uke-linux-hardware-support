@@ -1,21 +1,6 @@
 # Uke Linux hardware support
 
-Platform packages and device integration for Xiaomi Pad 7 and POCO Pad X1
-(`uke`, SM7675). All twelve components live in this repository as ordinary
-folders, with their own sources and packaging rules.
-
-## Status — 14 October 2026
-
-Boot and USB debug packages are available through the development COPR. The
-Fedora development installation reaches a software KDE desktop and Wi-Fi SSH.
-Experimental native tools return motion and rear-light samples. Finger input
-and ten simultaneous touch contacts worked in the 14 October tablet test.
-Power and volume buttons and manual backlight control also worked in that test.
-Backlight adjustment is linear and difficult to use comfortably; a logarithmic
-curve is planned. Permanent desktop sensor support remains incomplete.
-These are results from specific development tests, not a complete hardware
-qualification. A folder in this repository does not imply a working package or
-device feature.
+Platform packages and device integration for `uke`. All twelve components live in this repository as ordinary folders, with their own sources and packaging rules.
 
 ## Components
 
@@ -34,9 +19,7 @@ device feature.
 | [plasma-uke-kcm](plasma-uke-kcm) | Planned device settings panel |
 | [uke-hardware-provenance](uke-hardware-provenance) | Hardware source records |
 
-KDE applications come from the distribution. They are not cloned, forked or
-rebuilt as Uke applications. Fedora Python dependencies are allowed; desktop
-package composition and tablet behavior still need separate validation.
+Unlike upstream, KDE applications come from the distribution and Fedora Python dependencies are allowed.
 
 ## Checks and builds
 

@@ -60,11 +60,19 @@ int main(int argc, char** argv) {
         if (cdc && identity) throw std::runtime_error("Choose one inspection mode");
         if (!fs::is_directory(root)) throw std::runtime_error("Inspection root is missing");
         const auto dt = read(root / "sys/firmware/devicetree/base/compatible");
+        const auto model = read(root / "sys/firmware/devicetree/base/model");
         auto release = read(root / "proc/sys/kernel/osrelease");
         if (!release.empty() && release.back() == '\n') release.pop_back();
         const auto cmdline = read(root / "proc/cmdline");
         const bool efi = present(root, "sys/firmware/efi");
-        const bool uke = compatible(dt, "xiaomi,uke") && compatible(dt, "qcom,sm7675");
+        const bool upstream_uke = compatible(dt, "xiaomi,uke") && compatible(dt, "qcom,sm7675");
+        // The reviewed OEM Uke DT identifies the same board by model, while
+        // its root compatible list still uses Qualcomm's Cliffs MTP strings.
+        constexpr char stock_model[] = "Qualcomm Technologies, Inc. Uke based on SM8635";
+        const bool stock_uke = compatible(dt, "qcom,cliffs-mtp") &&
+                               compatible(dt, "qcom,cliffs") &&
+                               model == std::string(stock_model, sizeof(stock_model));
+        const bool uke = upstream_uke || stock_uke;
         const bool kernel = release == "7.2.9-senemos-uke" || release == "7.2.10-senemos-uke";
         auto boolean = [](bool value) { return value ? "true" : "false"; };
         if (identity) {
