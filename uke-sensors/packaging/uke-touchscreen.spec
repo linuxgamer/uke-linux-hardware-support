@@ -6,7 +6,7 @@
 %endif
 Name: uke-touchscreen
 Version: 0.1.0
-Release: 15%{?dist}
+Release: 16%{?dist}
 Summary: Native Novatek NT36532 touchscreen input for Xiaomi Uke
 License: GPL-3.0-or-later AND Apache-2.0
 ExclusiveArch: aarch64

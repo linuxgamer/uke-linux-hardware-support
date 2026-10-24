@@ -250,9 +250,9 @@ static void load_normal(int fd, std::span<const std::uint8_t> data) {
     normal_image(data);
     normal_write(fd,0x1fb43e,Bytes{0x69}); pause_ms(5);
     normal_write(fd,0x1fb528,Bytes{0,0,0}); normal_write(fd,0x1fb518,Bytes{0xd7,0x74,1});
-    normal_write(fd,0x1fb500,Bytes{0xf0,0xd7,0xbd,0xe4});
+    normal_write(fd,0x1fb500,data.subspan(24,4));
     normal_write(fd,0x1fb52c,Bytes{0,0,0x10}); normal_write(fd,0x1fb530,Bytes{0x9f,0x40,1});
-    normal_write(fd,0x1fb504,Bytes{0x47,0x52,0x49,0x89});
+    normal_write(fd,0x1fb504,data.subspan(28,4));
     normal_write(fd,0x1fc925,Bytes{0x56});
     for(const auto &b : banks)
         for(unsigned offset=0;offset<b.size;) {
