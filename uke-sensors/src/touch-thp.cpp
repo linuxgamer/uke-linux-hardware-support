@@ -74,8 +74,10 @@ static std::filesystem::path touch_panel_provider(const std::filesystem::path &r
     if(!std::filesystem::exists(root)) return selected;
     for(const auto &entry:std::filesystem::directory_iterator(root)) {
         const auto state=entry.path()/"touch_reset_state";
+        const auto id=(entry.path()/"of_node/compatible").string();
         if(!std::filesystem::exists(state) ||
-           !compatible((entry.path()/"of_node/compatible").c_str(),"xiaomi,o82-42-02-0b")) continue;
+           (!compatible(id.c_str(),"xiaomi,o82-42-02-0b") &&
+            !compatible(id.c_str(),"xiaomi,o82-36-02-0a"))) continue;
         require(selected.empty(),"Ambiguous O82 panel reset provider");
         selected=state;
     }

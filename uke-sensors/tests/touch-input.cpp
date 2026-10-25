@@ -101,6 +101,11 @@ int main() {
     write_file(panel/"of_node/compatible",panel_name);
     write_file(state,std::string("7 1\n"));
     assert(touch_panel_provider(panels)==state);
+    write_file(panel/"of_node/compatible",std::string("xiaomi,o82-36-02-0a\0",20));
+    assert(touch_panel_provider(panels)==state);
+    write_file(panel/"of_node/compatible",std::string("xiaomi,o82-37-02-0a\0",20));
+    assert(touch_panel_provider(panels).empty());
+    write_file(panel/"of_node/compatible",panel_name);
     const int state_fd=open(state.c_str(),O_RDONLY|O_CLOEXEC);assert(state_fd>=0);
     assert(lseek(state_fd,1,SEEK_SET)==1);
     assert((touch_panel_state(state_fd)==TouchPanelState{7,true}));
