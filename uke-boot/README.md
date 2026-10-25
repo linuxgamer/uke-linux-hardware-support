@@ -243,6 +243,12 @@ preserving the original environment options and service sandbox. It does not
 write the RTC or add another clock daemon. Original chronyd remains the single
 enabled time authority on the tested installation.
 
+On the Fedora 44 KDE trial of 25 October, the Uke restore service set the
+saved clock, but `chronyd -s` then moved it back to the RTC's 1970 date.
+Release 1.5.2-3 removes `-s` so chronyd starts from the restored clock and
+can still synchronize with NTP. An offline reboot with this release has not
+yet been tested on the tablet.
+
 20 October 2026: boot prerequisite reporting recognizes the explicit userdata
 root selector alongside the existing Linux selectors. This is read-only status;
 physical storage checks and userdata kernel activation remain separate. The

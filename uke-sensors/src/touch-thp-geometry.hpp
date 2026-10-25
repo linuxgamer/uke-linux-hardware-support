@@ -1,14 +1,16 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
+#include "touch-panel.hpp"
 #include "upstream/nt36532-thp/nvt_touch_core.hpp"
 #include <algorithm>
 #include <fstream>
 #include <iterator>
+#include <optional>
 #include <openssl/sha.h>
 #include <sstream>
 #include <stdexcept>
 #include <string>
-inline nvt::Geometry touch_geometry(const char *path) {
+inline nvt::Geometry touch_geometry(const char *path, std::optional<NormalPanel> expected_panel=std::nullopt) {
     std::ifstream file(path,std::ios::binary);
     std::string data(36229,'\0');
     file.read(data.data(),data.size());
@@ -26,6 +28,8 @@ inline nvt::Geometry touch_geometry(const char *path) {
         0x4d,0xe4,0x2f,0x9c,0x27,0x84,0x46,0x95,0xf1,0xb7,0x89,0xe5,0x9f,0x04,0x95,0x50,
         0xd2,0x83,0xa5,0x1b,0xb0,0xa8,0xa1,0xd9,0x31,0x9f,0x8a,0x2b,0xa5,0x66,0x6a,0x33};
     if(digest!=csot && digest!=tm) throw std::runtime_error("O82 configuration digest mismatch");
+    if(expected_panel && digest!=(*expected_panel==NormalPanel::Csot ? csot : tm))
+        throw std::runtime_error("O82 configuration does not match selected touch panel");
     nvt::Geometry geometry; geometry.width=32000; geometry.height=21360;
     for(unsigned axis=0;axis<2;axis++) {
         const std::string key=axis ? "default_mapping_y={" : "default_mapping_x={";

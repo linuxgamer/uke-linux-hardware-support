@@ -83,6 +83,8 @@ int main() {
     assert(panel_id_matches(NormalPanel::Csot,true));
     assert(!panel_id_matches(NormalPanel::Tm,true));
     assert(!panel_id_matches(NormalPanel::Csot,false));
+    assert(touch_firmware_directory(root,NormalPanel::Tm)==root/"tm");
+    assert(touch_firmware_directory(root,NormalPanel::Csot)==root/"csot");
     std::filesystem::copy(controllers/"gpiochip42",controllers/"gpiochip43",std::filesystem::copy_options::recursive);
     bool duplicate=false; try{touch_gpio(device,controllers);}catch(const std::exception&){duplicate=true;}
     assert(duplicate); std::filesystem::remove_all(controllers/"gpiochip43");

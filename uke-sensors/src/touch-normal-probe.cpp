@@ -2,6 +2,7 @@
 // Normal RAM-download protocol: pinned MiCode Pipa/Piano sources, checked against the Uke OEM module.
 #define UKE_TOUCH_TEST
 #include "touch-readonly.cpp"
+#include "touch-panel.hpp"
 #include <chrono>
 #include <openssl/sha.h>
 #include <span>
@@ -19,7 +20,6 @@ static unsigned word(std::span<const std::uint8_t> data, unsigned offset) {
     return unsigned(data[offset]) | (unsigned(data[offset+1])<<8) |
            (unsigned(data[offset+2])<<16) | (unsigned(data[offset+3])<<24);
 }
-enum class NormalPanel { Csot, Tm };
 static NormalPanel normal_image(std::span<const std::uint8_t> data) {
     require(data.size()==245760, "Unexpected normal firmware length");
     require(word(data,0)==0x200 && word(data,4)==0 && word(data,8)==0x174d7 &&

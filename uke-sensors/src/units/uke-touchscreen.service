@@ -1,8 +1,10 @@
 [Unit]
 Description=Novatek NT36532 touchscreen input for Xiaomi Uke
 After=systemd-modules-load.service systemd-udev-trigger.service
-ConditionFileNotEmpty=/var/lib/uke-touch/normal.bin
-ConditionFileNotEmpty=/var/lib/uke-touch/config.ini
+ConditionFileNotEmpty=/var/lib/uke-touch/tm/normal.bin
+ConditionFileNotEmpty=/var/lib/uke-touch/tm/config.ini
+ConditionFileNotEmpty=/var/lib/uke-touch/csot/normal.bin
+ConditionFileNotEmpty=/var/lib/uke-touch/csot/config.ini
 ConditionFileNotEmpty=/var/lib/uke-touch/reference.bin
 StartLimitIntervalSec=60
 StartLimitBurst=10

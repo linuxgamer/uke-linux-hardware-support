@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 .SHELLFLAGS := -Eeuo pipefail -c
 .ONESHELL:
-.PHONY: validate srpm test-native test-cache test-hexagonrpc test-touch-normal test-touch-thp touchscreen-rpm
+.PHONY: validate srpm test-native test-cache test-hexagonrpc test-touch-normal test-touch-panel test-touch-thp touchscreen-rpm
 PACKAGE ?= libssc
 outdir ?= $(CURDIR)/build/srpm/$(PACKAGE)
 validate:
@@ -114,6 +114,7 @@ test-touch-normal:
 # Laboratory only: private OEM calibration/reference packets are not RPM payloads.
 test-touch-thp:
 	test -n "$(TOUCH_CORE_REFERENCE)" -a -n "$(TOUCH_FRAME_REFERENCE)" -a -n "$(TOUCH_CONFIG)"
+	$(MAKE) test-touch-panel
 	bash src/prepare-touch-core.sh "$(TOUCH_CORE_REFERENCE)"
 	mkdir -p build
 	$(CXX) -std=c++20 -O2 -Wall -Wextra -Werror tests/touch-assignment.cpp -o build/touch-assignment-contract
@@ -125,6 +126,11 @@ test-touch-thp:
 	$(CXX) -std=c++20 -O2 -Wall -Wextra -Werror tests/touch-replay.cpp src/upstream/nt36532-thp/nvt_touch_core.cpp -lcrypto -o build/touch-replay
 	bash tests/touch-replay.sh ./build/touch-replay "$(TOUCH_CONFIG)" "$(TOUCH_FRAME_REFERENCE)"
 	$(CXX) -std=c++20 -O2 -Wall -Wextra -Werror src/touch-thp.cpp src/upstream/nt36532-thp/nvt_touch_core.cpp -lcrypto -lsystemd -o build/uke-touch-thp
+
+test-touch-panel:
+	contract=$$(mktemp); trap 'rm -f -- "$$contract"' EXIT
+	$(CXX) -std=c++20 -O2 -Wall -Wextra -Werror tests/touch-config-panel.cpp -lcrypto -o "$$contract"
+	"$$contract" ../xiaomi-uke-firmware/payload/oem-os3.0.304.0/touch/tm/config.ini ../xiaomi-uke-firmware/payload/oem-os3.0.304.0/touch/csot/config.ini
 
 # Local-only touch data RPM; requires the verified private blob tree.
 .PHONY: local-touch-data

@@ -186,7 +186,7 @@ static std::string touch_gpio(const std::filesystem::path &device,
 static bool panel_id_matches(NormalPanel panel,bool high) {
     return high == (panel==NormalPanel::Csot);
 }
-static void touch_panel_id_ready(const std::string &controller,NormalPanel panel) {
+static NormalPanel touch_panel_id(const std::string &controller) {
     const int chip=open(controller.c_str(),O_RDONLY|O_CLOEXEC);
     require(chip>=0,"Touch panel-ID controller unavailable");
     gpio_v2_line_info info{}; info.offset=26;
@@ -200,7 +200,15 @@ static void touch_panel_id_ready(const std::string &controller,NormalPanel panel
     const bool read=ioctl(request.fd,GPIO_V2_LINE_GET_VALUES_IOCTL,&values)==0;
     const bool high=values.bits&1;
     close(request.fd);
-    require(read && panel_id_matches(panel,high),"Touch panel-ID does not match pinned firmware; no output is driven");
+    require(read,"Touch panel-ID input read failed");
+    return high ? NormalPanel::Csot : NormalPanel::Tm;
+}
+static void touch_panel_id_ready(const std::string &controller,NormalPanel panel) {
+    require(touch_panel_id(controller)==panel,
+            "Touch panel-ID changed before firmware download; no output is driven");
+}
+static std::filesystem::path touch_firmware_directory(const std::filesystem::path &root,NormalPanel panel) {
+    return root/(panel==NormalPanel::Csot ? "csot" : "tm");
 }
 static int touch_irq(const std::string &controller) {
     const int chip=open(controller.c_str(),O_RDONLY|O_CLOEXEC); require(chip>=0,"GPIO controller unavailable");
@@ -349,10 +357,13 @@ int main(int argc,char **argv) {
         require(bool(ceiling.read(reinterpret_cast<char *>(speed.data()),speed.size())) && ceiling.peek()==EOF &&
                 speed==std::array<unsigned char,4>{1,0x24,0xf8,0},"Unqualified SPI ceiling");
         const auto controller=touch_gpio(device);
-        const auto data=std::filesystem::path(installed ? "/var/lib/uke-touch" : "/run");
-        geometry=touch_geometry((data/(installed ? "config.ini" : "uke-touch-config.ini")).c_str());
+        const auto selected_panel=installed ? touch_panel_id(controller) : NormalPanel::Csot;
+        const auto base=std::filesystem::path(installed ? "/var/lib/uke-touch" : "/run");
+        const auto data=installed ? touch_firmware_directory(base,selected_panel) : base;
+        geometry=touch_geometry((data/(installed ? "config.ini" : "uke-touch-config.ini")).c_str(),
+                                selected_panel);
         nvt::TouchCore core(geometry);
-        std::ifstream reference(data/(installed ? "reference.bin" : "uke-touch-reference.bin"),std::ios::binary);
+        std::ifstream reference(base/(installed ? "reference.bin" : "uke-touch-reference.bin"),std::ios::binary);
         std::array<std::uint8_t,uke_touch::frame_size> reference_data{};
         require(bool(reference.read(reinterpret_cast<char *>(reference_data.data()),reference_data.size())) &&
                 reference.peek()==EOF,"No qualified reference packet");
@@ -363,9 +374,9 @@ int main(int argc,char **argv) {
         if(installed) {
             image.resize(245760); std::ifstream file(data/"normal.bin",std::ios::binary);
             require(bool(file.read(reinterpret_cast<char *>(image.data()),image.size())) && file.peek()==EOF,
-                    "Pinned private normal firmware unavailable");
-            const auto panel=normal_image(image);
-            touch_panel_id_ready(controller,panel);
+                    "Pinned normal firmware unavailable");
+            require(normal_image(image)==selected_panel,"Touch panel-ID does not match pinned firmware");
+            touch_panel_id_ready(controller,selected_panel);
             if(std::filesystem::exists(device/"driver")) {
                 require(std::filesystem::canonical(device/"driver").filename()=="spidev",
                         "Touch transport already belongs to another driver");
