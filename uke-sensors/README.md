@@ -80,8 +80,9 @@ An installed package is not proof of working touch.
 with GPIO 26 low. Fedora 44 images now select the pinned TM firmware and config
 by default; the daemon checks that the GPIO level matches the selected image.
 The TM firmware and firmware-framebuffer handoff produced touch input in KDE on
-the tablet. The [native O82-36 trial](docs/lessons/TOUCH-2026-10-24-NATIVE-O82-36.md)
-needs its own test after the reset-provider correction.
+the tablet. On 25 October, the [native O82-36 trial](docs/lessons/TOUCH-2026-10-24-NATIVE-O82-36.md)
+also produced finger input in KDE after the reset-provider correction and an
+independent ext4 repair. Panel-reset recovery still needs a tablet test.
 
 17 October 2026: the native-panel candidate requires the O82 driver's
 `touch_reset_state` generation/ready interface. It waits for panel initialization,
