@@ -1,0 +1,15 @@
+[Unit]
+Description=Restore last known Uke clock time
+DefaultDependencies=no
+After=local-fs.target
+Before=sysinit.target chronyd.service shutdown.target
+Conflicts=shutdown.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/libexec/senemos-uke/uke-clock-state restore
+ExecStop=/usr/libexec/senemos-uke/uke-clock-state save
+
+[Install]
+WantedBy=sysinit.target

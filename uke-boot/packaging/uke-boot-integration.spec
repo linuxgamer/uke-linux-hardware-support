@@ -6,7 +6,7 @@
 %endif
 Name: uke-boot-integration
 Version: 1.5.2
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: Uke image configuration and native boot integration
 License: MIT AND GPL-3.0-or-later
 URL: https://github.com/MCC45TR/uke-linux-hardware-support/tree/main/uke-boot
@@ -110,6 +110,7 @@ durable; classification does not write block devices or select a boot slot.
 %setup -q
 %build
 %{__cxx} %{optflags} -std=c++17 -ffile-prefix-map=$PWD=. src/boot-status.cpp -o uke-boot-status %{build_ldflags}
+%{__cxx} %{optflags} -std=c++17 -Wall -Wextra -Werror -ffile-prefix-map=$PWD=. src/clock-state.cpp -o uke-clock-state %{build_ldflags}
 %{__cxx} %{optflags} -std=c++17 -Wall -Wextra -Werror -ffile-prefix-map=$PWD=. src/usb-port.cpp -o uke-usb-port $(pkg-config --cflags --libs libsystemd libdrm) %{build_ldflags}
 %{__cxx} %{optflags} -std=c++17 -ffile-prefix-map=$PWD=. src/esp32-cdc.cpp -o uke-esp32-cdc %{build_ldflags}
 %{__cxx} %{optflags} -std=c++17 -Wall -Wextra -Werror -ffile-prefix-map=$PWD=. src/wifi-factory.cpp -o uke-wifi-factory %{build_ldflags}
@@ -142,6 +143,10 @@ bash tests/native-profile-ready.sh ./native-profile-ready-contract
 timeout --signal=KILL 25 umockdev-wrapper ./native-profile-udev-contract "$PWD/tests/native-profile-udev.sh"
 %install
 install -Dm644 src/units/70-uke-chronyd-clock.conf %{buildroot}%{_unitdir}/chronyd.service.d/70-uke-clock.conf
+install -Dm755 uke-clock-state %{buildroot}%{_libexecdir}/senemos-uke/uke-clock-state
+install -Dm644 src/units/uke-clock-restore.service %{buildroot}%{_unitdir}/uke-clock-restore.service
+install -Dm644 src/units/uke-clock-save.service %{buildroot}%{_unitdir}/uke-clock-save.service
+install -Dm644 src/units/uke-clock-save.timer %{buildroot}%{_unitdir}/uke-clock-save.timer
 install -Dm755 uke-boot-status %{buildroot}%{_bindir}/uke-boot-status
 install -Dm755 uke-native-power-profile-ready %{buildroot}%{_libexecdir}/senemos-uke/uke-native-power-profile-ready
 install -Dm644 src/units/uke-native-power-profile-ready.service %{buildroot}%{_unitdir}/uke-native-power-profile-ready.service
@@ -243,6 +248,10 @@ fi
 %{_unitdir}/uke-usb-observer.service
 %{_datadir}/dbus-1/system.d/org.senemos.Uke.USB1.conf
 %{_unitdir}/chronyd.service.d/70-uke-clock.conf
+%{_libexecdir}/senemos-uke/uke-clock-state
+%{_unitdir}/uke-clock-restore.service
+%{_unitdir}/uke-clock-save.service
+%{_unitdir}/uke-clock-save.timer
 %{_presetdir}/80-uke-boot.preset
 %{_datadir}/senemos/boot/uke
 %{_unitdir}/uke-cdc-acm.service
@@ -290,6 +299,9 @@ fi
 %{_prefix}/lib/dracut/modules.d/93uke-boot-guard
 
 %changelog
+* Sun Oct 25 2026 Uke Fedora Maintainers <linuxgamer@users.noreply.github.com> - 1.5.2-2
+- Restore a saved clock floor before desktop startup and save it periodically.
+
 * Thu Oct 22 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.5.2-1
 - Advance the coherent hardware cohort for the panel-off touchscreen startup fix.
 

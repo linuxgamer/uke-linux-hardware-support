@@ -22,15 +22,15 @@
       "name": "uke-hw",
       "version": "1.5.2",
       "requires": [
-        "uke-boot-integration = 1.5.2-1%{?dist}",
-        "uke-installation-profile = 1.5.2-1%{?dist}",
-        "uke-kernel-update = 1.5.2-1%{?dist}",
+        "uke-boot-integration = 1.5.2-2%{?dist}",
+        "uke-installation-profile = 1.5.2-2%{?dist}",
+        "uke-kernel-update = 1.5.2-2%{?dist}",
         "fastfetch"
       ],
       "suggests": [
         "uke-touchscreen"
       ],
-      "release": 1,
+      "release": 2,
       "watch_paths": [
         "uke-boot/src",
         "uke-boot/packaging/uke-installation-profile.spec",

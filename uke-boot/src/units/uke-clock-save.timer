@@ -1,0 +1,10 @@
+[Unit]
+Description=Save Uke clock time every five minutes
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=5min
+Unit=uke-clock-save.service
+
+[Install]
+WantedBy=timers.target
