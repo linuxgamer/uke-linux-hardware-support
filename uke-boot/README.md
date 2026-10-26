@@ -246,8 +246,12 @@ enabled time authority on the tested installation.
 On the Fedora 44 KDE trial of 25 October, the Uke restore service set the
 saved clock, but `chronyd -s` then moved it back to the RTC's 1970 date.
 Release 1.5.2-3 removes `-s` so chronyd starts from the restored clock and
-can still synchronize with NTP. An offline reboot with this release has not
-yet been tested on the tablet.
+can still synchronize with NTP. On a fresh offline Fedora 44 image, the owner
+observed 18 October 04:05 local time after about five minutes of uptime. This
+matches the 18 October 00:00 UTC source-date floor; it prevents a 1970 clock
+but cannot supply the current date without a saved time or working RTC. Flashing
+userdata removes the saved clock. A clean offline reboot after NTP sync still
+needs a tablet test, and elapsed time while powered off remains unqualified.
 
 20 October 2026: boot prerequisite reporting recognizes the explicit userdata
 root selector alongside the existing Linux selectors. This is read-only status;
