@@ -46,3 +46,11 @@ Boot integration `1.5.0` builds this unchanged native bridge and replaces the
 separate Bluetooth RPM. Source, tests and license remain here. Its source recipe
 reuses the family's state-preservation fragment; enablement is not inferred from
 an installed package. The old standalone spec is retained as historical source.
+
+26 October 2026: Fedora 44 package release `1.5.2-4` adds
+`CAP_DAC_READ_SEARCH` to the factory-address oneshot, following upstream
+`f7a42ee`. Root with only the network capabilities may be unable to search
+Android-owned `persist/bluetooth`; the new capability permits reading without
+granting write access. The service keeps its read-only mount and helper input
+checks. Host packaging checks are separate from tablet startup and pairing;
+issue #5 still needs a journal from the affected tablet.

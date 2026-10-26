@@ -18,7 +18,8 @@ PrivateDevices=yes
 BindReadOnlyPaths=/dev/disk/by-partlabel/persist
 ReadOnlyPaths=/mnt/vendor/persist
 NoNewPrivileges=yes
-CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_RAW
+# Android owns the private directory; allow read/search without write access.
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_RAW CAP_DAC_READ_SEARCH
 RestrictAddressFamilies=AF_BLUETOOTH
 
 [Install]

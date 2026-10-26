@@ -6,7 +6,7 @@
 %endif
 Name: uke-boot-integration
 Version: 1.5.2
-Release: 3%{?dist}
+Release: 4%{?dist}
 Summary: Uke image configuration and native boot integration
 License: MIT AND GPL-3.0-or-later
 URL: https://github.com/MCC45TR/uke-linux-hardware-support/tree/main/uke-boot
@@ -299,6 +299,9 @@ fi
 %{_prefix}/lib/dracut/modules.d/93uke-boot-guard
 
 %changelog
+* Mon Oct 26 2026 Uke Fedora Maintainers <linuxgamer@users.noreply.github.com> - 1.5.2-4
+- Allow the Bluetooth address helper to read Android-owned factory data.
+
 * Sun Oct 25 2026 Uke Fedora Maintainers <linuxgamer@users.noreply.github.com> - 1.5.2-3
 - Keep chronyd from replacing the restored clock with the Uke RTC's 1970 date.
 
