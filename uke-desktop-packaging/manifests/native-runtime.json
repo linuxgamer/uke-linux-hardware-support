@@ -8,15 +8,15 @@
   "packages": [
     {
       "name": "mesa",
-      "version": "26.2.5",
+      "version": "26.2.6",
       "release": "1.fc46",
-      "native_release": "5",
-      "sha256": "38209e85ce96607b65b0b60109b4e3b6959c75ad1e04e5ebfcd422ab3755c7e5",
+      "native_release": "6",
+      "sha256": "e4436e377ad56b57ee128323901b123782857979d970120921cd59d71829d448",
       "delta": "Preserve AArch64 JIT feature detection; name exact Adreno 732 chips and accept their fuse-ID wildcard without changing GPU properties",
       "family": "uke-additional",
       "binary_name": "mesa-dri-drivers",
-      "signed_mirror_sha256": "a337c54f26623731292dd21049c719213a53ba8f31d81b6234e57e1de5b1241c",
-      "source_payload_sha256": "067b1a7399075f9fe3c6c9b7ec1888909aa35acfc831a83109e21e5107e47a82"
+      "signed_mirror_sha256": "0177e970471353f39af77ea08d50b39deb30884fbce6a84d7ea73d071e35602e",
+      "source_payload_sha256": "2247758168c6e68eb2db5908dc8af18abd21eee22af9ff4a078944e3203378f9"
     },
     {
       "name": "at-spi2-core",
