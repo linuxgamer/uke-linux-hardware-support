@@ -8,6 +8,14 @@ srpm:
 	# already supplied by COPR, so root discovery needs no additional tool.
 	root="$(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)"
 	subdir="$$(realpath --relative-to="$$root" .)"
+	if [[ "$$subdir" == packaging/families/freecad ]]; then
+		dnf -y --setopt=install_weak_deps=False install make curl jq tar gzip rpm-build coreutils bash cmake-rpm-macros python3-rpm-macros
+		stage="$$root/packaging/families/freecad/build/copr-source"
+		$(MAKE) -C "$$root/packaging/families/freecad" srpm outdir="$$stage"
+		mkdir -p "$(outdir)"
+		install -m644 "$$stage/"*.src.rpm "$(outdir)/"
+		exit 0
+	fi
 	if [[ "$$subdir" == packaging/families/uke-* ]]; then
 		family="$${subdir##*/}"
 		case "$$family" in uke-core|uke-hw|uke-power|uke-sensors|uke-extras|uke-additional|uke-metas|uke-camera|uke-sound) ;; *) exit 1;; esac

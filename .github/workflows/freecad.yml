@@ -1,0 +1,30 @@
+name: Validate FreeCAD source family
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packaging/families/freecad/**'
+      - '.copr/Makefile'
+      - '.github/workflows/freecad.yml'
+  pull_request:
+    paths:
+      - 'packaging/families/freecad/**'
+      - '.copr/Makefile'
+      - '.github/workflows/freecad.yml'
+permissions:
+  contents: read
+concurrency:
+  group: freecad-source-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  source-contracts:
+    runs-on: ubuntu-24.04
+    container: registry.fedoraproject.org/fedora:rawhide
+    steps:
+      - name: Install source validation tools
+        run: dnf5 -y install make jq rpm-build cmake-rpm-macros python3-rpm-macros
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Check the isolated FreeCAD source family
+        run: make -C packaging/families/freecad validate
+      - name: Record the native build boundary
+        run: echo 'FreeCAD source contracts passed. Native RPM compilation and tests require a separate unstable-only COPR submission.' >> "$GITHUB_STEP_SUMMARY"

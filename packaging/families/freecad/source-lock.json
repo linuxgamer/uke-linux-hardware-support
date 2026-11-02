@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "family": "freecad",
+  "name": "freecad",
+  "epoch": 1,
+  "version": "1.1.4",
+  "release": 1,
+  "source_date_epoch": 1790603915,
+  "upstream_release": "https://github.com/FreeCAD/FreeCAD/releases/tag/1.1.4",
+  "upstream_commit": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+  "fedora_review": "https://bugzilla.redhat.com/show_bug.cgi?id=2386504",
+  "fedora_review_spec_sha256": "b0154031c205ac467c8a1d68f002aaba309b982ab26ff1e36fd2179d47ed2253",
+  "copr_project": "mcc45tr/uke-linux-unstable",
+  "chroots": ["fedora-rawhide-aarch64"],
+  "binary_build_networking": false,
+  "automatic_promotion": false,
+  "hardware_tested": false,
+  "python_target_payload": true,
+  "python_reason": "FreeCAD's upstream workbenches embed Python; this optional application was explicitly requested for the Fedora root.",
+  "inputs": [
+    {
+      "filename": "freecad_source_1.1.4.tar.gz",
+      "url": "https://github.com/FreeCAD/FreeCAD/releases/download/1.1.4/freecad_source_1.1.4.tar.gz",
+      "sha256": "674f2c42dc060b71c8b052c70b04a9a995dde6cb868fe568615d3ff3f2717748",
+      "upstream_checksum_url": "https://github.com/FreeCAD/FreeCAD/releases/download/1.1.4/freecad_source_1.1.4.tar.gz-SHA256.txt"
+    },
+    {
+      "filename": "2f899992a048a8a1011bd59ccb66eeec00d42b29.patch",
+      "url": "https://github.com/FreeCAD/FreeCAD/commit/2f899992a048a8a1011bd59ccb66eeec00d42b29.patch",
+      "sha256": "247b1448e9ba6a667a2e36ae4d9b90b3e214e77320b005a7cc82367f5d5dc2d0",
+      "purpose": "Find the Fedora E57Format library when building without the bundled copy."
+    },
+    {
+      "filename": "e9b4a1c4bfdb7d08f4f3dc4c7a8df4e3bc2cb284.patch",
+      "url": "https://github.com/FreeCAD/FreeCAD/commit/e9b4a1c4bfdb7d08f4f3dc4c7a8df4e3bc2cb284.patch",
+      "sha256": "a851f562c314f2a993317995ff80ac8a41387b2d6338ca4d4bcf4cf32ca27c9a",
+      "purpose": "Initialize preferences in the upstream TechDraw LineFormat tests."
+    },
+    {
+      "filename": "8c8b7c1d8fa34fc3d11d593ce0a6d5f655f37f80.patch",
+      "url": "https://github.com/FreeCAD/FreeCAD/commit/8c8b7c1d8fa34fc3d11d593ce0a6d5f655f37f80.patch",
+      "sha256": "53a3974548e2b6a313c30e54a8834df322dcb8c9114a26387f58db5be7608760",
+      "purpose": "Isolate temporary files in parallel upstream FileInfo tests."
+    },
+    {
+      "filename": "nlohmann-json-LICENSE.MIT",
+      "url": "https://raw.githubusercontent.com/nlohmann/json/v3.11.3/LICENSE.MIT",
+      "sha256": "86b998c792894ccb911a1cb7994f7a9652894e7a094c0b5e45be2f553f45cf14",
+      "purpose": "Preserve the upstream license text for the bundled JSON headers."
+    }
+  ]
+}
