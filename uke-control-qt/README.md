@@ -1,12 +1,20 @@
 # Uke Control for Qt
 
-A native C++20 Qt 6 Widgets application for the existing Uke Control client.
-It uses the distribution's original Breeze style plugin when installed. It has
-no QML, Python, WebView, replacement desktop service, or privileged GUI.
+A native Qt 6 Kirigami application for the existing Uke Control client. The
+application, typed models, validation and device adapter are C++20; the presentation
+uses Qt Quick/QML and original Kirigami/FormCard components. It respects KDE
+appearance preferences and uses Breeze with KDE's desktop Quick Controls style.
+There is no Python, WebView, replacement desktop service or privileged GUI.
 
 The daily pages are Status, Power, Display & lights, Connections, Audio & sensors,
 and Updates. Advanced provides searchable access to the complete installed action
-catalog. Opening a page or guide does not query devices. Select **Read observation**
+catalog. Kirigami's page stack, responsive drawer and page actions provide
+navigation; FormCard pages group related controls. The drawer becomes modal in a
+narrow window, and choice controls use native selection dialogs. **Back** or
+Alt+Left returns to the current area. Daily pages keep recovery and diagnostics
+in Advanced. See the [Kirigami FormCard documentation](https://api.kde.org/org-kde-kirigamiaddons-formcard-qmlmodule.html).
+
+Opening a page or guide does not query devices. Select **Read information**
 or an inspection button to read. Requested defaults are drafts rather than current
 measurements. **Details** reveals the full catalog explanation, parameter limits,
 action identifier, access requirements and, during review, exact validated arguments.
@@ -14,10 +22,17 @@ Maintenance and external-publication warnings remain visible before confirmation
 
 ## Build and run
 
-Install a C++ compiler, CMake, Qt 6 Widgets, and the existing Uke Control package
+Install a C++ compiler, CMake, Qt 6.6 or newer (Widgets, Qml, Quick and
+QuickControls2), ECM, KDE Frameworks (IconThemes, ConfigWidgets, I18n 6.8 or newer),
+Kirigami, Kirigami Addons FormCard 1.1 or newer, and the existing Uke Control package
 providing `pkgconfig(uke-control-client)`, `client.hpp` and `frontend.hpp`.
-On Fedora, install `qt6-qtbase-devel`, `plasma-breeze-qt6`, and the original
-`konsole` for authenticated foreground operations. The source-tree build also
+On Fedora, development packages include `qt6-qtbase-devel`, `qt6-qtdeclarative-devel`,
+`extra-cmake-modules`, `kf6-kwidgetsaddons-devel`, `kf6-kiconthemes-devel`,
+`kf6-kconfigwidgets-devel`, `kf6-ki18n-devel` and `kf6-kirigami-addons-devel`.
+Runtime integration uses `plasma-breeze-qt6`, `plasma-integration`,
+`breeze-icon-theme`, `kf6-kirigami`, `kf6-kirigami-addons`,
+`kf6-qqc2-desktop-style` and the original `konsole` for authenticated foreground
+operations. The source-tree build also
 finds the sibling `uke-control/build/libuke-control-client.so.1` when pkg-config
 is unavailable.
 Repository integration can explicitly select the current source SDK with
@@ -32,9 +47,14 @@ uke-control-qt/build/uke-control-qt --read-only --start battery.status
 ```
 
 Run as the normal graphical session user. A root GUI is refused. `--help`,
-`--version`, and strictly isolated fixture sessions are exceptions. If Breeze
-is absent, a visible footer identifies the installed fallback style and the
+`--version`, `--appearance-info`, and strictly isolated fixture sessions are
+exceptions. `--appearance-info` prints the actual style class, resolved icons,
+font, palette and Quick Controls style without constructing the frontend or querying any device. If Breeze
+is absent, a native warning identifies the installed fallback style and the
 missing package; the application does not imitate Breeze with a custom stylesheet.
+`KIconTheme::initTheme()` and `KStyleManager::initStyle()` provide KDE's supported
+startup behavior. `org.kde.desktop` is the default Quick Controls style unless
+`QT_QUICK_CONTROLS_STYLE` is explicitly set. User appearance preferences remain effective.
 
 ## Reads and reviewed changes
 
@@ -42,7 +62,7 @@ Captured observations use the shared read-only `Query` on the Qt event loop.
 Stop, Back, changing pages and closing the window cancel the owned read. Each
 query retains its backend timeout and bounded stdout/stderr. Refresh only repeats
 the last validated read; it cannot replay a mutation. Structured values, original
-bounded output and errors have separate tabs. Null, false, zero, negative values,
+bounded output and errors have separate sections. Null, false, zero, negative values,
 unavailable providers, cancellation, timeout and truncation remain distinct.
 Control and directional override characters are rendered visibly. Large structured
 views are bounded to 2,000 values and 16 levels; the raw bounded result remains
@@ -79,9 +99,16 @@ exit status 0–255 and delay 0–3,000 ms. Unknown fields and incompatible fiel
 are rejected. Missing results stay unavailable and never fall through to a real
 query. No executable callbacks are supported.
 
-The C++ Qt tests exercise typed values, separate errors, read refresh, unavailable
+The C++ Qt tests load the actual Kirigami pages and exercise typed values, separate errors, read refresh, unavailable
 fixtures, cancellation, page/search/form navigation, native approval requirements,
-read-only and simulation blocking, and close cleanup. The shell test checks CLI
+read-only and simulation blocking, close cleanup, all action guides at 480 pixels,
+and page cleanup after repeated navigation. They check scene placement, accessible
+control names, native review refusal and QML runtime errors. The previous widget
+view tests remain as migration regressions; that view is not linked into the
+shipped executable. A separate native appearance suite
+verifies the actual Breeze class and icons, explicit style overrides and KDE
+font/palette settings; install the runtime integration packages before running it.
+The shell test checks CLI
 help/version, invalid fixtures and root refusal. Tests use the sibling TUI fixture;
 source archives built against an installed client may disable tests with
 `-DBUILD_TESTING=OFF`.
@@ -118,3 +145,20 @@ transaction or scriptlets; complete installation remains unverified.
 Screenshots and logs stay under ignored `build/`. These are source, build and
 synthetic desktop checks. No tablet, physical touch acceptance, charging cutoff,
 display receiver, storage mutation or package transaction was tested.
+
+On 2 November 2026, the local KDE redesign built with Qt 6.12, KDE Frameworks 6.31
+and Breeze 6.8.2 in the disposable Fedora 46 container. The three Qt CTest suites
+passed. The original distribution System Settings and KInfoCenter were run as
+visual references; their code was not copied or modified. Real Xcb/Xvfb runs
+used the KDE platform plugin as a normal user, with inspected wide and 480-pixel
+views. Evidence remains under ignored `build-redesign/`. These desktop checks do
+not qualify the interface for inclusion in a release image. Full package transaction and
+physical-device acceptance remain subject to the limitations above.
+
+The subsequent Kirigami migration supersedes that widget presentation, following
+explicit approval for a QML presentation layer with C++ logic. Four CTest suites
+cover the new bridge and actual QML pages as well as the retained migration
+regressions. Source/runtime dependency checks find the real Kirigami, FormCard and
+desktop Controls modules; the library version and QML import version are checked
+separately because they are different version namespaces. The previous widget
+sources and a complete local recovery patch remain available for comparison.

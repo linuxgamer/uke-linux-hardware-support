@@ -82,7 +82,7 @@ private slots:
   void navigationAndForms() {
     Window w(fixture, false);
     w.show();
-    QVERIFY(w.findChild<QLabel *>("simulationIndicator"));
+    QVERIFY(w.findChild<KMessageWidget *>("simulationIndicator"));
     auto *nav = w.findChild<QListWidget *>("navigation");
     QCOMPARE(nav->count(), 7);
     for (int i = 0; i < 7; ++i) {
@@ -97,6 +97,9 @@ private slots:
     for (int i = 0; i < list->count(); ++i)
       visible += !list->item(i)->isHidden();
     QCOMPARE(visible, 2);
+    search->setText("no-match-for-this-action");
+    QVERIFY(w.findChild<QLabel *>("advancedEmpty")->isVisible());
+    QVERIFY(!w.findChild<QPushButton *>("openAdvancedAction")->isEnabled());
     w.openAction("charge.limit");
     auto *percent = w.findChild<QSpinBox *>("parameter_percent");
     QVERIFY(percent);
@@ -200,6 +203,104 @@ private slots:
     w->close();
     QVERIFY(observation->result().cancelled);
     delete w;
+  }
+  void kdeNavigationAndResponsiveForms() {
+    Window w(fixture, false);
+    w.show();
+    w.openAction("charge.mode");
+    auto *navigation = w.findChild<QListWidget *>("navigation");
+    QCOMPARE(navigation->currentRow(), 1);
+    QVERIFY(w.findChild<QAction *>("goBack")->isEnabled());
+    QVERIFY(w.findChild<QToolBar *>("navigationToolbar"));
+    w.resize(480, 720);
+    QCoreApplication::processEvents();
+    QVERIFY(w.width() <= 480);
+    QVERIFY(!w.findChild<QDockWidget *>("settingsSidebar")->isVisible());
+    const auto *notice = w.findChild<KMessageWidget *>("simulationIndicator");
+    QTRY_VERIFY(notice->height() >= notice->heightForWidth(notice->width()));
+    const auto *primary = w.findChild<QPushButton *>("primaryAction");
+    QVERIFY(primary->isVisible());
+    QVERIFY(w.rect().contains(primary->mapTo(&w, primary->rect().center())));
+    auto *mode = w.findChild<QComboBox *>("parameter_mode");
+    QVERIFY(mode);
+    QVERIFY(w.rect().contains(mode->mapTo(&w, mode->rect().center())));
+    auto *destinations = w.findChild<QAction *>("showNavigation");
+    bool menuOpened = false;
+    QTimer::singleShot(0, [&] {
+      if (auto *menu =
+              qobject_cast<QMenu *>(QApplication::activePopupWidget())) {
+        menuOpened = true;
+        menu->actions().at(3)->trigger();
+        menu->close();
+      }
+    });
+    destinations->trigger();
+    QVERIFY(menuOpened);
+    QCOMPARE(navigation->currentRow(), 3);
+    QTimer::singleShot(0, [] {
+      if (auto *menu = qobject_cast<QMenu *>(QApplication::activePopupWidget()))
+        QTest::keyClick(menu, Qt::Key_Escape);
+    });
+    destinations->trigger();
+    QCOMPARE(navigation->currentRow(), 3);
+    w.resize(1100, 760);
+    QCoreApplication::processEvents();
+    QVERIFY(w.findChild<QDockWidget *>("settingsSidebar")->isVisible());
+    w.back();
+    QVERIFY(!w.findChild<QAction *>("goBack")->isEnabled());
+    for (int iteration = 0; iteration < 4; ++iteration) {
+      w.openAction("status");
+      QTest::mouseClick(w.findChild<QPushButton *>("primaryAction"),
+                        Qt::LeftButton);
+      auto *observation = w.findChild<Observation *>();
+      QVERIFY(observation);
+      QTRY_VERIFY_WITH_TIMEOUT(!observation->running(), 1000);
+      QTest::mouseClick(observation->findChild<QPushButton *>("refreshRead"),
+                        Qt::LeftButton);
+      w.back();
+      QVERIFY(!w.findChild<Observation *>());
+    }
+  }
+  void allGuidesFitNarrowWindow() {
+    Window w(fixture, false);
+    w.resize(480, 720);
+    w.show();
+    for (const auto &entry : actions()) {
+      w.openAction(entry.id);
+      QCoreApplication::processEvents();
+      QVERIFY2(w.width() <= 480, entry.id.c_str());
+      const auto *primary = w.findChild<QPushButton *>("primaryAction");
+      QVERIFY(primary);
+      QVERIFY2(w.rect().contains(primary->mapTo(&w, QPoint(0, 0))),
+               entry.id.c_str());
+      QVERIFY2(
+          w.rect().contains(primary->mapTo(&w, primary->rect().bottomRight())),
+          entry.id.c_str());
+      w.back();
+    }
+  }
+  void narrowInspectionCanBeCancelled() {
+    Window w(fixture, false);
+    w.resize(480, 720);
+    w.show();
+    w.openAction("charge.mode");
+    bool inspected = false;
+    bool readRunning = false;
+    QTimer::singleShot(50, [&] {
+      auto *dialog = w.findChild<QDialog *>("inspectionDialog");
+      if (!dialog)
+        return;
+      inspected = dialog->width() <= 480;
+      if (auto *observation = dialog->findChild<Observation *>())
+        readRunning = observation->running();
+      QTest::keyClick(dialog, Qt::Key_Escape);
+    });
+    QTest::mouseClick(w.findChild<QPushButton *>("inspectCurrent"),
+                      Qt::LeftButton);
+    QVERIFY(inspected);
+    QVERIFY(readRunning);
+    w.back();
+    QVERIFY(!w.findChild<Observation *>());
   }
   void sanitizesControlText() {
     QCOMPARE(safe(std::string("a\x1b[31m")), QString("a\\u001b[31m"));

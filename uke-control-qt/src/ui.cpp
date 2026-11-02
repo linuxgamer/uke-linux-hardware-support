@@ -14,234 +14,47 @@
 #include <sys/stat.h>
 #include <unistd.h>
 namespace uq {
+// KMessageWidget fixes its height on show/layout changes. Recalculate its
+// native height-for-width after a resize so wrapped text remains visible when
+// narrowing.
+class NativeMessageWidget : public KMessageWidget {
+public:
+  using KMessageWidget::KMessageWidget;
+
+protected:
+  void resizeEvent(QResizeEvent *event) override {
+    KMessageWidget::resizeEvent(event);
+    if (event->oldSize().width() != event->size().width())
+      QTimer::singleShot(0, this, [this] {
+        const int wanted = heightForWidth(width());
+        if (wordWrap() && wanted > 0 && wanted != height())
+          setFixedHeight(wanted);
+      });
+  }
+};
 static QString q(const std::string &s) {
   return QString::fromUtf8(s.data(), int(s.size()));
-}
-QString safe(const std::string &text) {
-  QString out;
-  for (const QChar ch : q(text)) {
-    const auto u = ch.unicode();
-    if ((u < 32 && u != '\n' && u != '\t') || (u >= 0x7f && u <= 0x9f) ||
-        (u >= 0x202a && u <= 0x202e) || (u >= 0x2066 && u <= 0x2069))
-      out += QString("\\u%1").arg(unsigned(u), 4, 16, QChar('0'));
-    else
-      out += ch;
-  }
-  return out;
-}
-Fixture Fixture::load(const QString &path) {
-  const auto bytes = QFile::encodeName(path);
-  const int fd =
-      ::open(bytes.constData(), O_RDONLY | O_CLOEXEC | O_NOFOLLOW | O_NONBLOCK);
-  if (fd < 0)
-    throw std::runtime_error(
-        "Cannot open fixture as a non-symlink regular file");
-  struct stat st{};
-  if (fstat(fd, &st) != 0 || !S_ISREG(st.st_mode) || st.st_size < 2 ||
-      st.st_size > 1024 * 1024) {
-    ::close(fd);
-    throw std::runtime_error("Fixture must be a regular file of at most 1 MiB");
-  }
-  QByteArray data;
-  char buffer[4096];
-  ssize_t count;
-  while ((count = ::read(fd, buffer, sizeof(buffer))) > 0) {
-    data.append(buffer, int(count));
-    if (data.size() > 1024 * 1024)
-      break;
-  }
-  ::close(fd);
-  if (count < 0 || data.size() > 1024 * 1024)
-    throw std::runtime_error("Cannot read bounded fixture");
-  QJsonParseError error;
-  auto doc = QJsonDocument::fromJson(data, &error);
-  if (error.error != QJsonParseError::NoError || !doc.isObject() ||
-      doc.object().value("schema").toString() !=
-          "org.uke.control.tui-fixture.v1" ||
-      !doc.object().value("results").isObject())
-    throw std::runtime_error("Invalid org.uke.control.tui-fixture.v1 fixture");
-  const auto root = doc.object();
-  for (auto it = root.begin(); it != root.end(); ++it)
-    if (it.key() != "schema" && it.key() != "results")
-      throw std::runtime_error("Unknown fixture field");
-  Fixture fixture;
-  fixture.enabled = true;
-  fixture.results = doc.object().value("results").toObject();
-  for (auto it = fixture.results.begin(); it != fixture.results.end(); ++it) {
-    action(it.key().toStdString());
-    if (!it.value().isObject())
-      throw std::runtime_error("Fixture result must be an object");
-    const auto entry = it.value().toObject();
-    for (auto field = entry.begin(); field != entry.end(); ++field)
-      if (field.key() != "data" && field.key() != "stdout" &&
-          field.key() != "stderr" && field.key() != "status" &&
-          field.key() != "delay_ms")
-        throw std::runtime_error("Unknown fixture result field");
-    if (entry.contains("data") && entry.contains("stdout"))
-      throw std::runtime_error("Fixture data/stdout are mutually exclusive");
-    for (const auto &key : {"stdout", "stderr"})
-      if (entry.contains(key) && !entry.value(key).isString())
-        throw std::runtime_error("Fixture stdout/stderr must be strings");
-    for (const auto &key : {"delay_ms", "status"})
-      if (entry.contains(key) &&
-          (!entry.value(key).isDouble() ||
-           entry.value(key).toDouble() != entry.value(key).toInt(-1)))
-        throw std::runtime_error(
-            "Fixture delay/status must be bounded integers");
-    if (entry.value("delay_ms").toInt() < 0 ||
-        entry.value("delay_ms").toInt() > 3000 ||
-        entry.value("status").toInt() < 0 ||
-        entry.value("status").toInt() > 255)
-      throw std::runtime_error("Fixture delay/status outside allowed range");
-  }
-  return fixture;
-}
-Result Fixture::result(const std::string &id) const {
-  Result r;
-  r.action_id = id;
-  if (!results.contains(q(id))) {
-    r.exit_status = 69;
-    r.error =
-        "Unavailable: no simulated result for this action. No command was run.";
-    return r;
-  }
-  const auto entry = results.value(q(id)).toObject();
-  r.exit_status = entry.value("status").toInt();
-  if (entry.contains("stdout"))
-    r.output = entry.value("stdout").toString().toStdString();
-  else if (entry.contains("data")) {
-    const auto data = entry.value("data");
-    if (data.isObject())
-      r.output = QJsonDocument(data.toObject()).toJson().toStdString();
-    else if (data.isArray())
-      r.output = QJsonDocument(data.toArray()).toJson().toStdString();
-    else {
-      QJsonArray a;
-      a.append(data);
-      auto s = QJsonDocument(a).toJson(QJsonDocument::Compact);
-      r.output = s.mid(1, s.size() - 2).toStdString();
-    }
-  }
-  r.error = entry.value("stderr").toString().toStdString();
-  return r;
-}
-int Fixture::delay(const std::string &id) const {
-  return results.value(q(id)).toObject().value("delay_ms").toInt();
 }
 static QLabel *label(const QString &text, QWidget *parent = nullptr) {
   auto *l = new QLabel(text, parent);
   l->setTextFormat(Qt::PlainText);
   l->setWordWrap(true);
+  l->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
   l->setTextInteractionFlags(Qt::TextSelectableByMouse);
   return l;
 }
 static QLabel *heading(const QString &text, int size) {
   auto *l = label(text);
   auto font = l->font();
-  font.setPointSize(size);
+  font.setPointSizeF(QApplication::font().pointSizeF() + (size >= 18 ? 3 : 1));
   font.setBold(true);
   l->setFont(font);
   return l;
 }
 static QPushButton *button(const QString &text, const QString &icon = {}) {
   auto *b = new QPushButton(QIcon::fromTheme(icon), text);
-  b->setMinimumHeight(40);
+  b->setMinimumHeight(36);
   return b;
-}
-static QString friendlyTitle(const Action &a) {
-  static const std::map<std::string, QString> names = {
-      {"status", "Device status"},
-      {"overview.battery", "Battery overview"},
-      {"overview.workload", "System activity"},
-      {"hardware.status", "Hardware information"},
-      {"overview.desktop", "Desktop information"},
-      {"overview.storage", "Storage overview"},
-      {"battery.status", "Battery readings"},
-      {"battery.health", "Battery health"},
-      {"charge.mode", "Charging preference"},
-      {"charge.limit", "Charge limit"},
-      {"charge.status", "Charging status"},
-      {"charge.admission", "Charging availability"},
-      {"charge.temporary-preview", "Temporary full-charge preview"},
-      {"desktop.plasma", "Rotation & brightness"},
-      {"desktop.rotation", "Automatic rotation"},
-      {"desktop.brightness", "Automatic brightness"},
-      {"flashlight.state", "Flashlight"},
-      {"flashlight.level", "Flashlight brightness"},
-      {"led.color", "Notification light color"},
-      {"led.auto", "Automatic notification light"},
-      {"led.status", "Notification light"},
-      {"display.bits", "Display connection"},
-      {"display.profile", "Display connection preference"},
-      {"usb.status", "USB connections"},
-      {"usb.role", "USB data role"},
-      {"usb.power", "USB accessory power"},
-      {"ethernet.status", "Ethernet connection"},
-      {"ethernet.profile", "Ethernet preference"},
-      {"microphone.select", "Microphone preference"},
-      {"microphone.status", "Microphone"},
-      {"channel.set", "Software channel"},
-      {"channel.status", "Channel & pending updates"},
-      {"update.apply", "Install updates"},
-      {"channel.preview", "Preview software channel"},
-      {"update.preview", "Check for updates"},
-      {"sensors.once", "Read sensors once"},
-      {"sensors.watch", "Watch sensors briefly"}};
-  const auto found = names.find(a.id);
-  return found == names.end() ? q(a.title.en) : found->second;
-}
-static QString summary(const Action &a) {
-  if (a.effect == Effect::maintenance)
-    return q(a.description.en);
-  if (a.effect == Effect::publish)
-    return "This publishes a generated summary externally. Review the summary "
-           "and the exact destination before continuing.";
-  if (a.id == "charge.mode")
-    return "Choose how charging should be limited. Review changes before "
-           "applying; availability is checked before a request is accepted.";
-  if (a.id == "charge.limit")
-    return "Choose a requested charge limit. Check charging availability "
-           "before applying.";
-  if (a.id == "charge.admission")
-    return "See whether charging controls are available and what is blocking "
-           "them.";
-  if (a.id.starts_with("charge.") && a.effect == Effect::read)
-    return "Read charging information. Unavailable or unknown values stay "
-           "visible.";
-  if (a.id == "flashlight.level")
-    return "Choose a brightness request. The light has two lit steps: 1–99% "
-           "maps to 50%, and 100% maps to full brightness.";
-  if (a.id == "flashlight.state")
-    return "Turn the flashlight on or off. It has no automatic timeout and "
-           "turns off before sleep.";
-  if (a.id == "usb.role")
-    return "Choose the USB data role. Changing it can disconnect accessories "
-           "or a remote session; inspect the connection first.";
-  if (a.id == "ethernet.profile")
-    return "Choose a supported link preference. Applying changes can interrupt "
-           "your network connection.";
-  if (a.id == "display.profile" || a.id == "display.lanes" ||
-      a.id == "display.compression-set")
-    return "Review the current display connection first. Changing this "
-           "preference can disconnect a display or accessory.";
-  if (a.effect == Effect::packages)
-    return "Review the signed software plan before continuing. Inspect "
-           "unfinished work before retrying, and wait for updates to finish "
-           "before rebooting.";
-  if (a.id.starts_with("test."))
-    return "Keep the device attended during this diagnostic. Review Details "
-           "before continuing.";
-  if (a.id.starts_with("desktop.") && a.effect != Effect::read)
-    return "Choose a preference for your current desktop session. Changes use "
-           "the existing desktop controls.";
-  if (a.effect == Effect::local_file)
-    return "Review the requested local file changes. Existing backend checks "
-           "and private-file protections still apply.";
-  if (a.effect == Effect::read)
-    return "Read the current information. Missing data will be shown as "
-           "unavailable or unknown.";
-  return "Choose your preference, inspect current state, and review the "
-         "request before applying changes.";
 }
 static QWidget *details(const Action &a, const Plan *request = nullptr) {
   auto *widget = new QWidget;
@@ -288,6 +101,12 @@ Observation::Observation(Fixture fixture, QWidget *parent)
   setObjectName("observation");
   auto *layout = new QVBoxLayout(this);
   layout->setContentsMargins(0, 0, 0, 0);
+  notice_ = new NativeMessageWidget("No information has been read yet.");
+  notice_->setObjectName("observationNotice");
+  notice_->setMessageType(KMessageWidget::Information);
+  notice_->setCloseButtonVisible(false);
+  notice_->setWordWrap(true);
+  layout->addWidget(notice_);
   auto *line = new QHBoxLayout;
   state_ = label("Not read");
   state_->setObjectName("observationState");
@@ -439,6 +258,21 @@ void Observation::showResult(const Result &r) {
   if (fixture_.enabled)
     status.prepend("SIMULATION · ");
   state_->setText(status);
+  notice_->setMessageType(r.exit_status != 0 && !r.running && !r.cancelled
+                              ? KMessageWidget::Warning
+                              : KMessageWidget::Information);
+  notice_->setText(
+      r.running
+          ? "Reading current information… You can stop this read or go back."
+      : r.cancelled ? "Read cancelled. No new request was started."
+      : r.exit_status != 0
+          ? "The information is unavailable. Check the messages below and "
+            "retry the read when the provider is available."
+      : r.output.empty()
+          ? "The provider returned no information."
+          : "Information read. Values describe the last observation.");
+  notice_->setVisible(r.running || r.cancelled || r.exit_status != 0 ||
+                      r.output.empty());
   stamp_->setText(
       r.running ? "Read in progress. Stop or leave this view to cancel."
                 : QString("Last read: %1")
@@ -455,9 +289,14 @@ void Observation::showResult(const Result &r) {
       auto obj = doc.object();
       if (!r.running && !r.cancelled && r.exit_status == 0 &&
           obj.contains("available")) {
-        if (obj.value("available").isBool() && !obj.value("available").toBool())
+        if (obj.value("available").isBool() &&
+            !obj.value("available").toBool()) {
           state_->setText(status + " · provider unavailable");
-        else if (obj.value("available").isNull())
+          notice_->setMessageType(KMessageWidget::Information);
+          notice_->setText("This provider is not available in the current "
+                           "session. No device values can be shown.");
+          notice_->show();
+        } else if (obj.value("available").isNull())
           state_->setText(status + " · availability unknown");
       }
       for (auto it = obj.begin(); it != obj.end(); ++it)
@@ -494,72 +333,184 @@ static constexpr Section sections[] = {
     {"Audio & sensors", "audio-card",
      "Audio, microphone, camera, and sensor information."},
     {"Updates", "system-software-update",
-     "Review updates and choose your software channel."},
+     "Check your software channel and review available updates."},
     {"Advanced", "preferences-system",
      "Additional diagnostics, recovery, and expert tools."}};
 Window::Window(Fixture fixture, bool readOnly, QString styleNotice)
     : fixture_(std::move(fixture)), readOnly_(readOnly),
       styleNotice_(std::move(styleNotice)) {
-  setWindowTitle(fixture_.enabled ? "Uke Control · SIMULATION" : "Uke Control");
-  resize(1120, 800);
-  setMinimumSize(780, 560);
-  setWindowIcon(QIcon::fromTheme("org.uke.ControlQt",
-                                 QIcon::fromTheme("preferences-system")));
-  auto *central = new QWidget;
-  auto *outer = new QVBoxLayout(central);
-  outer->setContentsMargins(16, 16, 16, 12);
-  outer->setSpacing(12);
-  auto *top = new QHBoxLayout;
-  auto *name = heading("Uke Control", 20);
-  top->addWidget(name);
-  top->addStretch();
-  if (fixture_.enabled) {
-    auto *banner = heading("SIMULATION — no commands or writes", 11);
-    banner->setObjectName("simulationIndicator");
-    top->addWidget(banner);
-  } else
-    top->addWidget(label(readOnly_ ? "Read-only session" : "Device settings"));
-  outer->addLayout(top);
-  auto *body = new QHBoxLayout;
-  body->setSpacing(20);
+  setWindowTitle("Uke Control");
+  resize(1100, 760);
+  setMinimumSize(480, 480);
+  setWindowIcon(QIcon::fromTheme("preferences-system"));
+
+  auto *toolbar = addToolBar("Navigation");
+  toolbar->setObjectName("navigationToolbar");
+  toolbar->setMovable(false);
+  toolbar->setIconSize(QSize(22, 22));
+  toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+  navigationAction_ =
+      toolbar->addAction(QIcon::fromTheme("sidebar-show"), "Settings");
+  navigationAction_->setObjectName("showNavigation");
+  navigationAction_->setCheckable(true);
+  navigationAction_->setChecked(true);
+  backAction_ = toolbar->addAction(QIcon::fromTheme("go-previous"), "Back");
+  backAction_->setObjectName("goBack");
+  backAction_->setShortcut(QKeySequence(Qt::ALT | Qt::Key_Left));
+  backAction_->setEnabled(false);
+  connect(backAction_, &QAction::triggered, this, &Window::back);
+  toolbar->addSeparator();
+  auto *spacer = new QWidget;
+  spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  toolbar->addWidget(spacer);
+  auto *help = toolbar->addAction(QIcon::fromTheme("help-about"), "About");
+  connect(help, &QAction::triggered, this, [this] {
+    QMessageBox::about(
+        this, "About Uke Control",
+        "Uke Control\nNative Qt Widgets and KDE Frameworks "
+        "interface.\n\nControls use the existing Uke backend. Open an area to "
+        "inspect its current state before changing settings.");
+  });
+
+  sidebar_ = new QDockWidget("Settings", this);
+  sidebar_->setObjectName("settingsSidebar");
+  sidebar_->setFeatures(QDockWidget::NoDockWidgetFeatures);
+  sidebar_->setTitleBarWidget(new QWidget);
+  sidebar_->setAllowedAreas(Qt::LeftDockWidgetArea);
+  sidebar_->setMinimumWidth(210);
+  sidebar_->setMaximumWidth(260);
+  auto *side = new QWidget;
+  auto *sideLayout = new QVBoxLayout(side);
+  sideLayout->setContentsMargins(0, 0, 0, 0);
+  sideLayout->setSpacing(0);
+  auto *searchContainer = new QWidget;
+  auto *searchLayout = new QVBoxLayout(searchContainer);
+  searchLayout->setContentsMargins(8, 8, 8, 8);
+  settingsSearch_ = new QLineEdit;
+  settingsSearch_->setObjectName("settingsSearch");
+  settingsSearch_->setPlaceholderText("Filter settings areas…");
+  settingsSearch_->setClearButtonEnabled(true);
+  settingsSearch_->setMinimumHeight(36);
+  searchLayout->addWidget(settingsSearch_);
+  sideLayout->addWidget(searchContainer);
+  auto *noAreas = label("No matching settings area.");
+  noAreas->setObjectName("navigationEmpty");
+  noAreas->setContentsMargins(10, 8, 10, 8);
+  noAreas->hide();
+  sideLayout->addWidget(noAreas);
   navigation_ = new QListWidget;
   navigation_->setObjectName("navigation");
-  navigation_->setMinimumWidth(188);
-  navigation_->setMaximumWidth(240);
-  navigation_->setSpacing(4);
-  navigation_->setIconSize(QSize(24, 24));
-  for (const auto &s : sections) {
-    auto *i =
-        new QListWidgetItem(QIcon::fromTheme(s.icon), s.title, navigation_);
-    i->setSizeHint(QSize(180, 48));
+  navigation_->setFrameShape(QFrame::NoFrame);
+  navigation_->setIconSize(QSize(22, 22));
+  navigation_->setSpacing(0);
+  navigation_->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+  QScroller::grabGesture(navigation_->viewport(), QScroller::TouchGesture);
+  for (const auto &section : sections) {
+    auto *item = new QListWidgetItem(QIcon::fromTheme(section.icon),
+                                     section.title, navigation_);
+    item->setSizeHint(QSize(190, 44));
   }
-  body->addWidget(navigation_);
-  auto *right = new QVBoxLayout;
-  pageTitle_ = heading("Status", 24);
-  right->addWidget(pageTitle_);
+  sideLayout->addWidget(navigation_, 1);
+  sidebar_->setWidget(side);
+  addDockWidget(Qt::LeftDockWidgetArea, sidebar_);
+  connect(navigationAction_, &QAction::toggled, this, [this](bool visible) {
+    if (!narrow_) {
+      sidebar_->setVisible(visible);
+      return;
+    }
+    if (!visible)
+      return;
+    QSignalBlocker blocked(navigationAction_);
+    navigationAction_->setChecked(false);
+    QMenu destinations(this);
+    for (int i = 0; i < 7; ++i) {
+      auto *item = destinations.addAction(QIcon::fromTheme(sections[i].icon),
+                                          sections[i].title);
+      item->setCheckable(true);
+      item->setChecked(section_ == i);
+      connect(item, &QAction::triggered, this, [this, i] {
+        settingsSearch_->clear();
+        navigation_->setCurrentRow(i);
+      });
+    }
+    destinations.exec(mapToGlobal(
+        QPoint(8, toolBarArea(findChild<QToolBar *>("navigationToolbar")) ==
+                          Qt::TopToolBarArea
+                      ? 40
+                      : 8)));
+  });
+  connect(sidebar_, &QDockWidget::visibilityChanged, navigationAction_,
+          &QAction::setChecked);
+  connect(settingsSearch_, &QLineEdit::textChanged, this,
+          [this, noAreas](const QString &text) {
+            unsigned matches = 0;
+            for (int i = 0; i < navigation_->count(); ++i)
+              navigation_->item(i)->setHidden(
+                  !navigation_->item(i)->text().contains(text,
+                                                         Qt::CaseInsensitive));
+            for (int i = 0; i < navigation_->count(); ++i)
+              if (!navigation_->item(i)->isHidden())
+                ++matches;
+            noAreas->setVisible(!matches);
+          });
+
+  auto *central = new QWidget;
+  contentLayout_ = new QVBoxLayout(central);
+  contentLayout_->setContentsMargins(22, 18, 22, 12);
+  contentLayout_->setSpacing(8);
+  pageTitle_ = heading("Overview", 18);
+  pageTitle_->setObjectName("pageTitle");
+  contentLayout_->addWidget(pageTitle_);
   pageSubtitle_ = label("");
-  right->addWidget(pageSubtitle_);
+  pageSubtitle_->setObjectName("pageDescription");
+  contentLayout_->addWidget(pageSubtitle_);
+  sessionNotice_ = new NativeMessageWidget;
+  sessionNotice_->setCloseButtonVisible(false);
+  sessionNotice_->setWordWrap(true);
+  if (fixture_.enabled) {
+    sessionNotice_->setObjectName("simulationIndicator");
+    sessionNotice_->setMessageType(KMessageWidget::Warning);
+    sessionNotice_->setText("Simulation — sample data only. Device commands "
+                            "and changes are disabled.");
+  } else if (readOnly_) {
+    sessionNotice_->setMessageType(KMessageWidget::Information);
+    sessionNotice_->setText("Read-only session. You can inspect information; "
+                            "changes are disabled.");
+  } else
+    sessionNotice_->hide();
+  contentLayout_->addWidget(sessionNotice_);
+  if (!styleNotice_.isEmpty()) {
+    auto *warning = new NativeMessageWidget(styleNotice_);
+    warning->setObjectName("styleNotice");
+    warning->setMessageType(KMessageWidget::Warning);
+    warning->setCloseButtonVisible(false);
+    warning->setWordWrap(true);
+    contentLayout_->addWidget(warning);
+  }
   stack_ = new QStackedWidget;
-  right->addWidget(stack_, 1);
-  body->addLayout(right, 1);
-  outer->addLayout(body, 1);
-  auto *foot =
-      label(styleNotice_.isEmpty() ? "Changes require review before applying."
-                                   : styleNotice_);
-  foot->setObjectName("styleNotice");
-  outer->addWidget(foot);
+  contentLayout_->addWidget(stack_, 1);
   setCentralWidget(central);
   connect(navigation_, &QListWidget::currentRowChanged, this,
           &Window::showSection);
   navigation_->setCurrentRow(0);
-  auto *backAction = new QAction(this);
-  backAction->setShortcut(QKeySequence(Qt::ALT | Qt::Key_Left));
-  addAction(backAction);
-  connect(backAction, &QAction::triggered, this, &Window::back);
   auto *quit = new QAction(this);
   quit->setShortcut(QKeySequence::Quit);
   addAction(quit);
   connect(quit, &QAction::triggered, this, &Window::close);
+}
+void Window::updateNavigation(int width) {
+  const bool compact = width < 800;
+  if (compact != narrow_) {
+    narrow_ = compact;
+    sidebar_->setVisible(!compact);
+  }
+  if (form_)
+    form_->setRowWrapPolicy(width < 660 ? QFormLayout::WrapAllRows
+                                        : QFormLayout::DontWrapRows);
+}
+void Window::resizeEvent(QResizeEvent *event) {
+  QMainWindow::resizeEvent(event);
+  updateNavigation(event->size().width());
 }
 Window::~Window() {
   if (observation_)
@@ -574,37 +525,46 @@ void Window::back() { showSection(section_); }
 void Window::addGroup(QVBoxLayout *layout, const QString &title,
                       const QString &subtitle,
                       const std::vector<std::string> &ids) {
-  auto *box = new QGroupBox(title);
-  auto f = box->font();
-  f.setBold(true);
-  box->setFont(f);
-  auto *l = new QVBoxLayout(box);
-  l->setContentsMargins(16, 18, 16, 14);
-  l->setSpacing(8);
-  l->addWidget(label(subtitle));
+  auto *group = new QGroupBox(QString(title).replace("&", "&&"));
+  group->setFlat(true);
+  group->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
+  group->setAlignment(Qt::AlignLeft);
+  auto *rows = new QVBoxLayout(group);
+  rows->setContentsMargins(12, 18, 8, 10);
+  rows->setSpacing(0);
+  auto *description = label(subtitle);
+  description->setContentsMargins(0, 0, 0, 8);
+  rows->addWidget(description);
   for (const auto &id : ids) {
     const auto &a = action(id);
-    auto *row = new QHBoxLayout;
-    auto *titleLabel = label(friendlyTitle(a));
-    auto normal = titleLabel->font();
-    normal.setBold(false);
-    titleLabel->setFont(normal);
-    row->addWidget(titleLabel, 1);
-    auto *b =
-        button(a.effect == Effect::read ? "Inspect" : "Configure",
-               a.effect == Effect::read ? "document-preview" : "configure");
-    b->setObjectName(q(id));
-    b->setMinimumWidth(116);
-    row->addWidget(b);
-    connect(b, &QPushButton::clicked, this, [this, id] { openAction(id); });
-    l->addLayout(row);
+    auto *row = new QToolButton;
+    row->setText(friendlyTitle(a));
+    row->setIcon(QIcon::fromTheme(a.effect == Effect::read ? "document-preview"
+                                                           : "configure"));
+    row->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    row->setAutoRaise(true);
+    row->setMinimumHeight(42);
+    row->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    row->setObjectName(q(id));
+    row->setToolTip(summary(a));
+    rows->addWidget(row, 0, Qt::AlignLeft);
+    connect(row, &QToolButton::clicked, this, [this, id] { openAction(id); });
   }
-  layout->addWidget(box);
+  layout->addWidget(group);
 }
 void Window::showSection(int index) {
   if (index < 0 || index > 6)
     return;
   section_ = index;
+  backAction_->setEnabled(false);
+  if (actionBar_) {
+    contentLayout_->removeWidget(actionBar_);
+    delete actionBar_;
+    actionBar_ = nullptr;
+  }
+  form_ = nullptr;
+  if (observation_)
+    observation_->cancel();
   observation_ = nullptr;
   fields_.clear();
   if (detail_) {
@@ -625,7 +585,7 @@ void Window::showSection(int index) {
   auto *content = new QWidget;
   auto *l = new QVBoxLayout(content);
   l->setContentsMargins(0, 4, 8, 12);
-  l->setSpacing(14);
+  l->setSpacing(18);
   if (index == 0) {
     addGroup(l, "Device at a glance",
              "Choose the information you want to read.",
@@ -640,10 +600,10 @@ void Window::showSection(int index) {
               "charge.admission"});
     addGroup(l, "Charging requests",
              "Check availability and preview your preference before applying.",
-             {"charge.mode", "charge.limit", "charge.temporary-preview"});
-    addGroup(l, "Sleep & protection",
-             "Read modes and permissions without starting a sleep trial.",
-             {"overview.sleep", "charge.protection-status", "charge.settings"});
+             {"charge.mode", "charge.limit"});
+    addGroup(l, "Sleep & wake",
+             "Read available sleep modes and review wake preferences.",
+             {"overview.sleep", "wake.status", "wake.set"});
   }
   if (index == 2) {
     addGroup(l, "Desktop",
@@ -652,19 +612,16 @@ void Window::showSection(int index) {
     addGroup(l, "Lights", "Flashlight and notification light preferences.",
              {"flashlight.status", "flashlight.state", "flashlight.level",
               "led.status", "led.color", "led.auto"});
-    addGroup(l, "Display link",
-             "Connected display information and preferences.",
-             {"display.bits", "display.profile", "display.compression",
-              "display.vrr-configured"});
+    addGroup(l, "Display link", "Read information about a connected display.",
+             {"display.bits"});
   }
   if (index == 3) {
-    addGroup(
-        l, "USB & accessories",
-        "Role changes can interrupt connected accessories or a remote session.",
-        {"usb.status", "usb.role", "usb.power"});
+    addGroup(l, "USB & accessories",
+             "Read the current USB role and connected accessory information.",
+             {"usb.status"});
     addGroup(l, "Network & NFC",
              "Read connection information and available preferences.",
-             {"ethernet.status", "ethernet.profile", "overview.nfc"});
+             {"ethernet.status", "overview.nfc", "nfc.state"});
   }
   if (index == 4) {
     addGroup(l, "Audio & microphone",
@@ -678,12 +635,11 @@ void Window::showSection(int index) {
   if (index == 5) {
     addGroup(l, "Channel & update review",
              "Check available updates before making changes.",
-             {"channel.status", "channel.preview", "update.preview"});
+             {"channel.status", "update.preview"});
     addGroup(l, "Apply reviewed work",
              "Inspect unfinished updates before continuing. Wait for "
              "completion before rebooting.",
-             {"channel.set", "channel.sync-preview", "channel.sync",
-              "update.apply"});
+             {"update.apply"});
   }
   if (index == 6) {
     auto *search = new QLineEdit;
@@ -692,6 +648,11 @@ void Window::showSection(int index) {
         "Search all actions, descriptions or identifiers…");
     search->setMinimumHeight(40);
     l->addWidget(search);
+    auto *empty = label(
+        "No actions match this search. Clear the search to see all actions.");
+    empty->setObjectName("advancedEmpty");
+    empty->hide();
+    l->addWidget(empty);
     auto *list = new QListWidget;
     list->setObjectName("advancedActions");
     list->setMinimumHeight(420);
@@ -706,15 +667,28 @@ void Window::showSection(int index) {
     }
     l->addWidget(list);
     auto *open = button("Open selected action", "go-next");
+    open->setObjectName("openAdvancedAction");
+    open->setEnabled(false);
     l->addWidget(open);
-    connect(search, &QLineEdit::textChanged, this, [list](const QString &text) {
-      for (int i = 0; i < list->count(); ++i) {
-        auto *item = list->item(i);
-        item->setHidden(!item->data(Qt::UserRole + 1)
-                             .toString()
-                             .contains(text, Qt::CaseInsensitive));
-      }
-    });
+    connect(search, &QLineEdit::textChanged, this,
+            [list, open, empty](const QString &text) {
+              QListWidgetItem *first = nullptr;
+              for (int i = 0; i < list->count(); ++i) {
+                auto *item = list->item(i);
+                item->setHidden(!item->data(Qt::UserRole + 1)
+                                     .toString()
+                                     .contains(text, Qt::CaseInsensitive));
+                if (!item->isHidden() && !first)
+                  first = item;
+              }
+              list->setCurrentItem(first);
+              open->setEnabled(first);
+              empty->setVisible(!first);
+            });
+    connect(list, &QListWidget::currentItemChanged, this,
+            [open](QListWidgetItem *current) {
+              open->setEnabled(current && !current->isHidden());
+            });
     connect(open, &QPushButton::clicked, this, [this, list] {
       if (auto *item = list->currentItem())
         openAction(item->data(Qt::UserRole).toString().toStdString());
@@ -725,6 +699,7 @@ void Window::showSection(int index) {
             });
   }
   l->addStretch();
+  QScroller::grabGesture(scroll->viewport(), QScroller::TouchGesture);
   scroll->setWidget(content);
   stack_->addWidget(page_);
   stack_->setCurrentWidget(page_);
@@ -743,6 +718,38 @@ Values Window::values() const {
 }
 void Window::openAction(const std::string &id) {
   const auto &a = action(id);
+  if (observation_)
+    observation_->cancel();
+  if (actionBar_) {
+    contentLayout_->removeWidget(actionBar_);
+    delete actionBar_;
+    actionBar_ = nullptr;
+  }
+  form_ = nullptr;
+  backAction_->setEnabled(true);
+  // Keep deep links aligned with the daily navigation. Advanced searches retain
+  // their context.
+  if (!detail_ && section_ == 0) {
+    int owner = 0;
+    if (a.category == "charge" || a.category == "battery" ||
+        a.category == "wake")
+      owner = 1;
+    else if (a.category == "display" || a.category == "desktop" ||
+             a.category == "lights")
+      owner = 2;
+    else if (a.category == "usb" || a.category == "network" ||
+             a.id.starts_with("nfc."))
+      owner = 3;
+    else if (a.category == "media" || a.category == "sensors")
+      owner = 4;
+    else if (a.category == "updates")
+      owner = 5;
+    if (owner) {
+      QSignalBlocker blocked(navigation_);
+      navigation_->setCurrentRow(owner);
+      section_ = owner;
+    }
+  }
   actionId_ = id;
   fields_.clear();
   observation_ = nullptr;
@@ -760,18 +767,19 @@ void Window::openAction(const std::string &id) {
   auto *layout = new QVBoxLayout(content);
   layout->setContentsMargins(0, 4, 8, 12);
   layout->setSpacing(14);
-  auto *backButton =
-      button("Back to " + QString(sections[section_].title), "go-previous");
-  backButton->setObjectName("backButton");
-  backButton->setMaximumWidth(260);
-  layout->addWidget(backButton);
-  connect(backButton, &QPushButton::clicked, this, &Window::back);
   if (!a.parameters.empty()) {
     auto *group =
         new QGroupBox(a.effect == Effect::read ? "Options" : "Your preference");
+    group->setFlat(true);
+    group->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
+    group->setAlignment(Qt::AlignLeft);
     auto *form = new QFormLayout(group);
+    form_ = form;
     form->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
-    form->setRowWrapPolicy(QFormLayout::WrapLongRows);
+    form->setRowWrapPolicy(width() < 660 ? QFormLayout::WrapAllRows
+                                         : QFormLayout::DontWrapRows);
+    form->setLabelAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    form->setContentsMargins(12, 22, 12, 12);
     form->setSpacing(12);
     form->addRow(label("These are draft choices. Nothing changes until you "
                        "review and continue."));
@@ -779,6 +787,9 @@ void Window::openAction(const std::string &id) {
       QWidget *field = nullptr;
       if (p.kind == Kind::choice) {
         auto *combo = new QComboBox;
+        combo->setSizeAdjustPolicy(
+            QComboBox::AdjustToMinimumContentsLengthWithIcon);
+        combo->setMinimumContentsLength(18);
         for (const auto &c : p.choices) {
           combo->addItem(q(c.title.en), q(c.value));
           combo->setItemData(combo->count() - 1, q(c.description.en),
@@ -800,7 +811,7 @@ void Window::openAction(const std::string &id) {
         edit->setMaxLength(4096);
         field = edit;
       }
-      field->setMinimumHeight(38);
+      field->setMinimumHeight(36);
       field->setObjectName("parameter_" + q(p.id));
       field->setAccessibleName(q(p.title.en));
       field->setToolTip(q(p.description.en));
@@ -883,24 +894,30 @@ void Window::openAction(const std::string &id) {
                                       : "Review request",
              a.effect == Effect::read ? "view-refresh" : "dialog-ok-apply");
   primary_->setObjectName("primaryAction");
-  primary_->setMinimumWidth(220);
-  primary_->setMaximumWidth(340);
-  layout->addWidget(primary_);
+  primary_->setText(a.effect == Effect::read
+                        ? (a.presentation == Presentation::capture
+                               ? "Read current information"
+                               : "Review access…")
+                        : "Review changes…");
+  actionBar_ = new QWidget;
+  auto *actionLayout = new QHBoxLayout(actionBar_);
+  actionLayout->setContentsMargins(0, 8, 0, 0);
+  actionLayout->addStretch();
+  actionLayout->addWidget(primary_);
+  contentLayout_->addWidget(actionBar_);
   connect(primary_, &QPushButton::clicked, this, &Window::submit);
   if (a.effect == Effect::read && a.presentation == Presentation::capture) {
     observation_ = new Observation(fixture_);
     layout->addWidget(observation_, 1);
   } else {
-    layout->addWidget(label(
-        fixture_.enabled
-            ? "SIMULATION: every command, terminal launch and write is blocked."
-        : readOnly_ && a.effect != Effect::read
-            ? "Read-only session: applying changes is disabled."
-            : "Review the request before continuing in a terminal."));
     layout->addStretch();
   }
+  QScroller::grabGesture(scroll->viewport(), QScroller::TouchGesture);
   scroll->setWidget(content);
   stack_->addWidget(detail_);
+  updateNavigation(width());
+  if (narrow_)
+    sidebar_->hide();
   stack_->setCurrentWidget(detail_);
 }
 void Window::inspect(const std::string &id) {
@@ -916,15 +933,27 @@ void Window::inspect(const std::string &id) {
       return;
     }
     QDialog dialog(this);
+    dialog.setObjectName("inspectionDialog");
     dialog.setWindowTitle(friendlyTitle(action(id)));
-    dialog.resize(820, 580);
-    auto *l = new QVBoxLayout(&dialog);
+    dialog.resize(std::min(820, std::max(420, width() - 32)),
+                  std::min(650, std::max(440, height() - 64)));
+    dialog.setMinimumSize(420, 400);
+    auto *outer = new QVBoxLayout(&dialog);
+    auto *scroll = new QScrollArea;
+    scroll->setWidgetResizable(true);
+    scroll->setFrameShape(QFrame::NoFrame);
+    auto *content = new QWidget;
+    auto *l = new QVBoxLayout(content);
+    scroll->setWidget(content);
+    QScroller::grabGesture(scroll->viewport(), QScroller::TouchGesture);
+    outer->addWidget(scroll, 1);
     l->addWidget(label(summary(action(id))));
     auto *observation = new Observation(fixture_);
     l->addWidget(observation, 1);
     l->addWidget(details(action(id)));
     auto *close = new QDialogButtonBox(QDialogButtonBox::Close);
-    l->addWidget(close);
+    close->button(QDialogButtonBox::Close)->setMinimumHeight(36);
+    outer->addWidget(close);
     connect(close, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
     observation->start(id, v);
     dialog.exec();
@@ -951,7 +980,9 @@ void Window::review(const Plan &request) {
   dialog.setObjectName("requestReview");
   const auto &a = action(request.action_id);
   dialog.setWindowTitle("Review · " + friendlyTitle(a));
-  dialog.resize(720, 570);
+  dialog.resize(std::min(720, std::max(420, width() - 32)),
+                std::min(650, std::max(440, height() - 64)));
+  dialog.setMinimumSize(420, 400);
   auto *outer = new QVBoxLayout(&dialog);
   auto *scroll = new QScrollArea;
   scroll->setWidgetResizable(true);
@@ -993,13 +1024,21 @@ void Window::review(const Plan &request) {
     confirmation->setMinimumHeight(38);
     l->addWidget(confirmation);
   }
-  auto *consent = new QCheckBox(
+  const auto consentText =
       request.effect == Effect::read
           ? "I reviewed this foreground observation and its access "
             "requirements."
-          : "I reviewed the request, its effects and the current state.");
+          : "I reviewed the request, its effects and the current state.";
+  auto *consent = new QCheckBox;
+  consent->setAccessibleName(consentText);
+  consent->setMinimumSize(40, 40);
   consent->setObjectName("reviewConsent");
-  l->addWidget(consent);
+  auto *consentRow = new QHBoxLayout;
+  auto *consentLabel = label(consentText);
+  consentLabel->setBuddy(consent);
+  consentRow->addWidget(consent, 0, Qt::AlignTop);
+  consentRow->addWidget(consentLabel, 1);
+  l->addLayout(consentRow);
   const bool blocked =
       fixture_.enabled || (readOnly_ && request.effect != Effect::read);
   if (blocked)
@@ -1008,6 +1047,7 @@ void Window::review(const Plan &request) {
                              "command/write are blocked."
                            : "Read-only session: this change is blocked."));
   auto *buttons = new QDialogButtonBox(QDialogButtonBox::Cancel);
+  buttons->button(QDialogButtonBox::Cancel)->setMinimumHeight(36);
   auto *run =
       buttons->addButton("Continue in terminal", QDialogButtonBox::AcceptRole);
   run->setObjectName("launchTerminal");

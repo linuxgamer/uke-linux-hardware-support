@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MIT
 #pragma once
+#include "model-data.hpp"
+#include <KMessageWidget>
 #include <QtWidgets>
 #if defined(UKE_CONTROL_SOURCE_HEADERS)
 #include <client.hpp>
@@ -12,14 +14,6 @@
 #include <optional>
 namespace uq {
 using namespace uke::client;
-struct Fixture {
-  bool enabled = false;
-  QJsonObject results;
-  static Fixture load(const QString &path);
-  Result result(const std::string &id) const;
-  int delay(const std::string &id) const;
-};
-QString safe(const std::string &text);
 class Observation : public QWidget {
   Q_OBJECT
   Fixture fixture_;
@@ -32,6 +26,7 @@ class Observation : public QWidget {
   QTreeWidget *tree_;
   QPlainTextEdit *raw_, *error_;
   QPushButton *refresh_, *stop_;
+  KMessageWidget *notice_;
   Values values_;
   unsigned displayedValues_ = 0;
   void showResult(const Result &result);
@@ -54,6 +49,14 @@ class Window : public QMainWindow {
   QStackedWidget *stack_;
   QWidget *page_ = nullptr, *detail_ = nullptr;
   QLabel *pageTitle_, *pageSubtitle_;
+  QDockWidget *sidebar_;
+  QAction *backAction_, *navigationAction_;
+  QLineEdit *settingsSearch_;
+  KMessageWidget *sessionNotice_;
+  QVBoxLayout *contentLayout_;
+  QWidget *actionBar_ = nullptr;
+  QFormLayout *form_ = nullptr;
+  bool narrow_ = false;
   QString styleNotice_;
   int section_ = 0;
   std::string actionId_;
@@ -67,6 +70,7 @@ class Window : public QMainWindow {
   void inspect(const std::string &id);
   void submit();
   void review(const Plan &request);
+  void updateNavigation(int width);
 
 public:
   Window(Fixture fixture, bool readOnly, QString styleNotice = {});
@@ -74,5 +78,6 @@ public:
   void openAction(const std::string &id);
   void back();
   void closeEvent(QCloseEvent *event) override;
+  void resizeEvent(QResizeEvent *event) override;
 };
 } // namespace uq
