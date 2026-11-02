@@ -4,6 +4,7 @@ set -euo pipefail
 root=$(git -C "$(dirname -- "$0")" rev-parse --show-toplevel)
 work=$(mktemp -d)
 trap 'rm -rf -- "$work"' EXIT
+bash "$root/packaging/ubuntu/tests/sensor-build-architecture.sh"
 for scenario in valid corrupt missing-patch broken-patch; do
  stage=$work/$scenario
  mkdir -p "$stage/source/referances/libssc" "$stage/source/patches"

@@ -2,7 +2,7 @@ Source: iio-sensor-proxy
 Section: utils
 Priority: optional
 Maintainer: MCC45TR <75160848+MCC45TR@users.noreply.github.com>
-Build-Depends: patch, debhelper-compat (= 13), meson, ninja-build, pkgconf, libglib2.0-dev, libgudev-1.0-dev (>= 237), libpolkit-gobject-1-dev, libssc-dev (>= 0.4.4-2ubuntu1~uke1~tenacious1), uke-libssc-dual-light-abi-1, libsystemd-dev, libudev-dev
+Build-Depends: patch, debhelper-compat (= 13), meson, ninja-build, pkgconf, libglib2.0-dev, libgudev-1.0-dev (>= 237), libpolkit-gobject-1-dev, libssc-dev (>= 0.4.4-2ubuntu1~uke1~tenacious1) [arm64], uke-libssc-dual-light-abi-1 [arm64], libsystemd-dev, libudev-dev
 Standards-Version: 4.7.0
 Rules-Requires-Root: no
 Homepage: https://gitlab.freedesktop.org/hadess/iio-sensor-proxy

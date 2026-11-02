@@ -3,6 +3,7 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 %:
 	dh $@ --buildsystem=meson
 override_dh_auto_configure:
+	test "$$(dpkg-architecture -qDEB_HOST_ARCH)" = arm64
 	cp uke/src/dual-light.h src/dual-light.h
 	dh_auto_configure -- --libexecdir=libexec -Dssc-support=enabled -Dtests=false -Dgtk-tests=false -Dgtk_doc=false -Dudevrulesdir=/usr/lib/udev/rules.d -Dsystemdsystemunitdir=/usr/lib/systemd/system
 override_dh_auto_clean:
