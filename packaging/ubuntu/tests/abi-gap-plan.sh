@@ -16,7 +16,7 @@ jq -e '
  all(.packages[]; .runtime_closed==false and (.gates|length>0) and
   (.existing_evidence|type=="string" and length>30) and (.remaining_work|length>0) and
   (.blocker_classes|length>0) and all(.blocker_classes[];
-   IN("boot-integration","hardware-qualification","firmware-rights-or-local-input","userspace-port","security-decision")))
+   IN("boot-integration","hardware-qualification","firmware-rights-or-local-input","userspace-port","security-integration")))
 ' "$plan" >/dev/null
 awk -F '\t' '$3=="unresolved"{print $1}' "$results" | sort > "$work/actual"
 jq -r '.packages[].package' "$plan" | sort > "$work/planned"

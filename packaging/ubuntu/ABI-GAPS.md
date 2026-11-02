@@ -38,10 +38,11 @@ per file; existing notice mapping for seven files does not clear the remaining
 210 of 217 inventoried firmware files. A local-stock input route needs its own
 provenance/admission design; it is not implicit redistribution permission.
 
-The 1006 kernel lacks AppArmor and selects SELinux. Final Ubuntu root security
-is a user decision and an engineering gate. Keeping this Image requires a
-qualified compatible enforcing root policy/handoff; selecting AppArmor would
-require an explicitly reviewed configuration/producer change and a new cohort.
-No security setting is changed here. The compile-time DT is not a replacement
+The historical 1006u1 kernel lacks AppArmor and selects SELinux. On 2 November
+the user selected AppArmor for Ubuntu while requiring Fedora to stay unchanged.
+The [explicit distro profile](DISTRO-SECURITY.md) defines the new u2 cohort;
+its native results are separate from root policy loading/enforcement and
+runtime qualification. Existing u1 artifacts cannot establish the changed configuration.
+The compile-time DT is not a replacement
 for runtime OEM DT evidence. Firmware, layout, selector and rollback gates stay
 in force before any image or tablet action.
