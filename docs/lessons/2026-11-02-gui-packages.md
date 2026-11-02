@@ -65,3 +65,19 @@ installed-meta solver checks. Existing legacy channel-transition failures and
 the backend's kernel-update compatibility requirement remain separate; neither
 is bypassed by this packaging work. No stable/testing promotion or image rebuild
 is part of GUI publication.
+
+Correction after source-build attempt 11246535: the original manifest URL
+selected COPR's unsigned `srpm-builds` artifact, while the digest and verified
+local cache belonged to the signed repository SRPM. A fresh COPR checkout
+correctly rejected that different outer digest before any binary build. The
+unsigned file has SHA-256
+`86a9009506056373ec7f9cfbe4cfeeef189c154fdccd6267433a3f0c8dc6ee9e`;
+its extracted spec, archive and CPIO payload match the signed input exactly.
+The accepted URL now selects the signed SRPM listed in repository metadata.
+The pinned digest and project-key verification remain unchanged. Validate the
+corrected endpoint with an empty source cache; cached-input tests alone cannot
+verify the download location. The corrected root COPR rule passes that cold-cache
+test in the Fedora laboratory, verifies the original digest and signature, and
+exports only `uke-control-2.8.1-6.fc46.src.rpm`. The downloaded bytes also match
+the earlier signed cache. Build 11246535 produced no replacement RPMs; a new
+native build is still required.

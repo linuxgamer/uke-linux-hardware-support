@@ -13,7 +13,7 @@ manifest="$here/input.json"
 url=$(jq -er .url "$manifest")
 digest=$(jq -er .sha256 "$manifest")
 expected=$(jq -er .source_evr "$manifest")
-[[ $url == https://download.copr.fedorainfracloud.org/results/mcc45tr/uke-linux-unstable/srpm-builds/11240837/uke-control-2.8.1-5.fc46.src.rpm ]]
+[[ $url == https://download.copr.fedorainfracloud.org/results/mcc45tr/uke-linux-unstable/fedora-rawhide-aarch64/Packages/u/uke-control-2.8.1-5.fc46.src.rpm ]]
 [[ $digest =~ ^[a-f0-9]{64}$ ]]
 input="$here/referances/uke-control-2.8.1-5.fc46.src.rpm"
 mkdir -p "$(dirname "$input")"

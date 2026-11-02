@@ -7,6 +7,12 @@ existing project signing key. The package-source configuration for an older COPR
 build does not identify this newer artifact's Git commit; the signed SRPM and its
 nested source digests are the authoritative inputs here.
 
+The download URL selects the signed SRPM from published repository metadata.
+COPR's separate `srpm-builds` artifact is unsigned and has a different outer
+digest, even though the extracted spec and source archive are identical. It is
+recorded for provenance, but is not an accepted source for this signed-input
+recipe. Keep both the published digest and the existing-key signature checks.
+
 The original source archive and maintainer scripts remain unchanged. A small
 additional archive contains the existing C++ `frontend.hpp` and ordinary-user
 `frontend-request` companion from hardware main. It compiles against the exact
