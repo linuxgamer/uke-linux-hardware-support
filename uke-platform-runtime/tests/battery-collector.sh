@@ -6,7 +6,7 @@ work=$(mktemp -d)
 trap 'rm -r -- "$work"' EXIT
 "${CXX:-c++}" -std=c++17 -O2 -Wall -Wextra -Werror "$root/tests/provider-identity.cpp" -o "$work/provider-identity"
 "$work/provider-identity" "$work/provider-fixture"
-make -C "$root" outdir="$work/build" all
+make -C "$root" outdir="$work/build" "$work/build/uke-battery"
 sys=$work/sys
 mkdir -p "$sys/firmware/devicetree/base" "$sys/class/power_supply" "$sys/devices/charger" "$sys/bus/auxiliary/drivers/qcom_battmgr.pmic_glink_power_supply"
 printf 'xiaomi,uke\0qcom,sm7675\0' > "$sys/firmware/devicetree/base/compatible"
@@ -19,6 +19,8 @@ done
 printf '1 1 1 1 1 0 0 0 0 0 100 99\n' > "$sys/devices/charger/uke_battmgr_state"
 printf 'Discharging\n' > "$sys/class/power_supply/qcom-battmgr-bat/status"
 printf 'Good\n' > "$sys/class/power_supply/qcom-battmgr-bat/health"
+printf 'NVT\n' > "$sys/class/power_supply/qcom-battmgr-bat/manufacturer"
+printf 'BMXX\n' > "$sys/class/power_supply/qcom-battmgr-bat/model_name"
 printf '%s\n' -500000 > "$sys/class/power_supply/qcom-battmgr-bat/current_now"
 printf '%s\n' 4000000 > "$sys/class/power_supply/qcom-battmgr-bat/voltage_now"
 printf '%s\n' -2000000 > "$sys/class/power_supply/qcom-battmgr-bat/power_now"
@@ -28,6 +30,15 @@ mkdir -p "$sys/class/thermal/thermal_zone0"
 printf 'pmic_bcl_current\n' > "$sys/class/thermal/thermal_zone0/type"
 printf '125000\n' > "$sys/class/thermal/thermal_zone0/temp"
 "$work/build/uke-battery" --sysfs-root "$sys" > "$work/snapshot.json"
+jq -e '.pack_variant.supplier_hint == "nvt" and (.pack_variant.qualified | not) and (.pack_variant.electrical_profile_applied | not)' "$work/snapshot.json" >/dev/null
+for supplier in SUNWODA Unknown; do
+    printf '%s\n' "$supplier" > "$sys/class/power_supply/qcom-battmgr-bat/manufacturer"
+    "$work/build/uke-battery" --sysfs-root "$sys" > "$work/variant.json"
+    expected=unknown
+    [[ $supplier != SUNWODA ]] || expected=sunwoda
+    jq -e --arg expected "$expected" '.pack_variant.supplier_hint==$expected and (.pack_variant.electrical_profile_applied|not)' "$work/variant.json" >/dev/null
+done
+printf 'NVT\n' > "$sys/class/power_supply/qcom-battmgr-bat/manufacturer"
 jq -e '.schema_version == 1 and .origin == "fixture" and .provider_verified and .snapshot_coherent
     and .external_power_with_negative_battery_current and .fields["battery.power_now"].value == -2000000
     and .fields["battery.cycle_count"].value == 0 and .fields["battery.cycle_count"].validity == "unqualified"

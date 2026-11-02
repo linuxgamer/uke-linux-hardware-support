@@ -12,7 +12,7 @@ all: $(outdir)/uke-battery $(outdir)/uke-charge-control $(outdir)/uke-offline-ch
 $(outdir)/uke-offline-charge: src/offline/main.cpp src/offline/boot-mode.hpp src/offline/io.hpp src/offline/screen.hpp src/offline/sampler.hpp src/battery/provider.hpp
 	mkdir -p "$(outdir)"
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++17 -Wall -Wextra -Werror -ffile-prefix-map=$(CURDIR)=. src/offline/main.cpp $$(pkg-config --cflags --libs libdrm) $(LDFLAGS) -o "$@"
-$(outdir)/uke-battery: $(battery_sources) src/battery/collector.hpp src/battery/model.hpp src/battery/session.hpp src/battery/profile.hpp src/battery/record.hpp src/battery/provider.hpp src/battery/demand.hpp
+$(outdir)/uke-battery: $(battery_sources) src/battery/collector.hpp src/battery/model.hpp src/battery/session.hpp src/battery/profile.hpp src/battery/record.hpp src/battery/provider.hpp src/battery/demand.hpp src/battery/pack-variant.hpp
 	mkdir -p "$(outdir)"
 	pkg-config --atleast-version=257 libsystemd
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++17 -Wall -Wextra -Werror -pthread -ffile-prefix-map=$(CURDIR)=. $(battery_sources) $$(pkg-config --cflags --libs libsystemd) $(LDFLAGS) -o "$@"
@@ -30,6 +30,8 @@ validate:
 	jq -e '[.features[].id] as $$ids | .integrated_inventory_review_required == true and .part_identity_verified == false and .firmware_activation_observed_this_review == false and ($$ids | length) == ($$ids | unique | length) and (["charge_pump_bus_ovp_ocp", "charge_pump_battery_ovp_ocp", "charge_pump_watchdog", "pack_thermistor_open_short", "regulator_ocp_uv_notifications", "pm7550ba_bcl_brownout"] - $$ids | length == 0)' manifests/protection-readiness.json >/dev/null
 test-native:
 	mkdir -p "$(outdir)"
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++17 -Wall -Wextra -Werror tests/battery-pack-variant.cpp -o "$(outdir)/test-battery-pack-variant"
+	"$(outdir)/test-battery-pack-variant"
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++17 -Wall -Wextra -Werror tests/battery-demand.cpp -o "$(outdir)/test-battery-demand"
 	"$(outdir)/test-battery-demand"
 	bash tests/battery-model.sh

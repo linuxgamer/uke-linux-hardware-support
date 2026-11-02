@@ -2,6 +2,7 @@
 #include "collector.hpp"
 #include "profile.hpp"
 #include "provider.hpp"
+#include "pack-variant.hpp"
 #include <algorithm>
 #include <array>
 #include <cerrno>
@@ -134,6 +135,7 @@ Epoch epoch(const Reading &r) {
 }
 struct Field { const char *supply, *name, *unit; bool numeric; };
 constexpr Field fields[] = {
+	{"battery", "manufacturer", "text", false}, {"battery", "model_name", "text", false},
     {"battery", "status", "enum", false}, {"battery", "health", "enum", false},
     {"battery", "present", "boolean", true}, {"battery", "capacity", "percent", true},
     {"battery", "voltage_now", "uV", true}, {"battery", "voltage_ocv", "uV", true},
@@ -250,7 +252,7 @@ std::string collect(const std::string &sysfs_root, ModelSession &models, bool in
         << ",\"driver_instance_boottime_ns\":" << (last.valid ? std::to_string(last.instance) : "null")
         << ",\"attach_generation\":null,\"protocol\":null,\"contract\":null,\"cable_identity\":null,\"fields\":{";
     std::optional<int64_t> online, current;
-    std::string health_label, battery_status;
+    std::string health_label, battery_status, manufacturer, model;
     Observation sample; sample.fault = true;
     sample.valid = coherent; sample.boottime_ns = end; sample.monotonic_ns = now(CLOCK_MONOTONIC);
     if (last.valid) sample.epoch = std::to_string(last.instance) + ":" + std::to_string(last.firmware) + ":" +
@@ -286,6 +288,8 @@ std::string collect(const std::string &sysfs_root, ModelSession &models, bool in
             else if (name == "cycle_count") sample.hardware_cycles = n;
             else if (name == "status") battery_status = r.text;
             else if (name == "health") { health_label = r.text; sample.fault = r.text != "Good"; }
+            else if (name == "manufacturer") manufacturer = r.text;
+            else if (name == "model_name") model = r.text;
         }
     }
     const char *direction = !current ? "unknown" : *current > 0 ? "charging_current_observed" :
@@ -310,7 +314,9 @@ std::string collect(const std::string &sysfs_root, ModelSession &models, bool in
     const auto &qualification = profile.qualification;
     sample.battery_id = profile.battery_id; sample.boot_id = identity.boot_id;
     const auto derived = models.observe(sample, qualification);
-    out << "},\"battery_flow\":" << quote(direction) << ",\"safety\":\"unknown_safety_state\""
+    out << "},\"pack_variant\":{\"supplier_hint\":" << quote(std::string(pack_supplier_hint(manufacturer, model)))
+        << ",\"source\":\"standard_power_supply_identity\",\"qualified\":false,\"electrical_profile_applied\":false}"
+        << ",\"battery_flow\":" << quote(direction) << ",\"safety\":\"unknown_safety_state\""
         << ",\"power_path\":{\"observation\":" << quote(power_path)
         << ",\"reported_battery_status\":" << (battery_status.empty() ? "null" : quote(battery_status))
         << ",\"external_source_reported_online\":" << (!online ? "null" : *online ? "true" : "false")

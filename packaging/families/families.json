@@ -92,9 +92,10 @@
         "uke-platform-runtime/docs/CHARGING-PROTOCOLS.md",
         "uke-platform-runtime/tests/battery-model.cpp",
         "uke-platform-runtime/tests/battery-engineering.cpp",
-        "uke-platform-runtime/docs/BATTERY-LONGEVITY.md"
+        "uke-platform-runtime/docs/BATTERY-LONGEVITY.md",
+        "uke-platform-runtime/tests/battery-pack-variant.cpp"
       ],
-      "release": 1
+      "release": 2
     },
     {
       "name": "uke-sensors",

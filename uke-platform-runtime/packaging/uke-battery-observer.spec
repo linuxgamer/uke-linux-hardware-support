@@ -1,7 +1,7 @@
 %global debug_package %{nil}
 Name: uke-battery-observer
 Version: 1.4.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: Read-only native battery observation for Xiaomi Uke
 License: MIT
 URL: https://github.com/MCC45TR/uke-linux-hardware-support/tree/main/uke-platform-runtime
@@ -118,6 +118,10 @@ sha256sum -c SOURCE-SHA256SUMS
 %{_datadir}/uke-battery/model-profile.json
 
 %changelog
+* Mon Nov 02 2026 Uke Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.4.1-2
+- Report bounded NVT and Sunwoda supplier hints from standard battery identity.
+- Preserve firmware charging ownership and electrical qualification requirements.
+
 * Thu Oct 29 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.4.1-1
 - Require a reviewed integrated-protection inventory before charge admission.
 - Record charge-pump, pack, PMIC and connector ownership and unresolved coverage.
