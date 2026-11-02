@@ -41,8 +41,25 @@ archive/script comparisons, dependency separation and four Qt suites pass in
 the laboratory. This does not qualify a native AArch64 binary build or a normal
 DNF transaction; those require the published COPR results.
 
-Build the backend/SDK cohort first, then both GUI packages using the same
-immutable source commit in unstable Rawhide AArch64. Do not claim installation
+Build the backend/SDK first, then both GUI packages using the same immutable
+source commit in unstable Rawhide AArch64, then publish the mandatory desktop
+metas through the separate `control-gui-metas` source. The backend source emits
+only Control/TUI/tests/client/devel and leaves published meta versions unchanged.
+The meta source emits only desktop selections/applet; it emits no backend, core
+meta or power packages. Tests assert these disjoint output sets and preserve each
+selected component's complete build/install groups and maintainer scripts. Only
+the unused Core profile installed by the nested metadata source is removed from
+the metadata buildroot. An exact SRPM filename is exported for each phase so a
+stale sibling source archive cannot enter COPR's result directory.
+
+An x86_64 laboratory binary-build attempt for the AArch64 metadata spec reaches
+its native applet check and correctly refuses AArch64 compiler flags on the host
+compiler. The same unshipped applet test passes with native host flags as a
+separate host UI check. Production flags and architecture admission are unchanged;
+this is not an AArch64 RPM acceptance result. The final native meta build remains
+a COPR gate after both GUI packages are published.
+
+Do not claim installation
 availability until signed GUI RPMs and repository metadata satisfy fresh and
 installed-meta solver checks. Existing legacy channel-transition failures and
 the backend's kernel-update compatibility requirement remain separate; neither

@@ -8,7 +8,7 @@ function finish_phase() {
     if(phase=="prep") {
         print "mkdir -p %{_builddir}/uke-control-frontend-contract"
         print "tar -xJf %{SOURCE1} -C %{_builddir}/uke-control-frontend-contract"
-    } else if(phase=="build") {
+    } else if(phase=="build" && build_phase=="backend") {
         print "contract=%{_builddir}/uke-control-frontend-contract"
         print "mapfile -t client_libraries < <(find %{_builddir}/uke-control-2.8.1/work -type f -path '*/build/libuke-control-client.so.1')"
         print "test ${#client_libraries[@]} = 1"
@@ -18,10 +18,13 @@ function finish_phase() {
         print "printf '%s\\n' \"${library%/*}\" > \"$contract/library-directory\""
     } else if(phase=="install") {
         print "contract=%{_builddir}/uke-control-frontend-contract"
-        print "install -Dm644 \"$contract/frontend.hpp\" %{buildroot}%{_includedir}/uke-control/frontend.hpp"
-        print "install -Dm755 \"$contract/frontend-request\" %{buildroot}%{_libexecdir}/uke-control/frontend-request"
-        print "install -Dm644 \"$contract/gnome.json\" %{buildroot}%{_datadir}/senemos/uke/desktops/gnome.json"
-    } else if(phase=="check") {
+        if(build_phase=="backend") {
+            print "install -Dm644 \"$contract/frontend.hpp\" %{buildroot}%{_includedir}/uke-control/frontend.hpp"
+            print "install -Dm755 \"$contract/frontend-request\" %{buildroot}%{_libexecdir}/uke-control/frontend-request"
+        } else {
+            print "install -Dm644 \"$contract/gnome.json\" %{buildroot}%{_datadir}/senemos/uke/desktops/gnome.json"
+        }
+    } else if(phase=="check" && build_phase=="backend") {
         print "contract=%{_builddir}/uke-control-frontend-contract"
         print "export LD_LIBRARY_PATH=$(cat \"$contract/library-directory\")${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
         print "\"$contract/frontend-request\" --help > /dev/null"
@@ -31,9 +34,15 @@ function finish_phase() {
         print "set -e"
         print "test $status = 64"
         print "grep -F 'read-only query interface' \"$contract/captured-read-refusal\""
+    } else if(phase=="check" && build_phase=="metas") {
+        # The retained metadata check compares the Core profile before pruning
+        # that unselected package's data from this buildroot.
+        print "rm -f %{buildroot}%{_datadir}/senemos/uke/core/profile.json"
+        print "rmdir %{buildroot}%{_datadir}/senemos/uke/core"
     }
 }
 function gnome_preamble() {
+    if(build_phase=="backend") {
     print ""
     print "%package -n uke-control-client"
     print "Version: " version["uke-control"]
@@ -54,6 +63,8 @@ function gnome_preamble() {
     print "Provides: /usr/include/uke-control/frontend.hpp"
     print "%description -n uke-control-client-devel"
     print "Headers and pkg-config metadata for building unprivileged native frontends."
+    return
+    }
     print ""
     print "%package -n uke-gnome-meta"
     print "Version: 1.0.0"
@@ -118,9 +129,11 @@ root_files && /^\/usr\/include\/uke-control\/\*[.]hpp$/ {next}
 !skip_changelog {print}
 END {
     if(!skip_changelog) {print "Missing published changelog boundary" > "/dev/stderr"; exit 1}
+    if(build_phase=="metas") {
     print "%files -n uke-gnome-meta"
     print "%license LICENSE"
     print "%{_datadir}/senemos/uke/desktops/gnome.json"
+    } else {
     print ""
     print "%files -n uke-control-client"
     print "%license LICENSE"
@@ -132,9 +145,11 @@ END {
     print "%{_includedir}/uke-control/*.hpp"
     print "%{_libdir}/libuke-control-client.so"
     print "%{_libdir}/pkgconfig/uke-control-client.pc"
+    }
     print ""
     print "%changelog"
-    print "* Mon Nov 02 2026 Uke contributors - 2.8.1-6"
+    if(build_phase=="backend") print "* Mon Nov 02 2026 Uke contributors - 2.8.1-6"
+    else print "* Mon Nov 02 2026 Uke contributors - 1.0.0-36"
     print "- Preserve the published backend and add the typed GUI client contract."
     print "- Require the corresponding native application in each desktop selection."
 }

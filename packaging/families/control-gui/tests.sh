@@ -3,8 +3,10 @@
 set -Eeuo pipefail
 here=$(cd -- "$(dirname -- "$0")"; pwd)
 cd "$here"
-make srpm
-top=build/srpm/rpmbuild
+make srpm outdir=build/backend
+make srpm PHASE=metas outdir=build/metas
+top=build/backend/rpmbuild
+metatop=build/metas/rpmbuild
 old="$top/SOURCES/uke-control-published.spec"
 new="$top/SPECS/uke-control.spec"
 # The imported nested archives contain the existing DNF/boot/device behavior.
@@ -16,16 +18,24 @@ cmp "$stage/uke-control-2.8.1.tar.xz" "$top/SOURCES/uke-control-2.8.1.tar.xz"
 cmp "$stage/uke-control.spec" "$old"
 # Existing maintainer scripts remain byte-for-byte unchanged.
 scripts() {
-    awk '/^%(pre|post|preun|postun|pretrans|posttrans|trigger.*|filetrigger.*|transfiletrigger.*)([[:space:]]|$)/ {copy=1}
+    awk -v phase="$2" '/^%(pre|post|preun|postun|pretrans|posttrans|trigger.*|filetrigger.*|transfiletrigger.*)([[:space:]]|$)/ {
+             package="uke-control";for(i=2;i<=NF;i++)if($i=="-n")package=$(i+1)
+             copy=(phase=="backend" ? package=="uke-control" : package=="uke-kde-plasma-meta")
+         }
          /^%(files|changelog)([[:space:]]|$)/ {copy=0}
          copy {print}' "$1"
 }
-scripts "$old" > "$stage/old-scripts"
-scripts "$new" > "$stage/new-scripts"
+scripts "$old" backend > "$stage/old-scripts"
+scripts "$new" backend > "$stage/new-scripts"
 cmp "$stage/old-scripts" "$stage/new-scripts"
+scripts "$old" metas > "$stage/old-meta-scripts"
+scripts "$metatop/SPECS/uke-desktop-metas.spec" metas > "$stage/new-meta-scripts"
+cmp "$stage/old-meta-scripts" "$stage/new-meta-scripts"
+! grep -E '^uke-.*meta' "$top/package-identities.tsv"
+! grep -E '^uke-control' "$metatop/package-identities.tsv"
 selection() {
     awk -v package="$1" '$0=="%package -n " package {copy=1;next}
-        /^%description/ {copy=0} copy {print}' "$new"
+        /^%description/ {copy=0} copy {print}' "$metatop/SPECS/uke-desktop-metas.spec"
 }
 selection uke-kde-plasma-meta > "$stage/kde"
 selection uke-gnome-meta > "$stage/gnome"

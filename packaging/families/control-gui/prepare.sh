@@ -6,7 +6,9 @@ here=$(cd -- "$(dirname -- "$0")"; pwd)
 root=$(cd -- "$here/../../.."; pwd)
 out=$(realpath -m "${1:-$here/build/srpm}")
 arch=${2:-aarch64}
+phase=${3:-backend}
 [[ $arch == aarch64 ]]
+[[ $phase == backend || $phase == metas ]]
 manifest="$here/input.json"
 url=$(jq -er .url "$manifest")
 digest=$(jq -er .sha256 "$manifest")
@@ -50,11 +52,24 @@ mkdir "$stage/contract"
 cp "$root/uke-control/src/"{frontend.hpp,frontend-request.cpp,client.hpp} "$stage/contract/"
 cp "$root/uke-desktop-metas/src/gnome.json" "$stage/contract/"
 tar --sort=name --mtime=@1793577600 --owner=0 --group=0 --numeric-owner -cJf "$top/SOURCES/uke-control-frontend-contract.tar.xz" -C "$stage/contract" .
-awk -f "$here/rewrite.awk" "$stage/identities" "$stage/input/uke-control.spec" > "$top/SPECS/uke-control.spec"
-rpmspec --target "$arch" -q --qf '%{NAME}\t%{VERSION}-%{RELEASE}\n' "$top/SPECS/uke-control.spec" > "$top/package-identities.tsv"
+package=uke-control
+if [[ $phase == metas ]]; then package=uke-desktop-metas; fi
+component=uke-control
+if [[ $phase == metas ]]; then component=uke-meta-integration; fi
+tar -xOf "$stage/input/uke-control-2.8.1.tar.xz" "uke-control-2.8.1/inputs/$component/$component.spec" > "$stage/selected-input.spec"
+grep '^BuildRequires:' "$stage/selected-input.spec" > "$stage/buildrequires"
+if [[ $phase == backend ]]; then printf '%s\n' 'BuildRequires: findutils' >> "$stage/buildrequires"; fi
+awk -v build_phase="$phase" -f "$here/rewrite.awk" "$stage/identities" "$stage/input/uke-control.spec" > "$stage/complete.spec"
+awk -v build_phase="$phase" -v requirements="$stage/buildrequires" -f "$here/select-phase.awk" "$stage/complete.spec" > "$top/SPECS/$package.spec"
+rpmspec --target "$arch" -q --qf '%{NAME}\t%{VERSION}-%{RELEASE}\n' "$top/SPECS/$package.spec" > "$top/package-identities.tsv"
+if [[ $phase == backend ]]; then
 grep -Fx $'uke-control\t'"$(jq -er .output_evr "$manifest")" "$top/package-identities.tsv"
+else
 grep -Fx $'uke-kde-plasma-meta\t'"$(jq -er .desktop_meta_evr "$manifest")" "$top/package-identities.tsv"
 grep -Fx $'uke-gnome-meta\t'"$(jq -er .desktop_meta_evr "$manifest")" "$top/package-identities.tsv"
-[[ $(wc -l < "$top/package-identities.tsv") == 15 ]]
-rpmbuild -bs --nodeps --target "$arch" --define '_buildhost uke-builder' --define "_topdir $top" "$top/SPECS/uke-control.spec"
-install -m644 "$top/SRPMS/"*.src.rpm "$out/"
+fi
+[[ $(wc -l < "$top/package-identities.tsv") == 5 ]]
+rpmbuild -bs --nodeps --target "$arch" --define '_buildhost uke-builder' --define "_topdir $top" "$top/SPECS/$package.spec"
+output_evr=$(jq -er .output_evr "$manifest")
+if [[ $phase == metas ]]; then output_evr=$(jq -er .desktop_meta_evr "$manifest"); fi
+install -m644 "$top/SRPMS/$package-$output_evr.src.rpm" "$out/"

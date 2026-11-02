@@ -21,8 +21,9 @@ The backend owns the terminal companion and advertises
 DNF BuildRequires resolution. Building a frontend no longer installs the device
 backend and its kernel-maintenance dependencies in the buildroot; the applications
 still require that secured backend at runtime. Existing strict internal dependencies are aligned with
-the new cohort's exact package versions. Other children advance their Release
-without version downgrades.
+the new cohort's exact package versions. The backend source produces only
+Control, TUI, tests, client library and devel SDK packages. It emits no desktop
+meta or power packages.
 
 `uke-kde-plasma-meta-1.0.0-36` requires `uke-control-qt >= 1.0.0-2`.
 The new canonical `uke-gnome-meta-1.0.0-36` requires `uke-control-gtk >= 1.0.0-2`
@@ -42,11 +43,15 @@ All Git source definitions must use the same reviewed immutable commit:
 1. `uke-control`: source subdirectory `packaging/families/control-gui`.
 2. After the backend/SDK is published, `uke-control-qt`: `uke-control-qt`, and
    `uke-control-gtk`: `uke-control-gtk`.
-3. Wait for both signed GUI RPMs and updated repository metadata before testing
-   normal fresh meta installation and an installed KDE meta upgrade.
+3. After both signed GUI RPMs and repository metadata are available, build
+   `uke-desktop-metas` using source subdirectory
+   `packaging/families/control-gui-metas`.
+4. Verify normal fresh meta installation and an installed KDE meta upgrade
+   against the final signed RPMs and updated repository metadata.
 
-The backend build emits the matching meta packages in the same existing cohort.
-Their new GUI dependencies become satisfiable when step 2 has published. No
+The last source produces only desktop selections/applet with mandatory GUI
+dependencies. The first backend publication leaves installed/available meta
+versions unchanged, avoiding an incomplete graph while GUI builds run. No
 stable/testing promotion, release-image rebuild or physical device acceptance is
 implied. Do not advertise `dnf update` availability before the complete graph is
 published and solved against the real RPMs.
