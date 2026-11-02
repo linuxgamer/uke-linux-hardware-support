@@ -669,3 +669,30 @@ or changing the approved compiled source.
 The first public CI caught a stale generated canonical-main adapter. It was
 regenerated and the new architecture fixture compares both control files and
 requires the compile guard in the actual Launchpad adapter as well.
+
+## Ubuntu AppArmor native cohort verified
+
+2 November 2026. The exact Ubuntu security adapter at 0d979e3 passed a clean
+Tenacious ARM64 kernel build with release 7.3.1-1006u2. Both effective distro
+configs were retained: Fedora keeps AppArmor off and its SELinux LSM list;
+Ubuntu selects lockdown,yama,apparmor,bpf and the required AppArmor facilities.
+All other preflight settings compare equal outside the approved profile fields.
+The original shared baseline is unchanged. No Fedora kernel or image was rebuilt.
+
+Independent host readback of the downloaded native output matches Image
+IKCONFIG to the recorded final Ubuntu config, verifies all 823 module signatures
+against the embedded certificate, both boot wrappers, 90 early drivers, 318
+base-file hashes and 116 links. The compile-stage DTB matches the preceding
+exact-source cohort. These are build/artifact results; actual boot and AppArmor
+policy loading/enforcement are untested. Normal complete Debian boot packaging,
+root policy/layout/activation/rollback, firmware inputs, license/source-offer
+audit and physical qualification remain separate. No runtime ABI provider,
+Ubuntu system image, public image release or stable promotion is admitted.
+
+The first successful native compile lost its export because a root-owned hash
+manifest could not be overwritten and multiarch license paths contain colons
+that the artifact uploader rejects. Tested atomic manifest replacement and a
+portable outer tar preserve original notice names/data, including three bounded
+common-license aliases. The corrected same-source build/export and independent
+ZIP/tar/inner hash checks passed. No kernel protection or source identity was
+changed to repair transport.
