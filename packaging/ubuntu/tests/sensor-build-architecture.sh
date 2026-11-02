@@ -5,6 +5,8 @@ here=$(cd -- "$(dirname -- "$0")/.."; pwd)
 work=$(mktemp -d)
 trap 'rm -rf -- "$work"' EXIT
 control=$here/recipes/iio-sensor-proxy/debian/control
+cmp "$control" "$here/main-recipes/iio-sensor-proxy/debian/control"
+grep -Fxq '	test "$$(dpkg-architecture -qDEB_HOST_ARCH)" = arm64' "$here/main-recipes/iio-sensor-proxy/debian/rules"
 mkdir "$work/dpkg"
 : > "$work/dpkg/status"
 expected='libssc-dev (>= 0.4.4-2ubuntu1~uke1~tenacious1) [arm64], uke-libssc-dual-light-abi-1 [arm64]'

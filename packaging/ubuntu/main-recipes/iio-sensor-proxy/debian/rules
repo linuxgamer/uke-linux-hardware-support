@@ -5,6 +5,7 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 override_dh_auto_configure:
 	 bash debian/verify-main-inputs
 	 bash debian/prepare-upstream iio-sensor-proxy
+	test "$$(dpkg-architecture -qDEB_HOST_ARCH)" = arm64
 	dh_auto_configure --sourcedirectory=upstream -- --libexecdir=libexec -Dssc-support=enabled -Dtests=false -Dgtk-tests=false -Dgtk_doc=false -Dudevrulesdir=/usr/lib/udev/rules.d -Dsystemdsystemunitdir=/usr/lib/systemd/system
 override_dh_auto_test:
 	# Native tests require execution approval; source patch checks run separately.
