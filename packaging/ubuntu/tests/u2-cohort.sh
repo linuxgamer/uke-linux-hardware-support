@@ -23,7 +23,7 @@ grep -Fq 'Select exactly one kernel artifact profile' "$work/mixed"
 # Default build must run the complete producer; retained diagnostic candidate
 # compilation cannot silently replace the boot cohort.
 awk '/ build\|boot\)/,/^ prepare\)/' "$work/debian/build-kernel" | grep -Fq 'src/boot/build-payload.sh'
-! grep -q '^Provides:' "$work/debian/control"
-! find "$work/debian" -maxdepth 1 -type f | grep -Eq '\.(postinst|preinst|postrm|prerm)$'
+if grep -q '^Provides:' "$work/debian/control"; then exit 1; else [[ $? == 1 ]]; fi
+if find "$work/debian" -maxdepth 1 -type f | grep -Eq '\.(postinst|preinst|postrm|prerm)$'; then exit 1; else [[ $? == 1 ]]; fi
 for script in "$here/"{stage-kernel-cohort,verify-u2-receipt}.sh "$work/debian/import-verified-cohort"; do bash -n "$script"; done
 echo 'Complete source/artifact profile sets and producer refusal contracts pass; no device code executed.'
