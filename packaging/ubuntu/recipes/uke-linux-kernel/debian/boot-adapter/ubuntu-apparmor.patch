@@ -1,0 +1,48 @@
+--- a/src/boot/build-payload.sh
++++ b/src/boot/build-payload.sh
+@@ -38,7 +38,10 @@
+ ExecStart=
+ ExecStart=/usr/libexec/uke-offline-switch-root
+ UNIT
+-cp "$here/../../packaging/native/native.config" "$out/.config"
++[[ ${UKE_KERNEL_DISTRO:-} == ubuntu ]] || { echo 'Explicit UKE_KERNEL_DISTRO=ubuntu is required' >&2; exit 2; }
++bash "$here/../../packaging/kernel-security/seed.sh" --distro "$UKE_KERNEL_DISTRO" \
++    --baseline "$here/../../packaging/native/native.config" --output-root "$out/config-profile"
++cp "$out/config-profile/ubuntu/.config" "$out/.config"
+ usb_profile=$(cat "$kernel/native-generated/usb-profile")
+ case $usb_profile in peripheral|typec-v1) ;; *) echo 'Missing USB source-profile receipt' >&2; exit 2;; esac
+ if [[ $usb_profile == typec-v1 ]]; then
+@@ -56,6 +59,8 @@
+ export ARCH=arm64 LLVM=1
+ bash "$kernel/scripts/config" --file "$out/.config" --set-str INITRAMFS_SOURCE ''
+ make -C "$kernel" O="$out" LOCALVERSION="$localversion" olddefconfig
++bash "$here/../../packaging/kernel-security/verify.sh" --distro "$UKE_KERNEL_DISTRO" \
++    --baseline "$here/../../packaging/native/native.config" --config "$out/.config"
+ bash "$here/../../tests/kernel-hardening-config-contract.sh" "$out/.config"
+ bash "$here/../../tests/uke-build-scope-contract.sh" "$out/.config"
+ [[ $(make -s -C "$kernel" O="$out" LOCALVERSION="$localversion" kernelrelease) == "$release" ]]
+@@ -110,6 +115,8 @@
+ uke_stage_start=$SECONDS
+ bash "$kernel/scripts/config" --file "$out/.config" --set-str INITRAMFS_SOURCE "$out/boot-initramfs.cpio.gz"
+ make -C "$kernel" O="$out" LOCALVERSION="$localversion" olddefconfig
++bash "$here/../../packaging/kernel-security/verify.sh" --distro "$UKE_KERNEL_DISTRO" \
++    --baseline "$here/../../packaging/native/native.config" --config "$out/.config"
+ bash "$here/../../tests/kernel-hardening-config-contract.sh" "$out/.config"
+ make -C "$kernel" O="$out" LOCALVERSION="$localversion" -j"$jobs" Image
+ # Keep only the public certificate as a deliverable. The same key signed the
+--- a/tests/kernel-hardening-config-contract.sh
++++ b/tests/kernel-hardening-config-contract.sh
+@@ -14,7 +14,12 @@
+ grep -Fxq 'CONFIG_MODULE_SIG_KEY="certs/signing_key.pem"' "$config"
+ grep -Fxq 'CONFIG_SYSTEM_TRUSTED_KEYS=""' "$config"
+ lsm=$(sed -n 's/^CONFIG_LSM="\([^"]*\)"$/\1/p' "$config")
+-for name in lockdown yama selinux; do
++case ${UKE_KERNEL_DISTRO:-} in
++    ubuntu) major=apparmor;;
++    fedora) major=selinux;;
++    *) echo 'Explicit UKE_KERNEL_DISTRO=ubuntu|fedora is required' >&2; exit 2;;
++esac
++for name in lockdown yama "$major"; do
+     case ,$lsm, in *,"$name",*) ;; *) printf 'Required LSM missing: %s\n' "$name" >&2; exit 1;; esac
+ done
+ echo 'Resolved kernel release protections passed'

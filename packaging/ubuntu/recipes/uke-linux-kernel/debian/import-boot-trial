@@ -12,7 +12,8 @@ case ${1:-} in
    [[ -n ${!name:-} ]] || { echo "Unsupported: explicit $name is required; no source build started." >&2; exit 78; }
   done
   [[ $UKE_TRIAL_LAYOUT == singleboot || $UKE_TRIAL_LAYOUT == multiboot ]]
-  [[ -f $receipt && $(dpkg-parsechangelog -ldebian/changelog -SVersion) == $(jq -r .version "$receipt") ]]
+  [[ -f $receipt ]]
+  [[ $(dpkg-parsechangelog -ldebian/changelog -SVersion) == $(jq -r .version "$receipt") ]] || { echo 'Unsupported: the historical artifact receipt does not match this source version; no artifact promotion or source build.' >&2; exit 78; }
   [[ ! -e build/artifact-trial ]]
   bash "$tools/verify-native-artifact-receipt.sh" "$receipt" "$UKE_TRIAL_COHORT" "$UKE_TRIAL_EVIDENCE" "$UKE_TRIAL_EARLY_MODULES"
   # Snapshot only pinned files, then verify the copied bytes before inspection.

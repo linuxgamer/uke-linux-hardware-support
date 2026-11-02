@@ -5,12 +5,15 @@ if [[ " ${DEB_BUILD_PROFILES:-} " == *" pkg.uke-linux-kernel.artifact-trial "* ]
  echo 'Unsupported: artifact-trial packaging cannot invoke the kernel source producer.' >&2
  exit 78
 fi
+if [[ ${1:-} == build || ${1:-} == boot ]]; then
+ [[ ${UKE_KERNEL_DISTRO:-} == ubuntu ]] || { echo 'Unsupported: explicit UKE_KERNEL_DISTRO=ubuntu is required for this Debian producer.' >&2; exit 78; }
+fi
 export LC_ALL=C ARCH=arm64 LLVM=1 LLVM_IAS=1
 root=$PWD
 kernel=$root/build/linux-7.3.1
-output=$root/build/output
-release=7.3.1-1006u1
-localversion=-1006u1
+output=$root/build/output/ubuntu
+release=7.3.1-1006u2
+localversion=-1006u2
 # Shared ALSA driver IDs contain "uke" plus UTS_RELEASE and a terminating NUL.
 # Keep that existing 16-byte bound; reject an oversized package identity early.
 (( ${#release} + 3 + 1 <= 16 ))
@@ -36,19 +39,19 @@ case ${1:-} in
   bash "$ported/src/boot/make-initramfs-base.sh" "$root/build/boot-base" "$release"
   # One producer retains one module key across both Image passes, checks its
   # embedded root-selector note, reads back both wrappers, then deletes the key.
-  bash "$ported/src/boot/build-payload.sh" "$kernel" "$root/build/boot-output" "$root/build/boot-base/base" "$release" "${DEB_BUILD_OPTIONS_JOBS:-$(nproc)}"
-  [[ ! -e build/boot-output/certs/signing_key.pem ]]
+  bash "$ported/src/boot/build-payload.sh" "$kernel" "$root/build/boot-output/ubuntu" "$root/build/boot-base/base" "$release" "${DEB_BUILD_OPTIONS_JOBS:-$(nproc)}"
+  [[ ! -e build/boot-output/ubuntu/certs/signing_key.pem ]]
   mkdir build/boot-cohort
   for file in linux.img userdata.img boot-manifest boot-header.json modules.sha256 module-signing.x509; do
-   install -m644 "build/boot-output/$file" build/boot-cohort/
+   install -m644 "build/boot-output/ubuntu/$file" build/boot-cohort/
   done
-  install -m644 build/boot-output/.config build/boot-cohort/config
-  install -m644 build/boot-output/arch/arm64/boot/Image build/boot-output/arch/arm64/boot/dts/qcom/sm7675-xiaomi-uke.dtb build/boot-cohort/
+  install -m644 build/boot-output/ubuntu/.config build/boot-cohort/config
+  install -m644 build/boot-output/ubuntu/arch/arm64/boot/Image build/boot-output/ubuntu/arch/arm64/boot/dts/qcom/sm7675-xiaomi-uke.dtb build/boot-cohort/
   cp -a build/boot-base/licenses build/boot-cohort/licenses
   install -d build/boot-cohort/licenses/linux
   install -m644 "$kernel/LICENSES/preferred/GPL-2.0" "$kernel/LICENSES/preferred/MIT" "$kernel/LICENSES/preferred/BSD-3-Clause" build/boot-cohort/licenses/linux/
-  tar -cJf build/boot-cohort/modules.tar.xz -C build/boot-output/boot-modules "lib/modules/$release"
-  printf '%s\n' build_only=true publication_authorized=false tablet_actions=false root_image_created=false boot_cohort_admitted=false security_profile_selected=false > build/boot-cohort/admission
+  tar -cJf build/boot-cohort/modules.tar.xz -C build/boot-output/ubuntu/boot-modules "lib/modules/$release"
+  printf '%s\n' build_only=true publication_authorized=false tablet_actions=false root_image_created=false boot_cohort_admitted=false security_profile_selected=ubuntu-apparmor runtime_enforcement_tested=false > build/boot-cohort/admission
   ;;
  prepare)
   [[ $(dpkg-architecture -qDEB_HOST_ARCH) == arm64 ]]
@@ -82,12 +85,13 @@ case ${1:-} in
   bash "$kernel/native-profile/prepare.sh" "$kernel" ;;
  build)
   [[ $(dpkg-architecture -qDEB_HOST_ARCH) == arm64 ]]
-  mkdir -p "$output"
-  cp "$kernel/boot-recipe/packaging/native/native.config" "$output/.config"
+  bash debian/boot-adapter/stage.sh "$kernel/boot-recipe" build/first-pass-boot-recipe
+  bash debian/kernel-security/seed.sh --distro "$UKE_KERNEL_DISTRO" --baseline "$kernel/boot-recipe/packaging/native/native.config" --output-root "$root/build/output"
   bash "$kernel/scripts/config" --file "$output/.config" --set-str INITRAMFS_SOURCE ''
   make -C "$kernel" O="$output" LOCALVERSION="$localversion" olddefconfig
+  bash debian/kernel-security/verify.sh --distro "$UKE_KERNEL_DISTRO" --baseline "$kernel/boot-recipe/packaging/native/native.config" --config "$output/.config"
   [[ $(make -s -C "$kernel" O="$output" LOCALVERSION="$localversion" kernelrelease) == "$release" ]]
-  bash "$kernel/boot-recipe/tests/kernel-hardening-config-contract.sh" "$output/.config"
+  bash build/first-pass-boot-recipe/tests/kernel-hardening-config-contract.sh "$output/.config"
   bash "$kernel/boot-recipe/tests/uke-build-scope-contract.sh" "$output/.config"
   make -C "$kernel" O="$output" LOCALVERSION="$localversion" -j"$(nproc)" Image modules qcom/sm7675-xiaomi-uke.dtb
   # INITRAMFS_FORCE is retained: this first-pass Image is not bootable.

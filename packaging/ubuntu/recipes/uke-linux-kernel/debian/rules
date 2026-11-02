@@ -1,4 +1,10 @@
 #!/usr/bin/make -f
+ifneq ($(UKE_KERNEL_DISTRO),)
+ifneq ($(UKE_KERNEL_DISTRO),ubuntu)
+$(error This Debian recipe requires UKE_KERNEL_DISTRO=ubuntu)
+endif
+endif
+export UKE_KERNEL_DISTRO := ubuntu
 %:
 	dh $@
 ifneq ($(filter pkg.uke-linux-kernel.artifact-trial,$(DEB_BUILD_PROFILES)),)

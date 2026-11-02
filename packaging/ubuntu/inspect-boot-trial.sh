@@ -2,14 +2,15 @@
 # Read-only host admission checks. Never installs, loads or flashes a payload.
 set -euo pipefail
 export LC_ALL=C
-[[ $# == 3 ]] || { echo 'Usage: inspect-boot-trial.sh COHORT_DIRECTORY BUILD_EVIDENCE_DIRECTORY PINNED_EARLY_MODULE_LIST' >&2; exit 2; }
+[[ $# == 3 || $# == 4 ]] || { echo 'Usage: inspect-boot-trial.sh COHORT_DIRECTORY BUILD_EVIDENCE_DIRECTORY PINNED_EARLY_MODULE_LIST [EXACT_RELEASE]' >&2; exit 2; }
 cohort=$(realpath "$1")
 evidence=$(realpath "$2")
 early_list=$(realpath "$3")
 [[ $(sha256sum "$early_list" | cut -d ' ' -f1) == 17ae751bfb30c3b2ec9d10e7ab37deeb53b5231793cf5733ceb438438c23a6a6 ]]
 for tool in openssl zstd modinfo fdtget sha256sum od dd cmp readelf perl bsdtar gzip; do command -v "$tool" >/dev/null; done
 here=$(cd -- "$(dirname -- "$0")" && pwd)
-release=7.3.1-1006u1
+release=${4:-7.3.1-1006u1}
+[[ $release == 7.3.1-1006u1 || $release == 7.3.1-1006u2 ]]
 work=$(mktemp -d)
 trap 'rm -rf -- "$work"' EXIT
 cd "$cohort"
@@ -19,6 +20,10 @@ grep -aFq "Linux version $release " Image
 config=config
 [[ -f $config ]] || config=.config
 if [[ -f config && -f .config ]]; then cmp config .config; fi
+if [[ $release == 7.3.1-1006u2 ]]; then
+ for key in SECURITY_APPARMOR SECURITY SECURITYFS SECURITY_NETWORK SECURITY_PATH AUDIT NET; do grep -Fxq "CONFIG_$key=y" "$config"; done
+ grep -Fxq 'CONFIG_LSM="lockdown,yama,apparmor,bpf"' "$config"
+fi
 for key in MODULE_SIG MODULE_SIG_FORCE MODULE_SIG_ALL INITRAMFS_FORCE QCOM_UKE_ABL_DT; do
     grep -Fxq "CONFIG_$key=y" "$config"
 done

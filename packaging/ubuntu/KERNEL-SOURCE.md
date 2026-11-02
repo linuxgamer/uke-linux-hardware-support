@@ -77,5 +77,9 @@ The shared configuration selects SELinux and lacks Ubuntu's default AppArmor
 support. The optional SELinux compatibility package test passed without Python,
 but that does not select the final image security profile or qualify enforcing
 handoff. The final profile and any configuration change need explicit approval.
+On 2 November the user authorized an explicit Ubuntu-only AppArmor profile.
+The [distro security contract](DISTRO-SECURITY.md) defines the separate `u2`
+cohort and preserves the Fedora baseline; native and runtime results remain
+separate. The older `u1` artifact cannot establish this new configuration.
 Do not force Fedora assumptions or disable security to get a boot. See
 [TEST-IMAGE-GATES.md](TEST-IMAGE-GATES.md).

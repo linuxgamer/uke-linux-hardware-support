@@ -2,9 +2,9 @@ name: Ubuntu source packaging contracts
 on:
   push:
     branches: [main]
-    paths: ['packaging/ubuntu/**', 'uke-control/src/apt-policy.hpp', 'uke-control/tests/apt-policy.cpp', '.github/workflows/ubuntu-source-packaging.yml']
+    paths: ['packaging/ubuntu/**', 'packaging/kernel-security/**', 'uke-control/src/apt-policy.hpp', 'uke-control/tests/apt-policy.cpp', '.github/workflows/ubuntu-source-packaging.yml']
   pull_request:
-    paths: ['packaging/ubuntu/**', 'uke-control/src/apt-policy.hpp', 'uke-control/tests/apt-policy.cpp', '.github/workflows/ubuntu-source-packaging.yml']
+    paths: ['packaging/ubuntu/**', 'packaging/kernel-security/**', 'uke-control/src/apt-policy.hpp', 'uke-control/tests/apt-policy.cpp', '.github/workflows/ubuntu-source-packaging.yml']
   workflow_dispatch:
 permissions:
   contents: read

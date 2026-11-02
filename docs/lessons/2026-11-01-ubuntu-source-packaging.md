@@ -643,3 +643,29 @@ qualification, firmware rights/local input design and root security decisions.
 The original trial also lacks the complete embedded-userspace license
 collection, so binary redistribution stays blocked. No Ubuntu image, security
 change, stable promotion, new credential or tablet action occurred.
+
+## Explicit Ubuntu AppArmor selection
+
+2 November 2026. User approval selects AppArmor for Ubuntu server builds while
+requiring Fedora to retain its existing security configuration. Inspecting the
+actual pinned Kconfig shows SECURITY/NET dependencies and selected AUDIT,
+SECURITY_PATH/FS/NETWORK facilities. AppArmor's LSM is exclusive; Ubuntu uses
+lockdown,yama,apparmor,bpf, with the shared signature/lockdown/Yama and memory
+protections retained. Fedora's original config and contract remain unchanged.
+An explicit host profile tool separates output directories and rejects missing
+selection, contaminated baselines, output reuse and weakened protections.
+The new Ubuntu release1006u2 distinguishes the changed module cohort from the
+historical1006u1 artifact. Source/refusal tests pass; real Kconfig/native build
+and running policy results must be recorded separately. Existing artifacts
+cannot prove the new configuration and are not relabeled or promoted.
+
+Launchpad SensorProxy source4108935 separately failed because its amd64 source
+builder tried to install the ARM64-only patched SSC SDK/ABI. Build dependency
+architecture qualifiers now omit only those two gates on amd64. ARM64 retains
+the exact version and real ABI gate; runtime dependencies remain unchanged and
+configuration explicitly rejects an amd64 binary build. Dpkg reduction/refusal
+fixtures pass. This fixes source construction without inventing an SDK provider
+or changing the approved compiled source.
+The first public CI caught a stale generated canonical-main adapter. It was
+regenerated and the new architecture fixture compares both control files and
+requires the compile guard in the actual Launchpad adapter as well.

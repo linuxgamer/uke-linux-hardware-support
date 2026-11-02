@@ -45,6 +45,7 @@ tar --sort=name --mtime="@$epoch" --owner=0 --group=0 --numeric-owner -cJf "$out
 cp -a "$root/packaging/ubuntu/recipes/$pkg/debian" "$stage/debian"
 if [[ $pkg == uke-linux-kernel ]]; then
  bash "$root/packaging/ubuntu/export-boot-trial-tools.sh" "$stage/debian/boot-trial-tools"
+ bash "$root/packaging/ubuntu/export-kernel-security.sh" "$stage/debian/kernel-security"
 fi
 if [[ $pkg == uke-speaker-firmware ]]; then
  cp "$root/xiaomi-uke-firmware/src/audit-speaker-source.sh" "$stage/debian/audit-speaker-source"

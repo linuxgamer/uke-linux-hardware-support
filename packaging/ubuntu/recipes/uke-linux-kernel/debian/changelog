@@ -1,3 +1,13 @@
+uke-linux-kernel (7.3.1-1006ubuntu2~tenacious1) tenacious; urgency=medium
+
+  * Require an explicit Ubuntu distro flag and isolated output directory.
+  * Add AppArmor dependencies and default LSM order only through an Ubuntu
+    fragment; preserve the shared Fedora configuration and SELinux settings.
+  * Use release 7.3.1-1006u2 to separate the new configuration/module cohort.
+  * Runtime policy, boot and image admission remain unqualified.
+
+ -- MCC45TR <75160848+MCC45TR@users.noreply.github.com>  Mon, 02 Nov 2026 03:30:00 +0000
+
 uke-linux-kernel (7.3.1-1006ubuntu1~tenacious1) tenacious; urgency=medium
 
   * Stage the exact successful test-channel O82/LMH release-1006 source RPM.

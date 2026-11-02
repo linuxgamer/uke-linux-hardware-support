@@ -5,8 +5,12 @@ set -euo pipefail
 export LC_ALL=C
 payload=$(realpath "${1:?Extracted merged candidate payload directory required}")
 release=${2:?Exact expected kernel release required}
-[[ $release == 7.3.1-1006u1 ]]
+[[ $release == 7.3.1-1006u1 || $release == 7.3.1-1006u2 ]]
 tree=$payload/usr/lib/uke-kernel-candidates/$release
+if [[ $release == 7.3.1-1006u2 ]]; then
+ for key in SECURITY_APPARMOR SECURITY SECURITYFS SECURITY_NETWORK SECURITY_PATH AUDIT NET; do grep -Fxq "CONFIG_$key=y" "$tree/config"; done
+ grep -Fxq 'CONFIG_LSM="lockdown,yama,apparmor,bpf"' "$tree/config"
+fi
 [[ -d $tree && ! -L $tree ]]
 [[ ! -e $payload/boot && ! -e $payload/usr/lib/modules && ! -e $payload/etc ]]
 [[ ! -e $payload/usr/bin && ! -e $payload/usr/sbin && ! -e $payload/usr/libexec ]]

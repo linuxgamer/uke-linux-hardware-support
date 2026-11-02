@@ -31,6 +31,11 @@ while IFS=$'\t' read -r package component version; do
     cmp "$root/packaging/ubuntu/$tool.sh" "$debian/boot-trial-tools/$tool.sh"
    done
    cmp "$root/packaging/ubuntu/verified-artifacts/1006-native.json" "$debian/boot-trial-tools/1006-native.json"
+   for tool in seed.sh verify.sh ubuntu.config; do cmp "$root/packaging/kernel-security/$tool" "$debian/kernel-security/$tool"; done
+   bash "$root/packaging/kernel-security/test.sh" "$stage/inputs/boot-recipe/packaging/native/native.config"
+   grep -Fxq 'export UKE_KERNEL_DISTRO := ubuntu' "$debian/rules"
+   if UKE_KERNEL_DISTRO=fedora make -f "$debian/rules" -n override_dh_auto_configure > "$work/refused-distro" 2>&1; then exit 1; fi
+   grep -Fq 'This Debian recipe requires UKE_KERNEL_DISTRO=ubuntu' "$work/refused-distro"
    mkdir -m700 "$work/kernel-keyring"
    gpg --batch --dearmor < "$stage/inputs/linux-stable.asc" > "$work/kernel-keyring/linux.gpg"
    [[ ! -e $stage/inputs/linux-7.3.1.tar.xz ]]
@@ -42,7 +47,7 @@ while IFS=$'\t' read -r package component version; do
    (cd "$stage/inputs/boot-recipe"; jq -r '.source_assets[]|.sha256+"  "+.path' lock.json | sha256sum --check --strict --quiet)
    jq -e '.source_commit=="fcbdae4b757732f0f0e3162c610f19abae290832" and .parent_copr_build==11240068 and .physical_acceptance==false and (.overlays|length)==4' "$stage/inputs/native-profile/source-composition.json" >/dev/null
    release=$(sed -n 's/^release=//p' "$debian/build-kernel")
-   [[ $release == 7.3.1-1006u1 && $((${#release}+3+1)) -le 16 ]]
+   [[ $release == 7.3.1-1006u2 && $((${#release}+3+1)) -le 16 ]]
    bash "$debian/boot-adapter/stage.sh" "$stage/inputs/boot-recipe" "$work/ubuntu-boot-recipe" > "$work/adapter-stage.log"
    jq -e '.native_executed==false and .security_configuration_changed==false and .boot_qualified==false' "$work/ubuntu-boot-recipe/ubuntu-adapter.json" >/dev/null
    UKE_BOOT_PROVENANCE_ADAPTER="$work/ubuntu-boot-recipe/src/boot/ubuntu-dpkg-provenance.sh" bash "$root/packaging/ubuntu/tests/boot-provenance.sh"
@@ -53,7 +58,7 @@ while IFS=$'\t' read -r package component version; do
    [[ ! -e $work/refused-adapter ]]
    ! grep -q '^Provides:' "$debian/control"
    status=0
-   (cd "$stage"; bash debian/build-kernel boot) 2> "$work/unsupported-boot" || status=$?
+   (cd "$stage"; UKE_KERNEL_DISTRO=ubuntu bash debian/build-kernel boot) 2> "$work/unsupported-boot" || status=$?
    [[ $status == 78 ]]
    grep -q 'Unsupported: root-prepared signed-host hwdb receipt' "$work/unsupported-boot"
    [[ ! -d $stage/build ]]
