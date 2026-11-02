@@ -5,6 +5,10 @@ uke-linux-kernel (7.3.1-1006ubuntu2~tenacious1) tenacious; urgency=medium
     fragment; preserve the shared Fedora configuration and SELinux settings.
   * Use release 7.3.1-1006u2 to separate the new configuration/module cohort.
   * Runtime policy, boot and image admission remain unqualified.
+  * Package a complete matched core, DT, signed module and boot cohort in
+    normal source builds, without automatic boot selection or ABI claims.
+  * Add an explicit verified-cohort import profile bound to server run
+    41390762590; retain the separate historical u1 inspection profile.
 
  -- MCC45TR <75160848+MCC45TR@users.noreply.github.com>  Mon, 02 Nov 2026 03:30:00 +0000
 

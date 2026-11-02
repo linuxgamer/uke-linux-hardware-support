@@ -5,6 +5,11 @@ $(error This Debian recipe requires UKE_KERNEL_DISTRO=ubuntu)
 endif
 endif
 export UKE_KERNEL_DISTRO := ubuntu
+ifneq ($(filter pkg.uke-linux-kernel.artifact-trial,$(DEB_BUILD_PROFILES)),)
+ifneq ($(filter pkg.uke-linux-kernel.verified-cohort,$(DEB_BUILD_PROFILES)),)
+$(error Select exactly one kernel artifact profile)
+endif
+endif
 %:
 	dh $@
 ifneq ($(filter pkg.uke-linux-kernel.artifact-trial,$(DEB_BUILD_PROFILES)),)
@@ -16,13 +21,15 @@ override_dh_auto_test:
 	# Host receipt, crypto and byte checks run in the importer; no target runs.
 override_dh_auto_install:
 	bash debian/import-boot-trial install
-override_dh_installdocs:
-	# Original role copyright/licenses are already staged byte for byte.
-override_dh_installchangelogs:
-	# Preserve the explicit artifact-only documentation and inventory.
-override_dh_builddeb:
-	dh_builddeb
-	bash debian/import-boot-trial verify
+else ifneq ($(filter pkg.uke-linux-kernel.verified-cohort,$(DEB_BUILD_PROFILES)),)
+override_dh_auto_configure:
+	bash debian/import-verified-cohort prepare
+override_dh_auto_build:
+	# Explicit import of the verified native cohort; no source execution.
+override_dh_auto_test:
+	# Receipt, module crypto and complete byte checks run before staging.
+override_dh_auto_install:
+	bash debian/import-verified-cohort install
 else
 override_dh_auto_configure:
 	bash debian/build-kernel prepare
@@ -35,8 +42,19 @@ override_dh_auto_install:
 endif
 override_dh_auto_clean:
 	rm -rf build
+override_dh_builddeb:
+	dh_builddeb
+ifneq ($(filter pkg.uke-linux-kernel.artifact-trial,$(DEB_BUILD_PROFILES)),)
+	bash debian/import-boot-trial verify
+else
+	bash debian/boot-trial-tools/verify-kernel-debs.sh build/kernel-packages .. $(shell dpkg-parsechangelog -SVersion)
+endif
+override_dh_installdocs:
+	# Complete unmodified notices are already staged for every package role.
+override_dh_installchangelogs:
+	# Preserve staged source/artifact origin and payload inventories.
 override_dh_strip:
 override_dh_strip_nondeterminism:
 override_dh_shlibdeps:
 override_dh_compress:
-	dh_compress -X/usr/lib/uke-kernel-candidates/ -X/usr/lib/uke-kernel-trials/ -Xlicenses -Xbuild-origin -Xnative-artifact-receipt.json -Xpayload.sha256
+	dh_compress -X/usr/lib/uke-kernel-cohorts/ -X/usr/lib/modules/ -X/usr/lib/uke-kernel-trials/ -Xlicenses -Xbuild-origin -Xnative-artifact-receipt.json -Xpayload.sha256

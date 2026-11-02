@@ -13,7 +13,7 @@ for script in package-boot-trial inspect-boot-trial inspect-embedded-initramfs v
 done
 cmp "$here/verified-artifacts/1006-native.json" "$work/tree/debian/boot-trial-tools/1006-native.json"
 (cd "$work/tree"; DEB_HOST_ARCH=arm64 DEB_BUILD_PROFILES= dh_listpackages | sort) > "$work/normal"
-printf '%s\n' uke-kernel-candidate-core uke-kernel-candidate-dtbs uke-kernel-candidate-modules | sort > "$work/normal-expected"
+printf '%s\n' uke-kernel-core uke-kernel-dtbs uke-kernel-modules uke-kernel-boot | sort > "$work/normal-expected"
 cmp "$work/normal" "$work/normal-expected"
 (cd "$work/tree"; DEB_HOST_ARCH=arm64 DEB_BUILD_PROFILES=$profile dh_listpackages | sort) > "$work/artifact"
 printf '%s\n' uke-kernel-trial-core uke-kernel-trial-dtbs uke-kernel-trial-modules uke-kernel-trial-boot | sort > "$work/artifact-expected"

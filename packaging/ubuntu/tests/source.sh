@@ -31,6 +31,8 @@ while IFS=$'\t' read -r package component version; do
     cmp "$root/packaging/ubuntu/$tool.sh" "$debian/boot-trial-tools/$tool.sh"
    done
    cmp "$root/packaging/ubuntu/verified-artifacts/1006-native.json" "$debian/boot-trial-tools/1006-native.json"
+   cmp "$root/packaging/ubuntu/verified-artifacts/1006-apparmor.json" "$debian/boot-trial-tools/1006-apparmor.json"
+   for tool in stage-kernel-cohort verify-u2-receipt verify-kernel-debs; do cmp "$root/packaging/ubuntu/$tool.sh" "$debian/boot-trial-tools/$tool.sh"; done
    for tool in seed.sh verify.sh ubuntu.config; do cmp "$root/packaging/kernel-security/$tool" "$debian/kernel-security/$tool"; done
    bash "$root/packaging/kernel-security/test.sh" "$stage/inputs/boot-recipe/packaging/native/native.config"
    grep -Fxq 'export UKE_KERNEL_DISTRO := ubuntu' "$debian/rules"

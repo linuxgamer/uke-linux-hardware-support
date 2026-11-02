@@ -1,0 +1,38 @@
+#!/bin/bash
+# Explicit artifact profile; never invokes upstream code or a kernel compiler.
+set -euo pipefail
+[[ " ${DEB_BUILD_PROFILES:-} " == *" pkg.uke-linux-kernel.verified-cohort "* ]]
+tools=$PWD/debian/boot-trial-tools
+receipt=$tools/1006-apparmor.json
+[[ $(dpkg-parsechangelog -SVersion) == $(jq -r .version "$receipt") ]]
+case ${1:-} in
+ prepare)
+  for name in UKE_VERIFIED_COHORT UKE_VERIFIED_EVIDENCE UKE_VERIFIED_EARLY_MODULES; do
+   [[ -n ${!name:-} ]] || { echo "Unsupported: explicit $name is required; no source producer started." >&2; exit 78; }
+  done
+  [[ ! -e build/verified-cohort ]]
+  bash "$tools/verify-u2-receipt.sh" "$receipt" "$UKE_VERIFIED_COHORT" "$UKE_VERIFIED_EVIDENCE" "$UKE_VERIFIED_EARLY_MODULES"
+  snapshot=$PWD/build/verified-cohort
+  mkdir -p "$snapshot/cohort" "$snapshot/evidence"
+  while IFS=$'\t' read -r scope path; do
+   case $scope in
+    cohort) from=$UKE_VERIFIED_COHORT/$path; to=$snapshot/cohort/$path;;
+    evidence) from=$UKE_VERIFIED_EVIDENCE/$path; to=$snapshot/evidence/$path;;
+    early) from=$UKE_VERIFIED_EARLY_MODULES; to=$snapshot/early-modules.list;;
+   esac
+   install -Dm644 "$from" "$to"
+  done < <(jq -r '.files[]|[.scope,.path]|@tsv' "$receipt")
+  while IFS=$'\t' read -r path target; do ln -s "$target" "$snapshot/cohort/$path"; done < <(jq -r '.license_aliases[]|[.path,.target]|@tsv' "$receipt")
+  bash "$tools/verify-u2-receipt.sh" "$receipt" "$snapshot/cohort" "$snapshot/evidence" "$snapshot/early-modules.list"
+  bash "$tools/stage-kernel-cohort.sh" "$snapshot/cohort" "$snapshot/evidence" "$snapshot/early-modules.list" "$PWD/build/kernel-packages" verified-artifact
+  for pkg in core dtbs modules boot; do install -m644 "$receipt" "build/kernel-packages/uke-kernel-$pkg/usr/share/doc/uke-kernel-$pkg/native-artifact-receipt.json"; done;;
+ install)
+  for role in core dtbs modules boot; do
+   pkg=uke-kernel-$role
+   [[ -d build/kernel-packages/$pkg && ! -L debian/$pkg ]]
+   mkdir -p "debian/$pkg"
+   [[ -z $(find "debian/$pkg" -mindepth 1 -print -quit) ]]
+   cp -a "build/kernel-packages/$pkg/." "debian/$pkg/"
+  done;;
+ *) exit 2;;
+esac

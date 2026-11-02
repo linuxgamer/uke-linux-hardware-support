@@ -2,35 +2,50 @@ Source: uke-linux-kernel
 Section: kernel
 Priority: optional
 Maintainer: MCC45TR <75160848+MCC45TR@users.noreply.github.com>
-Build-Depends: debhelper-compat (= 13), make:native, jq, dpkg-dev, coreutils, openssl, zstd, kmod, device-tree-compiler, libarchive-tools:native, binutils:native, perl:native, gzip:native, xz-utils, clang <!pkg.uke-linux-kernel.artifact-trial>, llvm <!pkg.uke-linux-kernel.artifact-trial>, lld <!pkg.uke-linux-kernel.artifact-trial>, libclang-rt-dev <!pkg.uke-linux-kernel.artifact-trial>, gcc <!pkg.uke-linux-kernel.artifact-trial>, g++ <!pkg.uke-linux-kernel.artifact-trial>, flex <!pkg.uke-linux-kernel.artifact-trial>, bison <!pkg.uke-linux-kernel.artifact-trial>, bc <!pkg.uke-linux-kernel.artifact-trial>, libelf-dev <!pkg.uke-linux-kernel.artifact-trial>, libssl-dev <!pkg.uke-linux-kernel.artifact-trial>, libncurses-dev <!pkg.uke-linux-kernel.artifact-trial>, libfdt-dev <!pkg.uke-linux-kernel.artifact-trial>, libsystemd-dev <!pkg.uke-linux-kernel.artifact-trial>, libasound2-dev <!pkg.uke-linux-kernel.artifact-trial>, dt-schema <!pkg.uke-linux-kernel.artifact-trial>, python3 <!pkg.uke-linux-kernel.artifact-trial>, alsa-utils <!pkg.uke-linux-kernel.artifact-trial>, git <!pkg.uke-linux-kernel.artifact-trial>, gnupg <!pkg.uke-linux-kernel.artifact-trial>, gpgv <!pkg.uke-linux-kernel.artifact-trial>, rsync <!pkg.uke-linux-kernel.artifact-trial>, ripgrep <!pkg.uke-linux-kernel.artifact-trial>, pkg-config <!pkg.uke-linux-kernel.artifact-trial>, libasan8 <!pkg.uke-linux-kernel.artifact-trial>, libubsan1 <!pkg.uke-linux-kernel.artifact-trial>, dracut-core <!pkg.uke-linux-kernel.artifact-trial>, dracut-install <!pkg.uke-linux-kernel.artifact-trial>, cpio <!pkg.uke-linux-kernel.artifact-trial>, f2fs-tools <!pkg.uke-linux-kernel.artifact-trial>, systemd <!pkg.uke-linux-kernel.artifact-trial>, udev <!pkg.uke-linux-kernel.artifact-trial>, util-linux <!pkg.uke-linux-kernel.artifact-trial>, e2fsprogs <!pkg.uke-linux-kernel.artifact-trial>
+Build-Depends: debhelper-compat (= 13), make:native, jq, dpkg-dev, coreutils, openssl, zstd, kmod, device-tree-compiler, libarchive-tools:native, binutils:native, perl:native, gzip:native, xz-utils, clang <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, llvm <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, lld <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, libclang-rt-dev <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, gcc <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, g++ <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, flex <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, bison <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, bc <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, libelf-dev <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, libssl-dev <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, libncurses-dev <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, libfdt-dev <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, libsystemd-dev <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, libasound2-dev <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, dt-schema <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, python3 <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, alsa-utils <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, git <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, gnupg <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, gpgv <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, rsync <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, ripgrep <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, pkg-config <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, libasan8 <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, libubsan1 <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, dracut-core <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, dracut-install <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, cpio <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, f2fs-tools <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, systemd <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, udev <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, util-linux <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>, e2fsprogs <!pkg.uke-linux-kernel.artifact-trial !pkg.uke-linux-kernel.verified-cohort>
 Standards-Version: 4.7.0
 Rules-Requires-Root: no
 Homepage: https://github.com/MCC45TR/senemos-uke-kernel-mainline
 
-Package: uke-kernel-candidate-core
+Package: uke-kernel-core
 Build-Profiles: <!pkg.uke-linux-kernel.artifact-trial>
 Architecture: arm64
-Depends: ${misc:Depends}, uke-kernel-candidate-modules (= ${binary:Version}), uke-kernel-candidate-dtbs (= ${binary:Version})
-Description: Uke kernel candidate for source and payload qualification
- Non-bootable first-pass Image and configuration from the shared Fedora source
- composition. Stored outside boot and live module directories. No initramfs,
- boot bundle, activation hook or qualified kernel capability is provided.
+Depends: ${misc:Depends}, uke-kernel-dtbs (= ${binary:Version}), uke-kernel-modules (= ${binary:Version})
+Description: Exact Uke Ubuntu AppArmor kernel cohort core
+ Matched source, Image, signed modules, device tree and embedded-initramfs
+ Android boot payloads. No automatic activation or hardware ABI provider.
+ Source builds and explicit verified-artifact imports retain distinct origin
+ metadata; installation does not write a boot partition or select a kernel.
 
-Package: uke-kernel-candidate-modules
-Build-Profiles: <!pkg.uke-linux-kernel.artifact-trial>
-Architecture: arm64
-Depends: ${misc:Depends}, uke-kernel-candidate-dtbs (= ${binary:Version})
-Description: Exact Uke kernel candidate module set
- Modules staged outside the live module tree for candidate inspection only.
- No installation hook loads modules or selects a kernel.
-
-Package: uke-kernel-candidate-dtbs
+Package: uke-kernel-dtbs
 Build-Profiles: <!pkg.uke-linux-kernel.artifact-trial>
 Architecture: arm64
 Depends: ${misc:Depends}
-Description: Exact Uke kernel candidate device tree
- Device tree retained with the exact candidate source and kernel release.
- Installing this package does not apply the device tree or select a boot entry.
+Description: Exact Uke Ubuntu AppArmor kernel cohort dtbs
+ Matched source, Image, signed modules, device tree and embedded-initramfs
+ Android boot payloads. No automatic activation or hardware ABI provider.
+ Source builds and explicit verified-artifact imports retain distinct origin
+ metadata; installation does not write a boot partition or select a kernel.
+
+Package: uke-kernel-modules
+Build-Profiles: <!pkg.uke-linux-kernel.artifact-trial>
+Architecture: arm64
+Depends: ${misc:Depends}
+Description: Exact Uke Ubuntu AppArmor kernel cohort modules
+ Matched source, Image, signed modules, device tree and embedded-initramfs
+ Android boot payloads. No automatic activation or hardware ABI provider.
+ Source builds and explicit verified-artifact imports retain distinct origin
+ metadata; installation does not write a boot partition or select a kernel.
+
+Package: uke-kernel-boot
+Build-Profiles: <!pkg.uke-linux-kernel.artifact-trial>
+Architecture: arm64
+Depends: ${misc:Depends}, uke-kernel-core (= ${binary:Version}), uke-kernel-dtbs (= ${binary:Version}), uke-kernel-modules (= ${binary:Version})
+Description: Exact Uke Ubuntu AppArmor kernel cohort boot
+ Matched source, Image, signed modules, device tree and embedded-initramfs
+ Android boot payloads. No automatic activation or hardware ABI provider.
+ Source builds and explicit verified-artifact imports retain distinct origin
+ metadata; installation does not write a boot partition or select a kernel.
 
 Package: uke-kernel-trial-core
 Build-Profiles: <pkg.uke-linux-kernel.artifact-trial>

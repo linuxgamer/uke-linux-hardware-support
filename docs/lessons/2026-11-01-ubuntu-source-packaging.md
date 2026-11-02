@@ -696,3 +696,14 @@ portable outer tar preserve original notice names/data, including three bounded
 common-license aliases. The corrected same-source build/export and independent
 ZIP/tar/inner hash checks passed. No kernel protection or source identity was
 changed to repair transport.
+
+2 November 2026, complete Debian cohort integration. Normal source packaging
+now invokes the existing full two-pass producer and stages four exact-version
+core/DT/module/boot roles without boot activation or ABI providers. A separate
+verified-cohort profile binds existing run41390762590 AppArmor outputs and
+notice inventories, avoiding another full kernel compile for private image
+preparation. Actual dpkg-buildpackage artifact import and complete DEB payload,
+mode, control and dependency readback pass on official Ubuntu24 amd64 tools;
+no target binary was executed. Historical u1 receipts remain separate. The new
+normal source-package integration has not itself been natively rebuilt. Root
+policy, filesystem/image and hardware qualification remain distinct work.

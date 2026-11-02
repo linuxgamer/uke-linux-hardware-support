@@ -1,5 +1,11 @@
 # Shared kernel source and Ubuntu candidate boundary
 
+2 November update: [complete boot packaging](BOOT-PACKAGING.md) supersedes the
+first-pass-only package boundary described in the historical investigation
+below. AppArmor u2 native outputs exist and can be imported explicitly without
+rebuilding; normal source integration now uses the full producer. Runtime
+root/security/OEM DT and hardware gates remain independent.
+
 Recorded 1 November 2026. The resumed Ubuntu test-image request identifies
 7.3.1-1006 in **uke-linux-test:custom:power-20261031**, not main unstable.
 COPR build 11240463 succeeded for Rawhide AArch64. Its source commit is

@@ -36,6 +36,7 @@ jobs:
           bash packaging/ubuntu/tests/main-libssc.sh
           bash packaging/ubuntu/tests/main-extra-upstreams.sh
           bash packaging/ubuntu/tests/artifact-profile.sh
+          bash packaging/ubuntu/tests/u2-cohort.sh
           bash packaging/ubuntu/tests/abi-gap-plan.sh
           bash packaging/ubuntu/tests/archived-source.sh
           bash packaging/ubuntu/recipes/uke-linux-kernel/debian/boot-adapter/test-account-normalization.sh

@@ -1,0 +1,561 @@
+{
+  "schema": "uke-verified-apparmor-cohort-v1",
+  "kernel_release": "7.3.1-1006u2",
+  "version": "7.3.1-1006ubuntu2~tenacious1",
+  "source_commit": "fcbdae4b757732f0f0e3162c610f19abae290832",
+  "adapter_commit": "0d979e3f7c76ac43cb09f7b261932169d113703e",
+  "producer_run": 41390762590,
+  "zip_sha256": "077a07945fd4ca42cc4c781795ae38ca08b89f9889a491440bbf8b90f4998715",
+  "runtime_admitted": false,
+  "redistribution_admitted": false,
+  "files": [
+    {
+      "scope": "cohort",
+      "path": "Image",
+      "sha256": "6cdaee65325f3dc1c5fbd210bfb125f8769b206ea5024197fb4b03ae17b2235a",
+      "size": 69323264
+    },
+    {
+      "scope": "cohort",
+      "path": "config",
+      "sha256": "b1bfac6c4de6d85ab5501e8b596db1f29108b7ce6842e92b06890ab0259bcbf8",
+      "size": 265909
+    },
+    {
+      "scope": "cohort",
+      "path": "module-signing.x509",
+      "sha256": "3ed4665026015ad9a0b34991d6c25b6c45b9cfd19a70ca6f0900d704e1f07424",
+      "size": 1357
+    },
+    {
+      "scope": "cohort",
+      "path": "modules.tar.xz",
+      "sha256": "8a1559e1f2b9f8824501d37893f02568c38fa01e2de9780129014cff7f2d9a0a",
+      "size": 13754824
+    },
+    {
+      "scope": "cohort",
+      "path": "sm7675-xiaomi-uke.dtb",
+      "sha256": "3c0606be427724e2b815b4b0abc96ec327b2a9f04199fa8dfc379b58f4e4e6b9",
+      "size": 5253
+    },
+    {
+      "scope": "cohort",
+      "path": "linux.img",
+      "sha256": "1b7820590b05d56b50b027767a647fa43f51fb8c412466e53825badd393299e1",
+      "size": 100663296
+    },
+    {
+      "scope": "cohort",
+      "path": "userdata.img",
+      "sha256": "289c6f89a01712a6e25338df45109758037eaff19380d25122afd8fd0927c924",
+      "size": 100663296
+    },
+    {
+      "scope": "cohort",
+      "path": "boot-manifest",
+      "sha256": "fd909b97640ae0dd0217319210be2edd2b2a91b9f722fcfb3dc5a10078a2de64",
+      "size": 501
+    },
+    {
+      "scope": "cohort",
+      "path": "boot-header.json",
+      "sha256": "3e4b54fdf6314c160f675eef972a5fe591d124ae0e2b8b2ff029b18978e4b366",
+      "size": 205
+    },
+    {
+      "scope": "cohort",
+      "path": "modules.sha256",
+      "sha256": "db0fdbf5068a1e974c845e8641aecb8a91c2f0c86003177a0d1cf71eeb83e8b6",
+      "size": 92198
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/bash/copyright",
+      "sha256": "06319d84c3e5ed096036f6a9310a030c7e84e50dff2b8a6792285c83ec0ada73",
+      "size": 9764
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/common-licenses/AGPL-3.0",
+      "sha256": "0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0",
+      "size": 34523
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/common-licenses/Apache-2.0",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "size": 11358
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/common-licenses/Artistic",
+      "sha256": "dd90d4f42e4dcadf5a7c09eea0189d93c7b37ae560c91f0f6d5233ed3b9292a2",
+      "size": 6321
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/common-licenses/Artistic-2.0",
+      "sha256": "5c29658b80a9cbb016dfe238ece8b86b5e63761355df8b872126d35bebce4303",
+      "size": 8711
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/common-licenses/BSL-1.0",
+      "sha256": "c9bff75738922193e67fa726fa225535870d2aa1059f91452c411736284ad566",
+      "size": 1338
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/common-licenses/CC-BY-3.0",
+      "sha256": "e6bc9e9c474700b708f568bac9e5a8a9bcb2b1dad53442f5ba449fcb848b8e76",
+      "size": 19467
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/common-licenses/CC-BY-4.0",
+      "sha256": "9ba9550ad48438d0836ddab3da480b3b69ffa0aac7b7878b5a0039e7ab429411",
+      "size": 18657
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/common-licenses/CC-BY-SA-3.0",
+      "sha256": "3f941b3b89cf7b8370ceb83cc76d2120d471b58735d8ca60238a751a48d7f72f",
+      "size": 22240
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/common-licenses/CC-BY-SA-4.0",
+      "sha256": "28a9529c7d0bb4dc51f4bf5c116a3d16ef247a052f7591466768ddf563fd1cf5",
+      "size": 20138
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/common-licenses/CC0-1.0",
+      "sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+      "size": 7048
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/common-licenses/GFDL-1.1",
+      "sha256": "1040f0fffcf5a73398512aaa3f7cf89b7e4bb8feb13c661ad71184e015c7fcb6",
+      "size": 18101
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/common-licenses/GFDL-1.2",
+      "sha256": "2652c22ba086f92e55ae4a9f9c890ad4766ffd7814a73d318e22a597edf857a4",
+      "size": 20394
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/common-licenses/GFDL-1.3",
+      "sha256": "110535522396708cea37c72a802c5e7e81391139f5f7985631c93ef242b206a4",
+      "size": 22955
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/common-licenses/GPL-1",
+      "sha256": "49c007bafb5ad6dd9f9d4dae4d3ac0461975498150c05d684c551f0914ab486c",
+      "size": 12527
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/common-licenses/GPL-2",
+      "sha256": "edaef632cbb643e4e7a221717a6c441a4c1a7c918e6e4d56debc3d8739b233f6",
+      "size": 17984
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/common-licenses/GPL-3",
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+      "size": 35149
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/common-licenses/LGPL-2",
+      "sha256": "cc535c21133c895b56b374c8a1dc1eb948d99003ed2b47372069456b62f42b24",
+      "size": 25270
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/common-licenses/LGPL-2.1",
+      "sha256": "20e50fe7aae3e56378ebf0417d9de904f55a0e61e4df315333e632a4d3555d95",
+      "size": 26419
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/common-licenses/LGPL-3",
+      "sha256": "e3a994d82e644b03a792a930f574002658412f62407f5fee083f2555c5f23118",
+      "size": 7652
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/common-licenses/MPL-1.1",
+      "sha256": "f849fc26a7a99981611a3a370e83078deb617d12a45776d6c4cada4d338be469",
+      "size": 25755
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/common-licenses/MPL-2.0",
+      "sha256": "fab3dd6bdab226f1c08630b1dd917e11fcb4ec5e1e020e2c16f83a0a13863e85",
+      "size": 16726
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/common-licenses/OFL-1.1",
+      "sha256": "1d361a8f8e8ce6e68457dcd93fb56e162e6baa3bbb7e7573a290d44399f6b57e",
+      "size": 4599
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/dash/copyright",
+      "sha256": "d98c53f281321baad38164aa9ae6e368a9253be6ec51bd26a759b5e72b326f4a",
+      "size": 3878
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/dracut-core/copyright",
+      "sha256": "e6fd270c6754d10790ebe531970931fbeb51fc5a371761798cc3d24f4f762c5c",
+      "size": 3741
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/dracut-install/copyright",
+      "sha256": "e6fd270c6754d10790ebe531970931fbeb51fc5a371761798cc3d24f4f762c5c",
+      "size": 3741
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/e2fsprogs/copyright",
+      "sha256": "2041b5febdc110151ca3372d01b16b85dda1888e33f3f60fce0f59940eed7d19",
+      "size": 20459
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/f2fs-tools/copyright",
+      "sha256": "b8aeebb6281b8baea58482f01ce6b695a3da8c757fa83655ae4a2c0235a56fe6",
+      "size": 3132
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/grep/copyright",
+      "sha256": "2feec851673d8afaee499c87b088a6f26266c951fe0983dd25590a130be3b2b6",
+      "size": 17875
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/kmod/copyright",
+      "sha256": "86ed604b818ec1e47ad0e364b6261b8a11e2544af6f833c625dcf2311c1c8f13",
+      "size": 2412
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/libacl1:arm64/copyright",
+      "sha256": "9a2dfb4a5abc7e84be2cc41f1089be665519c9409549296f6c19de57ab1d37c2",
+      "size": 2048
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/libaudit1:arm64/copyright",
+      "sha256": "e8e11f2a66d0eb0f32d684c6e7c1b6c59381901e981d9a9d51eef225fef4cf1b",
+      "size": 1531
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/libblkid1:arm64/copyright",
+      "sha256": "35a014187eb5d264405a91bda9ec782afdef9df148b657e67b38d07fabba2acf",
+      "size": 29703
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/libc-bin/copyright",
+      "sha256": "c31d10900fdb95d1889005145a2205bb75e3bc018d3ec8265b81364901748e09",
+      "size": 53241
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/libc6-dev:arm64/copyright",
+      "sha256": "c31d10900fdb95d1889005145a2205bb75e3bc018d3ec8265b81364901748e09",
+      "size": 53241
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/libc6:arm64/copyright",
+      "sha256": "c31d10900fdb95d1889005145a2205bb75e3bc018d3ec8265b81364901748e09",
+      "size": 53241
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/libcap-ng0:arm64/copyright",
+      "sha256": "6ff2e74fcc31ed4a82da2e314fa93696b4c11ddd6122301aba2629ea21564047",
+      "size": 1296
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/libcom-err2:arm64/copyright",
+      "sha256": "2041b5febdc110151ca3372d01b16b85dda1888e33f3f60fce0f59940eed7d19",
+      "size": 20459
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/libcrypt1:arm64/copyright",
+      "sha256": "22be8324f2f41a82accda0be20859bbf2f20ac512f5353d93b1c97832a591e07",
+      "size": 6162
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/libext2fs2t64:arm64/copyright",
+      "sha256": "2041b5febdc110151ca3372d01b16b85dda1888e33f3f60fce0f59940eed7d19",
+      "size": 20459
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/libgcc-s1:arm64/copyright",
+      "sha256": "e45db18266750eacd5a728542c8ef53b00e3348aa1b0191de5f52a3ee8e2a6ba",
+      "size": 73814
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/libgcrypt20:arm64/copyright",
+      "sha256": "7d0898872a373d51cf511aaa99671f47c5b76594b9cb5019e1684da90da8345f",
+      "size": 27160
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/libgpg-error0:arm64/copyright",
+      "sha256": "00707ab43885b0f68269469fdcc684d50b5efdcd2c9104057bb598e603bb220b",
+      "size": 5373
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/libkmod2:arm64/copyright",
+      "sha256": "86ed604b818ec1e47ad0e364b6261b8a11e2544af6f833c625dcf2311c1c8f13",
+      "size": 2412
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/liblz4-1:arm64/copyright",
+      "sha256": "8dce0cb8c5a4486e4aac00466e4dd4b0b5b28d70efe3b3256ea4594099a8509c",
+      "size": 3737
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/liblzma5:arm64/copyright",
+      "sha256": "a9c3f6e1bf373b54e29704e31afd99f5405a32cbc7897608b0f15e9d544882d4",
+      "size": 11559
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/libmount1:arm64/copyright",
+      "sha256": "35a014187eb5d264405a91bda9ec782afdef9df148b657e67b38d07fabba2acf",
+      "size": 29703
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/libpcre2-8-0:arm64/copyright",
+      "sha256": "e915cde4251f96ec6af107ecd2e194440a4e69440893b0c982802f8a1e4ae40a",
+      "size": 6627
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/libseccomp2:arm64/copyright",
+      "sha256": "6da0653a365b80ab31478dbfe9e7c358e80d58b6d2b52b4e16b4dbb42d7d9f5c",
+      "size": 1429
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/libselinux1:arm64/copyright",
+      "sha256": "17c695a27f7735e69435b71fbfd91cd5a6671c6e2f1db393b146a241a11a048d",
+      "size": 2134
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/libsmartcols1:arm64/copyright",
+      "sha256": "35a014187eb5d264405a91bda9ec782afdef9df148b657e67b38d07fabba2acf",
+      "size": 29703
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/libssl4:arm64/copyright",
+      "sha256": "7501107d1ad58a51f92b6836cc71319827e78ecb63406bd53160a7510496930b",
+      "size": 1493
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/libstdc++6:arm64/copyright",
+      "sha256": "e45db18266750eacd5a728542c8ef53b00e3348aa1b0191de5f52a3ee8e2a6ba",
+      "size": 73814
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/libsystemd-shared:arm64/copyright",
+      "sha256": "67c85783210f7eccd79dd2b5dba147666676837fe7b88fa532e13321163d8af0",
+      "size": 18738
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/libsystemd0:arm64/copyright",
+      "sha256": "67c85783210f7eccd79dd2b5dba147666676837fe7b88fa532e13321163d8af0",
+      "size": 18738
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/libtinfo6:arm64/copyright",
+      "sha256": "092096e25403d2e395484d111623a75e8584d4c87ce98e9cb2c509c048756211",
+      "size": 4670
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/libudev1:arm64/copyright",
+      "sha256": "67c85783210f7eccd79dd2b5dba147666676837fe7b88fa532e13321163d8af0",
+      "size": 18738
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/libuuid1:arm64/copyright",
+      "sha256": "35a014187eb5d264405a91bda9ec782afdef9df148b657e67b38d07fabba2acf",
+      "size": 29703
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/libxxhash0:arm64/copyright",
+      "sha256": "81affefe3047c8a88a9e4c94c8c698f51a7e0787e75b58e901bf1f8fcd433f58",
+      "size": 3213
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/libzstd1:arm64/copyright",
+      "sha256": "2efe51c80ddc473bc2c91faec49dae645bf7f5a04824528fec816320432da2ae",
+      "size": 5332
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/linux/BSD-3-Clause",
+      "sha256": "7a83b1aeb460458db9a4bd521d7f237c45b1650f6e60ea5ffc71e49472454de3",
+      "size": 1845
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/linux/GPL-2.0",
+      "sha256": "8780e78a1a737e127f25a65f6d95269bffd36158dc261114de7859b490bfc5aa",
+      "size": 18600
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/linux/MIT",
+      "sha256": "323c587d0ccf10e376f8bf9a7f31fb4ca6078105194b42e0b1e0ee2bc9bde71f",
+      "size": 1372
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/login/copyright",
+      "sha256": "35a014187eb5d264405a91bda9ec782afdef9df148b657e67b38d07fabba2acf",
+      "size": 29703
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/mount/copyright",
+      "sha256": "35a014187eb5d264405a91bda9ec782afdef9df148b657e67b38d07fabba2acf",
+      "size": 29703
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/ncurses-base/copyright",
+      "sha256": "092096e25403d2e395484d111623a75e8584d4c87ce98e9cb2c509c048756211",
+      "size": 4670
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/procps/copyright",
+      "sha256": "90a66617c36d83068b52bbb77cbfef1234f526bfa287156d9d05f7df4d339539",
+      "size": 3974
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/rust-coreutils/copyright",
+      "sha256": "b9b999c093896e57cd3873aa153ce713d4412acbe2d06c242d3660fc3b16eeed",
+      "size": 21876
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/sed/copyright",
+      "sha256": "719320e425e8e6da53a55e0fcfa2f2ed9b1332cea16abd65321bd651b2a88568",
+      "size": 8618
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/systemd/copyright",
+      "sha256": "67c85783210f7eccd79dd2b5dba147666676837fe7b88fa532e13321163d8af0",
+      "size": 18738
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/udev/copyright",
+      "sha256": "67c85783210f7eccd79dd2b5dba147666676837fe7b88fa532e13321163d8af0",
+      "size": 18738
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/uke-shared-boot/builder-MIT",
+      "sha256": "3261559b7f050f1691b0001544b8497469dea818a3b03136fc5cca0478b595ee",
+      "size": 1064
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/uke-shared-boot/hardware-MIT",
+      "sha256": "6d5638a97949e3de3b964b6f71bf0f27645500275bb202d91eaa93ff5b98a704",
+      "size": 1077
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/util-linux/copyright",
+      "sha256": "35a014187eb5d264405a91bda9ec782afdef9df148b657e67b38d07fabba2acf",
+      "size": 29703
+    },
+    {
+      "scope": "cohort",
+      "path": "licenses/zlib1g:arm64/copyright",
+      "sha256": "9e5b96d63773a5d177ba264254390f792be07e41748ebd94730981c6cac31cc6",
+      "size": 2927
+    },
+    {
+      "scope": "evidence",
+      "path": "payload-provenance.tsv",
+      "sha256": "0c4f2392f9e76c8b14a70ccdd6e8885e12e9382f6d059f56d5ce4650ad4de746",
+      "size": 40244
+    },
+    {
+      "scope": "evidence",
+      "path": "build-debs.tsv",
+      "sha256": "b7285cc31ed5772537b9786a7d9b501f6db078a81818ae556da33981a1040f77",
+      "size": 2712
+    },
+    {
+      "scope": "evidence",
+      "path": "base-links.tsv",
+      "sha256": "ab169e3ba4f13c8bfd296483d225c1d1d7171a4cee5a8ed28f3cefc7c25916db",
+      "size": 6924
+    },
+    {
+      "scope": "early",
+      "path": "early-modules.list",
+      "sha256": "17ae751bfb30c3b2ec9d10e7ab37deeb53b5231793cf5733ceb438438c23a6a6",
+      "size": 2881
+    }
+  ],
+  "license_aliases": [
+    {
+      "path": "licenses/common-licenses/GFDL",
+      "target": "GFDL-1.3"
+    },
+    {
+      "path": "licenses/common-licenses/LGPL",
+      "target": "LGPL-3"
+    },
+    {
+      "path": "licenses/common-licenses/GPL",
+      "target": "GPL-3"
+    }
+  ]
+}
