@@ -1,6 +1,6 @@
 Name:           uke-control-qt
 Version:        1.0.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Native Kirigami interface for Uke Control
 License:        MIT
 Source0:        %{name}-%{version}.tar.gz
@@ -18,9 +18,13 @@ BuildRequires:  kf6-qqc2-desktop-style
 BuildRequires:  cmake(KF6WidgetsAddons) >= 6.6
 BuildRequires:  cmake(KF6IconThemes) >= 6.6
 BuildRequires:  cmake(KF6ConfigWidgets) >= 6.6
+BuildRequires:  desktop-file-utils
+BuildRequires:  plasma-breeze-qt6 plasma-integration breeze-icon-theme
 BuildRequires:  pkgconfig(uke-control-client) >= 2.8.0
 BuildRequires:  %{_includedir}/uke-control/frontend.hpp
-Requires:       uke-control >= 2.8.0
+BuildRequires:  uke-control(frontend-sdk-v1) >= 1
+Requires:       uke-control >= 2.8.1-6
+Requires:       uke-control(frontend-v1) >= 1
 Requires:       %{_libexecdir}/uke-control/frontend-request
 Requires:       plasma-breeze-qt6
 Requires:       plasma-integration
@@ -40,11 +44,15 @@ review before handing guarded operations to the distribution terminal.
 %autosetup
 
 %build
-%cmake -DBUILD_TESTING=OFF
+%cmake -DBUILD_TESTING=ON
 %cmake_build
 
 %install
 %cmake_install
+desktop-file-validate %{buildroot}%{_datadir}/applications/org.uke.ControlQt.desktop
+
+%check
+%ctest
 
 %files
 %license LICENSE
@@ -54,5 +62,8 @@ review before handing guarded operations to the distribution terminal.
 %{_datadir}/icons/hicolor/scalable/apps/org.uke.ControlQt.svg
 
 %changelog
+* Mon Nov 02 2026 Uke contributors - 1.0.0-2
+- Package the Kirigami interface and run standalone native UI checks.
+
 * Sun Nov 01 2026 Uke contributors - 1.0.0-1
 - Add the native Qt Widgets frontend with Breeze style and reviewed requests.

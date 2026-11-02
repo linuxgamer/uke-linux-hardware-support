@@ -1,7 +1,7 @@
 %global debug_package %{nil}
 Name: uke-desktop-metas
 Version: 1.0.0
-Release: 23%{?dist}
+Release: 36%{?dist}
 Summary: Explicit desktop package selections for the Uke development platform
 License: MIT
 URL: https://github.com/MCC45TR/uke-linux-hardware-support/tree/main/uke-desktop-metas
@@ -24,6 +24,7 @@ Requires: (senemos-uke-linux-kernel-mainline >= 7.2.11-16 or senemos-uke-linux-k
 Requires(posttrans): firewalld
 Requires(postun): firewalld
 Recommends: uke-plasma-controls >= 1.0.0
+Requires: uke-control-qt >= 1.0.0-2
 # Keep this optional selection independent of the Python-free console meta.
 # BEGIN ORIGINAL FEDORA PLASMA PACKAGES
 Requires: PackageKit
@@ -103,6 +104,19 @@ Hardware support is tested separately.
 KDE Connect uses Fedora's session autostart and a local-address-only firewalld
 policy. Pairing still requires confirmation in the original application.
 
+%package -n uke-gnome-meta
+Summary: Original Fedora GNOME applications and native Uke Control
+BuildArch: noarch
+Requires: (senemos-uke-linux-kernel-mainline >= 7.2.11-16 or senemos-uke-linux-kernel-mainline-singleboot >= 7.2.11-16)
+Requires: uke-control-gtk >= 1.0.0-2
+Requires: gnome-shell gnome-session gnome-control-center gnome-settings-daemon
+Requires: gdm gnome-keyring nautilus xdg-desktop-portal-gnome
+
+%description -n uke-gnome-meta
+Select original Fedora GNOME packages and the GTK 4/libadwaita Uke Control
+application. The selection does not activate a display manager or configure
+device hardware. It does not require the KDE selection or Qt Uke Control.
+
 %package -n uke-cutefish-meta
 Summary: Optional upstream Cutefish Wayland session selection
 Requires: cutefish-desktop >= 1.0^20261027
@@ -132,6 +146,7 @@ without removing the KDE meta package. No GNOME integration is included.
 install -Dm644 src/profile.json %{buildroot}%{_datadir}/senemos/uke/desktops/profile.json
 install -Dm644 src/cutefish.json %{buildroot}%{_datadir}/senemos/uke/desktops/cutefish.json
 install -Dm644 src/plasma.json %{buildroot}%{_datadir}/senemos/uke/desktops/plasma.json
+install -Dm644 src/gnome.json %{buildroot}%{_datadir}/senemos/uke/desktops/gnome.json
 install -Dm644 src/uke-kdeconnect.xml %{buildroot}%{_prefix}/lib/firewalld/policies/uke-kdeconnect.xml
 install -d %{buildroot}%{_datadir}/plasma/plasmoids/org.senemos.uke.controls
 cp -a src/plasma-applet/. %{buildroot}%{_datadir}/plasma/plasmoids/org.senemos.uke.controls/
@@ -164,12 +179,19 @@ fi
 %license LICENSE
 %{_datadir}/senemos/uke/desktops/cutefish.json
 
+%files -n uke-gnome-meta
+%license LICENSE
+%{_datadir}/senemos/uke/desktops/gnome.json
+
 %files -n uke-plasma-controls
 %license src/plasma-applet/LICENSE
 %doc src/plasma-applet/SOURCE.md
 %{_datadir}/plasma/plasmoids/org.senemos.uke.controls/
 
 %changelog
+* Mon Nov 02 2026 Uke contributors - 1.0.0-36
+- Require the native Qt frontend for KDE and the native GTK frontend for GNOME.
+
 * Sun Oct 25 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.0.0-23
 - Request explicit JSON from Control 2.0 and use canonical CDC/USB-role commands.
 

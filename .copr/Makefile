@@ -8,6 +8,22 @@ srpm:
 	# already supplied by COPR, so root discovery needs no additional tool.
 	root="$(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)"
 	subdir="$$(realpath --relative-to="$$root" .)"
+	if [[ "$$subdir" == packaging/families/control-gui ]]; then
+		dnf -y --setopt=install_weak_deps=False install make curl jq tar xz gzip rpm-build rpm-sign gnupg2 coreutils bash redhat-rpm-config
+		stage="$$root/packaging/families/control-gui/build/copr-source"
+		$(MAKE) -C "$$root/packaging/families/control-gui" srpm outdir="$$stage"
+		mkdir -p "$(outdir)"
+		install -m644 "$$stage/"*.src.rpm "$(outdir)/"
+		exit 0
+	fi
+	if [[ "$$subdir" == uke-control-qt || "$$subdir" == uke-control-gtk ]]; then
+		dnf -y --setopt=install_weak_deps=False install make tar gzip rpm-build coreutils bash cmake-rpm-macros
+		stage="$$root/$$subdir/build/copr-source"
+		$(MAKE) -C "$$root/$$subdir" srpm outdir="$$stage"
+		mkdir -p "$(outdir)"
+		install -m644 "$$stage/"*.src.rpm "$(outdir)/"
+		exit 0
+	fi
 	if [[ "$$subdir" == packaging/families/freecad ]]; then
 		dnf -y --setopt=install_weak_deps=False install make curl jq tar gzip rpm-build coreutils bash cmake-rpm-macros python3-rpm-macros
 		stage="$$root/packaging/families/freecad/build/copr-source"

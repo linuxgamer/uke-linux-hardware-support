@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "device": "uke",
+  "soc": "SM7675",
+  "package": "uke-gnome-meta",
+  "architecture": "aarch64",
+  "control_package": "uke-control-gtk",
+  "boot_tested": false,
+  "hardware_tested": false,
+  "automatic_session_or_display_configuration": false
+}

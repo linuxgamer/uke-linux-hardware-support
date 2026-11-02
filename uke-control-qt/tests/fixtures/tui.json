@@ -1,0 +1,31 @@
+{
+  "schema": "org.uke.control.tui-fixture.v1",
+  "results": {
+    "status": {
+      "delay_ms": 100,
+      "data": {
+        "schema": "org.uke.control.synthetic.v1",
+        "available": true,
+        "cycles": 0,
+        "current_ma": -42,
+        "unknown": null,
+        "physical_acceptance": null,
+        "unicode": "Şarj ölçümü / 电池",
+        "note": "SYNTHETIC — NO DEVICE QUERY"
+      }
+    },
+    "overview.battery": {
+      "data": {"component": "battery", "available": true, "physical_acceptance": null, "cycles": 0}
+    },
+    "desktop.plasma": {"stdout": ""},
+    "charge.status": {
+      "delay_ms": 3000,
+      "status": 69,
+      "data": {"available": false, "reason": "synthetic_provider_unavailable", "physical_acceptance": null},
+      "stderr": "Synthetic provider error; retained separately from stdout."
+    },
+    "charge.plan": {
+      "data": {"requested_mode": "hold70-80", "executed": false, "physical_acceptance": null}
+    }
+  }
+}
