@@ -33,6 +33,9 @@ int main(int argc,char** argv) try {
     config.get_install_weak_deps_option().set(true);
     config.get_best_option().set(true);
     config.get_installonly_limit_option().set(0);
+    // Core/boot packages require paths outside primary.xml's limited file set.
+    // A library caller must request the same filelists used for those lookups.
+    config.get_optional_metadata_types_option().set(std::vector<std::string>{"filelists"});
     base.get_vars()->set("releasever","46");
     base.get_vars()->set("basearch","aarch64");
     base.setup();
@@ -46,6 +49,10 @@ int main(int argc,char** argv) try {
         options.get_pkg_gpgcheck_option().set(true);
     }
     base.get_repo_sack()->load_repos();
+    libdnf5::rpm::PackageQuery growfs(base);
+    growfs.filter_available();
+    growfs.filter_file(std::vector<std::string>{"/usr/lib/systemd/systemd-growfs"});
+    need(!growfs.empty(),"Repository filelists do not contain systemd-growfs");
     if(mode=="upgrade-kde") {
         libdnf5::rpm::PackageQuery installed(base);installed.filter_installed();
         unsigned metas=0;

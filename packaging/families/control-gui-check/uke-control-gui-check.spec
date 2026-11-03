@@ -1,6 +1,6 @@
 Name: uke-control-gui-check
 Version: 1.0.0
-Release: 2%{?dist}
+Release: 3%{?dist}
 Summary: Remote checks of published Uke desktop GUI dependency transactions
 License: MIT
 URL: https://github.com/MCC45TR/uke-linux-hardware-support
@@ -35,6 +35,10 @@ test "${PIPESTATUS[0]}" = 0
 %{_docdir}/%{name}/validation.txt
 
 %changelog
+* Tue Nov 03 2026 Uke contributors - 1.0.0-3
+- Load repository filelists for the actual boot and core path dependencies.
+- Require a real systemd-growfs provider before checking desktop transactions.
+
 * Tue Nov 03 2026 Uke contributors - 1.0.0-2
 - Import the pinned signing key into each isolated installed-package database.
 - Preserve signature enforcement while resolving the published GUI cohort.
