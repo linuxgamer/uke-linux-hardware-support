@@ -19,6 +19,14 @@ srpm:
 		install -m644 "$$stage/$$package-$$evr.src.rpm" "$(outdir)/"
 		exit 0
 	fi
+	if [[ "$$subdir" == packaging/families/control-gui-check || "$$subdir" == uke-nfc-ir ]]; then
+		dnf -y --setopt=install_weak_deps=False install make tar gzip rpm-build coreutils bash systemd-rpm-macros
+		stage="$$root/$$subdir/build/copr-source"
+		$(MAKE) -C "$$root/$$subdir" srpm outdir="$$stage"
+		mkdir -p "$(outdir)"
+		install -m644 "$$stage/"*.src.rpm "$(outdir)/"
+		exit 0
+	fi
 	if [[ "$$subdir" == uke-control-qt || "$$subdir" == uke-control-gtk ]]; then
 		dnf -y --setopt=install_weak_deps=False install make tar gzip rpm-build coreutils bash cmake-rpm-macros
 		stage="$$root/$$subdir/build/copr-source"
