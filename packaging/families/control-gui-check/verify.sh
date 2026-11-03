@@ -30,12 +30,13 @@ for package in "${packages[@]}"; do
     file=$fixture/packages/$package.rpm
     curl -fLsS --max-time 120 --proto '=https' --proto-redir '=https' "$repository/Packages/u/$package.rpm" -o "$file"
     rpmkeys --dbpath "$fixture/keys" --checksig "$file"
-    [[ $(rpm -qp --qf '%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}' "$file") == "$package" ]]
+    [[ $(rpm --dbpath "$fixture/keys" -qp --qf '%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}' "$file") == "$package" ]]
 done
 for mode in upgrade-kde fresh-kde fresh-gnome; do
     target=$fixture/roots/$mode
     mkdir -p "$target/usr/lib/sysimage/rpm"
     rpm --dbpath "$target/usr/lib/sysimage/rpm" --initdb
+    rpmkeys --dbpath "$target/usr/lib/sysimage/rpm" --import copr-public-key.asc
     if [[ $mode == upgrade-kde ]]; then
         seed=("${packages[@]:0:3}")
         files=();for package in "${seed[@]}"; do files+=("$fixture/packages/$package.rpm"); done

@@ -12,4 +12,4 @@ srpm:
 	cp ../../../uke-control-qt/LICENSE "$$top/SOURCES/"
 	cp uke-control-gui-check.spec "$$top/SPECS/"
 	rpmbuild -bs --nodeps --target aarch64 --define "_topdir $$top" "$$top/SPECS/uke-control-gui-check.spec"
-	install -Dm644 "$$top/SRPMS/uke-control-gui-check-1.0.0-1"*.src.rpm "$(outdir)/uke-control-gui-check-1.0.0-1.src.rpm"
+	install -Dm644 "$$top/SRPMS/uke-control-gui-check-1.0.0-2"*.src.rpm "$(outdir)/uke-control-gui-check-1.0.0-2.src.rpm"

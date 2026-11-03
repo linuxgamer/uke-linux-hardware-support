@@ -1,6 +1,6 @@
 Name: uke-control-gui-check
 Version: 1.0.0
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: Remote checks of published Uke desktop GUI dependency transactions
 License: MIT
 URL: https://github.com/MCC45TR/uke-linux-hardware-support
@@ -33,3 +33,8 @@ test "${PIPESTATUS[0]}" = 0
 %files
 %license LICENSE
 %{_docdir}/%{name}/validation.txt
+
+%changelog
+* Tue Nov 03 2026 Uke contributors - 1.0.0-2
+- Import the pinned signing key into each isolated installed-package database.
+- Preserve signature enforcement while resolving the published GUI cohort.
