@@ -35,7 +35,7 @@ int main(int argc,char** argv) try {
     config.get_installonly_limit_option().set(0);
     // Core/boot packages require paths outside primary.xml's limited file set.
     // A library caller must request the same filelists used for those lookups.
-    config.get_optional_metadata_types_option().set(std::vector<std::string>{"filelists"});
+    config.get_optional_metadata_types_option().set(std::set<std::string>{"filelists"});
     base.get_vars()->set("releasever","46");
     base.get_vars()->set("basearch","aarch64");
     base.setup();

@@ -1,6 +1,6 @@
 Name: uke-control-gui-check
 Version: 1.0.0
-Release: 4%{?dist}
+Release: 5%{?dist}
 Summary: Remote checks of published Uke desktop GUI dependency transactions
 License: MIT
 URL: https://github.com/MCC45TR/uke-linux-hardware-support
@@ -35,6 +35,9 @@ test "${PIPESTATUS[0]}" = 0
 %{_docdir}/%{name}/validation.txt
 
 %changelog
+* Tue Nov 03 2026 Uke contributors - 1.0.0-5
+- Use the set-valued libdnf5 optional-metadata configuration API.
+
 * Tue Nov 03 2026 Uke contributors - 1.0.0-4
 - Derive the source RPM output filename from the spec identity.
 
