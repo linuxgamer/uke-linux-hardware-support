@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "repository": "https://github.com/MCC45TR/senemos-uke-kernel-mainline",
+  "commit": "b40aa8ccdd249791c9080b59e2a0e8e523748b22",
+  "path": "src/nfc/fm19511-uapi.h",
+  "local_path": "include/fm19511.h",
+  "sha256": "4502665344c02c5e56daab8c11f174b3478f09312c3314ba93394022a846497e",
+  "abi_version": 1,
+  "license": "GPL-2.0-only WITH Linux-syscall-note",
+  "scope": "Exact read-only kernel UAPI; no board protocol or private data"
+}
