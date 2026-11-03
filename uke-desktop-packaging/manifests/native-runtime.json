@@ -8,15 +8,15 @@
   "packages": [
     {
       "name": "mesa",
-      "version": "26.2.5",
+      "version": "26.2.6",
       "release": "1.fc46",
-      "native_release": "5",
-      "sha256": "38209e85ce96607b65b0b60109b4e3b6959c75ad1e04e5ebfcd422ab3755c7e5",
+      "native_release": "6",
+      "sha256": "e4436e377ad56b57ee128323901b123782857979d970120921cd59d71829d448",
       "delta": "Preserve AArch64 JIT feature detection; name exact Adreno 732 chips and accept their fuse-ID wildcard without changing GPU properties",
       "family": "uke-additional",
       "binary_name": "mesa-dri-drivers",
-      "signed_mirror_sha256": "a337c54f26623731292dd21049c719213a53ba8f31d81b6234e57e1de5b1241c",
-      "source_payload_sha256": "067b1a7399075f9fe3c6c9b7ec1888909aa35acfc831a83109e21e5107e47a82"
+      "signed_mirror_sha256": "0177e970471353f39af77ea08d50b39deb30884fbce6a84d7ea73d071e35602e",
+      "source_payload_sha256": "2247758168c6e68eb2db5908dc8af18abd21eee22af9ff4a078944e3203378f9"
     },
     {
       "name": "at-spi2-core",
@@ -70,14 +70,14 @@
       "name": "libstdcxx-uke-runtime",
       "source_name": "gcc",
       "version": "16.2.1",
-      "release": "2.fc46.1",
-      "native_release": "5",
-      "sha256": "b8f6cc1f055a057233a3b807bf5e9cc2a43836c025ba664b1231c79d86271175",
+      "release": "3.fc46",
+      "native_release": "6",
+      "sha256": "3ba7d377edc52f324c5cf2f9e1b6dca5fab9e967fd351a1d620cdd7fc3184e0a",
       "delta": "Compile the native GNU C++ runtime without optional GDB Python helpers; verify the original versioned symbol set and run a native smoke fixture",
       "family": "uke-additional",
       "binary_name": "libstdc++",
-      "signed_mirror_sha256": "7de21e95d3a0d126aeb16b238e39af9bfb97d21eebb7a03797b30a89ac57a2e2",
-      "source_payload_sha256": "1a07f0f3aa43b26865ad5511205f738eb8a94708ab3ef04d5a4d5e66aff03729"
+      "signed_mirror_sha256": "ae0a89bab8f4241f89bcd30fa521ac829475ac4b5b02291490da591910099238",
+      "source_payload_sha256": "142c3c9d57106e90d1007556627e61256cac1eb3bc82166a201261a72900978d"
     },
     {
       "name": "upower",
@@ -120,10 +120,10 @@
     }
   ],
   "baseline": {
-    "package": "libstdc++-16.2.1-2.fc46.1.aarch64",
-    "symbol_count": 6100,
+    "package": "libstdc++-16.2.1-3.fc46.aarch64",
+    "soname_file": "libstdc++.so.6.0.36",
     "symbol_sha256": "db74b5e1acc6e2a6ce6182c63d57ad61cc79278daa811c0fde65bd0a411ec1fd",
-    "soname_file": "libstdc++.so.6.0.36"
+    "symbol_count": 6100
   },
   "withdrawn_packages": [
     {
@@ -177,14 +177,14 @@
     "policy": "Track published signed Rawhide sources; retain overlays, exact source hashes, native tests and one-build admission; fail on incompatible ports"
   },
   "build_tools": {
-    "python3": "3.15.1-1.fc46",
-    "python3-devel": "3.15.1-1.fc46",
+    "python3": "3.15.2-1.fc46",
+    "python3-devel": "3.15.2-1.fc46",
     "meson": "1.12.1-2.fc46",
     "gobject-introspection-devel": "1.86.0-12.fc46",
     "python3-mako": "1.4.1-2.fc46",
     "python3-pycparser": "3.00-4.fc45",
     "python3-pyyaml": "6.0.3-6.fc45",
     "llvm-devel": "23.1.4-1.fc46",
-    "gcc-c++": "16.2.1-2.fc46.1"
+    "gcc-c++": "16.2.1-3.fc46"
   }
 }
