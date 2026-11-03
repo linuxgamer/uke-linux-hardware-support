@@ -1,60 +1,226 @@
 # SPDX-License-Identifier: MIT
-# Layout follows the current renderer size; no Uke panel/scale is assumed.
-Window.SetBackgroundTopColor(0.025, 0.04, 0.07);
-Window.SetBackgroundBottomColor(0.025, 0.04, 0.07);
-label = Sprite(Image.Text("SENEMOS Uke", 0.9, 0.95, 1.0));
-status = Sprite();
-message = Sprite();
+# Adapted from Nabu Fedora Rawhide Builder, commit 67b6bb2398195bd026dae7e6258681a9c3420f08.
+# Copyright (c) 2026 Nabu Fedora Rawhide Builder contributors; see LICENSE.Nabu.
+# SENEMOS Uke Plymouth theme
+#
+# The SVG source dimensions define the on-screen dimensions. Plymouth's image
+# loader supports PNG and BMP, so RPM build time creates exact-size PNG copies.
+# No desktop/device scale factor is applied here.
 
-fun center(sprite, image, offset)
-{
-    sprite.SetImage(image);
-    sprite.SetX(Window.GetWidth() / 2 - image.GetWidth() / 2);
-    sprite.SetY(Window.GetHeight() / 2 + offset);
-}
-fun refresh()
-{
-    center(label, Image.Text("SENEMOS Uke", 0.9, 0.95, 1.0), -40);
-}
-fun boot_progress(time, progress)
-{
-    center(status, Image.Text(Math.Int(progress * 100) + "%", 0.6, 0.8, 1.0), 0);
-}
-fun system_update(progress)
-{
-    center(status, Image.Text("Updating " + Math.Int(progress) + "%", 0.6, 0.8, 1.0), 0);
-}
-fun display_message(text)
-{
-    message.SetOpacity(1);
-    center(message, Image.Text(text, 0.9, 0.95, 1.0), 40);
-}
-fun hide_message(text)
-{
-    message.SetOpacity(0);
-}
-fun display_password(prompt, count)
-{
-    text = prompt + " ";
-    for (i = 0; i < count; i++) text += "*";
-    message.SetOpacity(1);
-    display_message(text);
-}
-fun display_question(prompt, entry)
-{
-    message.SetOpacity(1);
-    display_message(prompt + " " + entry);
-}
-fun display_normal()
-{
-    message.SetOpacity(0);
-}
-refresh();
-Plymouth.SetRefreshFunction(refresh);
-Plymouth.SetBootProgressFunction(boot_progress);
-Plymouth.SetSystemUpdateFunction(system_update);
-Plymouth.SetDisplayMessageFunction(display_message);
-Plymouth.SetHideMessageFunction(hide_message);
-Plymouth.SetDisplayPasswordFunction(display_password);
-Plymouth.SetDisplayQuestionFunction(display_question);
-Plymouth.SetDisplayNormalFunction(display_normal);
+Window.SetBackgroundTopColor(0.0, 0.0, 0.0);
+Window.SetBackgroundBottomColor(0.0, 0.0, 0.0);
+
+xiaomi.image = Image("xiaomi-logo.png");
+xiaomi.sprite = Sprite(xiaomi.image);
+
+bar.track_image = Image("progress-track.png");
+bar.track_sprite = Sprite(bar.track_image);
+bar.cap_image = Image("progress-cap.png");
+bar.center_source = Image("progress-center.png");
+bar.left_sprite = Sprite(bar.cap_image);
+bar.center_sprite = Sprite();
+bar.right_sprite = Sprite(bar.cap_image);
+bar.left_sprite.SetOpacity(0);
+bar.center_sprite.SetOpacity(0);
+bar.right_sprite.SetOpacity(0);
+bar.last_width = 0;
+
+fedora.image = Image("fedora-logo.png");
+fedora.sprite = Sprite(fedora.image);
+
+message.sprite = Sprite();
+message.sprite.SetOpacity(0);
+message.text = "";
+
+layout.width = 0;
+layout.height = 0;
+animation = 0;
+mode = Plymouth.GetMode();
+
+fun update_layout()
+  {
+    screen_width = Window.GetWidth();
+    screen_height = Window.GetHeight();
+
+    if (screen_width == layout.width && screen_height == layout.height)
+      return;
+
+    layout.width = screen_width;
+    layout.height = screen_height;
+
+    xiaomi.x = Math.Int((screen_width - xiaomi.image.GetWidth()) / 2);
+    xiaomi.y = Math.Int(screen_height / 2 - 48 -
+                        xiaomi.image.GetHeight() / 2);
+    xiaomi.sprite.SetPosition(xiaomi.x, xiaomi.y, 10);
+
+    bar.x = Math.Int((screen_width - bar.track_image.GetWidth()) / 2);
+    bar.y = Math.Int(screen_height / 2 + 188);
+    bar.track_sprite.SetPosition(bar.x, bar.y, 20);
+    bar.left_sprite.SetPosition(bar.x, bar.y, 21);
+    bar.center_sprite.SetPosition(bar.x, bar.y, 21);
+    bar.right_sprite.SetPosition(bar.x, bar.y, 21);
+
+    fedora.x = Math.Int((screen_width - fedora.image.GetWidth()) / 2);
+    fedora.y = screen_height - fedora.image.GetHeight() - 40;
+    fedora.sprite.SetPosition(fedora.x, fedora.y, 10);
+
+    if (message.image)
+      message.sprite.SetPosition(
+          Math.Int((screen_width - message.image.GetWidth()) / 2),
+          bar.y + bar.track_image.GetHeight() + 24, 30);
+  }
+
+fun refresh_callback()
+  {
+    update_layout();
+    if (mode == "shutdown" || mode == "reboot")
+      {
+        animation += 0.02;
+        set_progress((Math.Sin(animation * 3) + 1) / 2);
+      }
+  }
+
+fun set_progress(progress)
+  {
+    if (progress < 0)
+      progress = 0;
+    if (progress > 1)
+      progress = 1;
+
+    fill_width = Math.Int(bar.track_image.GetWidth() * progress);
+    if (fill_width < 1)
+      {
+        bar.left_sprite.SetOpacity(0);
+        bar.center_sprite.SetOpacity(0);
+        bar.right_sprite.SetOpacity(0);
+        bar.last_width = 0;
+      }
+    else if (fill_width != bar.last_width)
+      {
+        if (fill_width < bar.cap_image.GetWidth())
+          {
+            bar.small_image = bar.cap_image.Scale(
+                fill_width, bar.cap_image.GetHeight());
+            bar.left_sprite.SetImage(bar.small_image);
+            bar.left_sprite.SetPosition(bar.x, bar.y, 21);
+            bar.left_sprite.SetOpacity(1);
+            bar.center_sprite.SetOpacity(0);
+            bar.right_sprite.SetOpacity(0);
+          }
+        else
+          {
+            center_width = fill_width - bar.cap_image.GetWidth();
+            if (center_width < 1)
+              center_width = 1;
+            bar.center_image = bar.center_source.Scale(
+                center_width, bar.center_source.GetHeight());
+            bar.left_sprite.SetImage(bar.cap_image);
+            bar.left_sprite.SetPosition(bar.x, bar.y, 21);
+            bar.center_sprite.SetImage(bar.center_image);
+            bar.center_sprite.SetPosition(
+                bar.x + bar.cap_image.GetWidth() / 2, bar.y, 21);
+            bar.right_sprite.SetImage(bar.cap_image);
+            bar.right_sprite.SetPosition(
+                bar.x + fill_width - bar.cap_image.GetWidth(), bar.y, 21);
+            bar.left_sprite.SetOpacity(1);
+            bar.center_sprite.SetOpacity(1);
+            bar.right_sprite.SetOpacity(1);
+          }
+        bar.last_width = fill_width;
+      }
+  }
+
+fun set_message(text)
+  {
+    if (!text || text == "")
+      {
+        message.text = "";
+        message.sprite.SetOpacity(0);
+        return;
+      }
+    message.text = text;
+    message.image = Image.Text(text, 0.82, 0.82, 0.82, 1.0,
+                               "Cantarell 22", "center");
+    max_message_width = Math.Int(layout.width * 0.8);
+    if (message.image.GetWidth() > max_message_width)
+      {
+        message_height = Math.Int(message.image.GetHeight() *
+                                  max_message_width /
+                                  message.image.GetWidth());
+        message.image = message.image.Scale(max_message_width,
+                                            message_height);
+      }
+    message.sprite.SetImage(message.image);
+    message.sprite.SetPosition(
+        Math.Int((layout.width - message.image.GetWidth()) / 2),
+        bar.y + bar.track_image.GetHeight() + 24, 30);
+    message.sprite.SetOpacity(1);
+  }
+
+fun boot_progress_callback(duration, progress)
+  {
+    set_progress(progress);
+  }
+
+fun system_update_callback(percent)
+  {
+    set_progress(percent / 100.0);
+  }
+
+fun update_status_callback(text)
+  {
+    set_message(text);
+  }
+
+fun display_message_callback(text)
+  {
+    set_message(text);
+  }
+
+fun hide_message_callback(text)
+  {
+    set_message("");
+  }
+
+fun display_password_callback(prompt, bullets)
+  {
+    bullet_text = "";
+    for (index = 0; index < bullets; index++)
+      bullet_text += "•";
+    set_message(prompt + "  " + bullet_text);
+  }
+
+fun display_question_callback(prompt, entry_text)
+  {
+    set_message(prompt + "  " + entry_text);
+  }
+
+fun display_normal_callback()
+  {
+    set_message("");
+  }
+
+fun quit_callback()
+  {
+    xiaomi.sprite.SetOpacity(0);
+    bar.track_sprite.SetOpacity(0);
+    bar.left_sprite.SetOpacity(0);
+    bar.center_sprite.SetOpacity(0);
+    bar.right_sprite.SetOpacity(0);
+    fedora.sprite.SetOpacity(0);
+    message.sprite.SetOpacity(0);
+  }
+
+update_layout();
+set_message("");
+
+Plymouth.SetRefreshFunction(refresh_callback);
+Plymouth.SetBootProgressFunction(boot_progress_callback);
+Plymouth.SetSystemUpdateFunction(system_update_callback);
+Plymouth.SetUpdateStatusFunction(update_status_callback);
+Plymouth.SetDisplayMessageFunction(display_message_callback);
+Plymouth.SetHideMessageFunction(hide_message_callback);
+Plymouth.SetDisplayPasswordFunction(display_password_callback);
+Plymouth.SetDisplayQuestionFunction(display_question_callback);
+Plymouth.SetDisplayNormalFunction(display_normal_callback);
+Plymouth.SetQuitFunction(quit_callback);

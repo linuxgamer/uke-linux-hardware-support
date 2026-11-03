@@ -1,6 +1,6 @@
 Name: uke-front-color
 Version: 0.1.0
-Release: 2%{?dist}
+Release: 5%{?dist}
 Summary: Native raw front-color snapshot publisher for Uke
 License: MIT
 URL: https://github.com/MCC45TR/uke-linux-hardware-support
@@ -46,6 +46,17 @@ install -Dm644 packaging/systemd/90-uke-front-color.preset %{buildroot}%{_preset
 %{_presetdir}/90-uke-front-color.preset
 
 %changelog
+* Fri Oct 23 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 0.1.0-5
+- Match OEM wakeup delivery for attribute requests as well as SUID discovery.
+- Report startup phases without sensor identifiers or measurement values.
+
+* Fri Oct 23 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 0.1.0-4
+- Match OEM wakeup delivery for SUID discovery; keep measurements non-wakeup.
+
+* Fri Oct 23 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 0.1.0-3
+- Keep the SUID subscription alive until sensor readiness without timed retries.
+- Publish unavailable startup snapshots and test late readiness and cancellation.
+
 * Sun Oct 18 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 0.1.0-2
 - Wait for bounded SUID readiness events before metadata and sample admission.
 - Log one reason on startup failure without retrying a failed sensor.

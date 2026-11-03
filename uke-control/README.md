@@ -1,5 +1,93 @@
 # Uke Control
 
+25 October 2026: version 1.10.2 validates the original LED class through its
+parent controller DT link and fixed child label. Host fixtures cover the
+standard layout without a per-LED OF symlink and refuse foreign parents/labels.
+
+25 October 2026: version 1.10.1 stops the torch supervisor before system sleep
+and counts suspended time in its independent deadline. The actual worker's
+expiry and failure cleanup pass host tests with simulated clock and IO.
+
+25 October 2026: version 1.10.0 adds a supervised, current-limited torch and
+low-duty RGB controls through original kernel LED interfaces. Exact board,
+driver, channel and limit checks refuse older or mismatched providers. See
+[light controls and remaining physical validation](LIGHTS.md).
+
+24 October 2026: version 1.9.1 adds a disconnected DP training ceiling (1/2/4),
+per-device USB runtime-power selection and RTL8153 capability queries/link
+advertisement profiles through the original Fedora ethtool. It retains the
+published 1.8.1 internal-panel correction and 1.8.0 Type-C admission guards.
+Host fixtures and package checks are separate from physical link acceptance.
+See [display and dock controls](DISPLAY.md).
+
+24 October 2026: version 1.8.1 resolves the unique internal DSI output for
+session controls. A connected external display can change its connector number;
+multiple internal outputs remain an explicit refusal. The published 1.8.0
+DisplayPort profile commands remain unchanged.
+
+24 October 2026: version 1.8.0 adds `display profiles` and explicit standard
+Type-C pin-assignment requests for USB3/display or four-lane display. It reports
+the driver cache separately from requested settings and refuses unavailable
+firmware controls. The current Uke firmware exposes no manual DP alternate-mode
+control; MST remains unavailable in the current driver. The original KScreen
+controls from 1.7.0 are retained. See [DISPLAY.md](DISPLAY.md).
+
+24 October 2026: version 1.7.0 adds `desktop plasma`, `desktop rotation on|off`
+and `desktop brightness on|off` for the original Fedora KScreen interface.
+Commands run as the desktop user and admit only controls advertised for the unique internal DSI output.
+The separate KDE tray applet uses this backend; no hardware control is copied
+into the widget. Missing or ambiguous panel capabilities remain unavailable.
+
+24 October 2026: version 1.6.2 records loaded display/touch module build IDs and
+taint in existing diagnostic reports. This separates running-module evidence
+from disk-package metadata without reading GPU registers or changing drivers.
+
+24 October 2026: version 1.6.1 combines the CDC notification fix with the existing
+VRR minimum controls from 1.6.0-2. It preserves their module loader and fallback
+on older kernels. The display implementation is unchanged; build and package
+checks do not establish physical touch, USB or charging acceptance.
+
+23 October 2026: version 1.5.3 reapplies saved CDC policy through a synchronous
+service reload. Successful USB notifications no longer consume repeated service
+starts; real start limits and application failures remain visible. Persistent
+on explicitly reapplies an already-active policy. Device-role and ownership
+guards are unchanged. Host manager tests do not establish USB enumeration.
+
+23 October 2026: version 1.5.2 avoids CPU spin while waiting for a child that
+has closed its output. The real-process regression covers EOF, exit status,
+timeouts and output limits. Host results do not establish tablet energy gains.
+
+23 October 2026: version 1.5.1 makes `uke-control resize system` ask for explicit
+approval before preparing offline growth and requesting normal reboot. The
+read-only `--check` explains the next command. Full-capacity systems exit without
+prompting or rebooting. See [filesystem capacity repair](RESIZE.md).
+
+23 October 2026: version 1.5.0 adds saved CDC ACM startup policy:
+
+```sh
+sudo uke-control set cdc on --persistent
+sudo uke-control set cdc off --persistent
+sudo uke-control usb status
+```
+
+The saved opt-in applies at boot and on Type-C, USB-role and controller readiness
+events. It uses the existing owned ACM gadget; it exports no root shell or USB
+network and does not force a data/power role. No polling daemon or boot delay
+is added. Without `--persistent`, `set cdc on|off` remains a one-shot request.
+Use persistent off to prevent a saved on policy from reapplying on the next
+USB event. A successful bind does not prove host enumeration or net charging.
+
+22 October 2026: version 1.4.0 adds `uke-control resize system --check` and
+explicit offline F2FS userdata growth at the next normal reboot. It prepares
+maintenance in RAM without changing GPT, boot partitions or the selected slot.
+See [filesystem expansion](RESIZE.md) for admission, power and verification.
+
+22 October 2026: version 1.3.0 adds `uke-control diagnostic all` and focused
+subsystem reports. Each command creates `uke-diagnostic-TOPIC.log` in the current
+directory with mode 0600, preserving existing files. See [diagnostic collection](DIAGNOSTIC.md)
+for scope, private-data handling, limits and optional tools. Source/host checks,
+COPR packaging and tablet execution are separate evidence classes.
+
 21 October 2026: version 1.1.1 excludes ordinary sysfs attributes such as cpufreq
 boost and DRM version from the device/policy inventory. The 1.1.0 tablet readback
 exposed the extra record; the host regression reproduces it before correction.

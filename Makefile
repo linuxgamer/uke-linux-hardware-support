@@ -8,7 +8,7 @@ validate:
 	jq -e --slurpfile lock uke-console-input/source-lock.json 'all(.packaged_sources[]; . as $$source | any([$$lock[0].buffybox, $$lock[0].lvgl][]; .url==$$source.repository and .commit==$$source.commit))' SOURCE-IMPORTS.json >/dev/null
 	for component in $(components); do $(MAKE) -C "$$component" validate; done
 test-native:
-	bash/tests/release-contract.sh
+	$(MAKE) -C uke-desktop-metas test-applet-load
 	$(MAKE) -C uke-sensors test-native
 	$(MAKE) -C uke-desktop-packaging test-native
 	$(MAKE) -C uke-boot test-native

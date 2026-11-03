@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "url": "https://github.com/MCC45TR/uke-linux-hardware-support/releases/download/copr-migration-archive-20261020/uke-touchscreen-0.1.0-13.fc46.src.rpm",
+  "sha256": "960c8abc638fd0051f4e1dcceea73e811251412167544d6052e0a0ea9234c91a",
+  "archive": "uke-touchscreen-0.1.0.tar.xz",
+  "root": "uke-touchscreen-0.1.0",
+  "core_cpp_sha256": "7619b12a440be1f64cacb47b4b617fcfcf4486853822323f8d143c6e73aba9b1",
+  "core_hpp_sha256": "473a2b7b71cea8f7143706ac563c6c9b81be1b31e51d841dec37a404c2c1ee94",
+  "private_inputs": false
+}

@@ -3,7 +3,10 @@
 #include "rpm-api.hpp"
 #include "charge-client.hpp"
 #include "usb-request.hpp"
+#include "link-policy.hpp"
 #include "wake.hpp"
+#include "sysfs.hpp"
+#include "vrr.hpp"
 #include <algorithm>
 #include <array>
 #include <charconv>
@@ -56,7 +59,7 @@ static void directory(const fs::path& path) {
 }
 struct Lock {
     Fd fd;
-    Lock(){root();directory(state);fd.n=open((state/"lock").c_str(),O_CREAT|O_RDWR|O_CLOEXEC|O_NOFOLLOW,0600);need(fd.n>=0,"Cannot open manager lock");need(flock(fd.n,LOCK_EX|LOCK_NB)==0,"Another uke-control operation is running");}
+    explicit Lock(bool wait=false){root();directory(state);fd.n=open((state/"lock").c_str(),O_CREAT|O_RDWR|O_CLOEXEC|O_NOFOLLOW,0600);need(fd.n>=0,"Cannot open manager lock");need(flock(fd.n,LOCK_EX|(wait?0:LOCK_NB))==0,"Another uke-control operation is running");}
 };
 Result charge_control_mode(const std::string& mode) {root();board();Lock lock;charge_helper();return charge::control_mode(mode);}
 std::string read(const std::string& path,size_t limit) {
@@ -83,7 +86,7 @@ Result execute(const std::vector<std::string>& args,unsigned seconds,size_t limi
     std::string value;bool eof=false,expired=false;int status{};bool exited=false;
     while(!eof||!exited) {
         if(std::chrono::steady_clock::now()>=end||value.size()>=limit){expired=true;kill(-pid,SIGKILL);break;}
-        pollfd p{input.n,POLLIN,0};poll(&p,1,50);
+        pollfd p{eof?-1:input.n,POLLIN,0};poll(&p,1,50);
         std::array<char,8192> buffer{};ssize_t n;
         while((n=::read(input.n,buffer.data(),std::min(buffer.size(),limit-value.size())))>0)value.append(buffer.data(),size_t(n));
         if(n==0)eof=true;
@@ -112,6 +115,12 @@ static uint64_t decimal(const std::string& value) {
     need(p.ec==std::errc{}&&p.ptr==value.data()+value.size(),"Expected an unsigned integer");return n;
 }
 std::string wake_status() { return wake::snapshot(); }
+void display_vrr_set(unsigned hz) {
+    root();board();Lock lock;
+    vrr::validate(hz,vrr::driver());
+    (void)vrr::configured();
+    atomic_file(state/vrr::policy_name,vrr::policy(hz));
+}
 static void wake_write(const wake::Source& source, bool enabled) {
     need(!source.path.empty(), "Wake control unavailable: " + source.name + ": " + source.reason);
     Fd fd{open(source.path.c_str(), O_WRONLY|O_CLOEXEC|O_NOFOLLOW)};
@@ -308,8 +317,21 @@ Result usb_request_data(const std::string& role) {
     Lock lock;
     return usb::request_data(role);
 }
-Result cdc_set(bool enabled) {
-    Lock lock;board();
+Result display_profile_set(const std::string& profile) {
+    Lock lock;
+    return usb::request_display_profile(profile);
+}
+Result display_lane_limit(const std::string& lanes) {
+    root();board();Lock lock;return links::lane_limit(lanes);
+}
+Result usb_power_set(const std::string& device,const std::string& policy) {
+    root();board();Lock lock;return links::usb_power(device,policy);
+}
+Result ethernet_profile_set(const std::string& interface,const std::string& profile) {
+    root();board();Lock lock;return links::ethernet_profile(interface,profile);
+}
+static void cdc_validate() {
+    board();
     auto marker=read("/sys/firmware/devicetree/base/chosen/senemos,usb-profile",64);
     while(!marker.empty()&&(marker.back()=='\n'||marker.back()=='\0'))marker.pop_back();
     need(marker=="typec-v1","Manual CDC requires the matched full Type-C boot/root profile");
@@ -318,6 +340,10 @@ Result cdc_set(bool enabled) {
     const char *helper="/usr/libexec/senemos-uke/uke-usb-network";
     struct stat st{};
     need(lstat(helper,&st)==0&&S_ISREG(st.st_mode)&&st.st_uid==0&&!(st.st_mode&0022),"Untrusted manual CDC helper");
+}
+static Result cdc_change(bool enabled) {
+    cdc_validate();
+    const char *helper="/usr/libexec/senemos-uke/uke-usb-network";
     const auto change=execute({helper,enabled?"manual-on":"manual-off"},20,4096);
     if(change.status!=0)return {change.status,"Manual CDC request refused or failed:\n"+change.output};
     const bool owned=read("/run/senemos-uke/usb-gadget-profile",64)=="manual-acm\n";
@@ -332,9 +358,64 @@ Result cdc_set(bool enabled) {
         ",\"effective_state\":\""+effective+'"'+
         ",\"enumeration\":\"inspect_usb_status\",\"root_shell\":false,\"network_export\":false}\n"};
 }
+Result cdc_set(bool enabled) {
+    Lock lock;
+    return cdc_change(enabled);
+}
+static bool cdc_saved() {
+    const auto path=state/"cdc-on";
+    struct stat st{};
+    if(lstat(path.c_str(),&st)<0) {
+        need(errno==ENOENT,"Cannot inspect persistent CDC policy");return false;
+    }
+    need(S_ISREG(st.st_mode)&&st.st_uid==0&&st.st_nlink==1&&!(st.st_mode&0077),"Untrusted persistent CDC policy");
+    need(read(path.string(),8)=="on\n","Invalid persistent CDC policy");
+    return true;
+}
+Result cdc_apply() {
+    Lock lock(true);board();
+    if(!cdc_saved())return {0,"{\"persistent_cdc\":\"off\",\"applied\":false}\n"};
+    auto result=cdc_change(true);
+    if(result.status!=69)return result;
+    // A later Type-C/role/UDC event retries readiness without a polling daemon.
+    if(read("/run/senemos-uke/usb-gadget-profile",64)=="manual-acm\n") {
+        auto cleanup=cdc_change(false);
+        if(cleanup.status!=0)return cleanup;
+    }
+    return {0,"{\"persistent_cdc\":\"on\",\"applied\":false,\"state\":\"waiting_for_device_role\"}\n"};
+}
+Result cdc_persistent(bool enabled) {
+    {
+        Lock lock(true);board();
+        if(enabled)cdc_validate();
+        const bool previous=cdc_saved();
+        if(enabled)atomic_file(state/"cdc-on","on\n");
+        else if(previous) {
+            need(unlink((state/"cdc-on").c_str())==0,"Cannot disable persistent CDC policy");
+            Fd parent{open(state.c_str(),O_DIRECTORY|O_RDONLY|O_CLOEXEC)};
+            need(parent.n>=0&&fsync(parent.n)==0,"Cannot sync persistent CDC policy");
+        }
+    }
+    auto service=enabled?
+        execute({"/usr/bin/systemctl","enable","uke-control-cdc.service"},130,16384):
+        execute({"/usr/bin/systemctl","disable","--now","uke-control-cdc.service"},130,16384);
+    if(service.status==0&&enabled) {
+        auto applied=execute({"/usr/bin/systemctl","reload-or-restart","uke-control-cdc.service"},130,16384);
+        service.status=applied.status;
+        service.output+=applied.output;
+    }
+    if(service.status==0&&!enabled) {
+        Lock lock(true);
+        service=cdc_change(false);
+    }
+    return {service.status,std::string("{\"requested_cdc\":\"")+(enabled?"on":"off")+
+        "\",\"execution\":\"persistent\",\"policy_saved\":true,\"automatic_startup_requested\":"+(enabled?"true":"false")+
+        ",\"operation_completed\":"+(service.status==0?"true":"false")+
+        ",\"root_shell\":false,\"network_export\":false,\"detail\":"+sysfs::quote(service.output)+"}\n"};
+}
 std::string status() {
     std::string selected=geteuid()==0?policy():"root-private (sudo to inspect)";
-    return "uke-control 1.2.0\nswap_policy="+selected+"\n"+read("/proc/swaps")+charge_status()+usb_status();
+    return "uke-control 1.10.2\nswap_policy="+selected+"\n"+read("/proc/swaps")+charge_status()+usb_status();
 }
 void boot() {
     root();board();(void)inventory(true);swap_apply();
@@ -405,7 +486,7 @@ std::string report() {
     std::string release=kernel.status==0?kernel.output:"unavailable\n";
     need(release.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-+_\n")==std::string::npos,"Unexpected kernel release; refusing public summary");
     const auto collected=std::time(nullptr);std::tm utc{};need(gmtime_r(&collected,&utc),"UTC clock unavailable");char date[32]{};need(std::strftime(date,sizeof(date),"%Y-%m-%dT%H:%M:%SZ",&utc),"UTC clock formatting failed");
-    atomic_file(path/"github-summary.md",std::string("Date: ")+date+"\nDevice family: Uke / SM7675\nApplication: uke-control 1.2.0\nKernel: "+release+"\nA private local diagnostic bundle was collected. Raw logs, addresses, identifiers and partition inventories are not attached.\n\nObserved problem and reproduction steps: to be supplied by the reporter.\nHardware acceptance is not inferred from collection success.\n");
+    atomic_file(path/"github-summary.md",std::string("Date: ")+date+"\nDevice family: Uke / SM7675\nApplication: uke-control 1.10.2\nKernel: "+release+"\nA private local diagnostic bundle was collected. Raw logs, addresses, identifiers and partition inventories are not attached.\n\nObserved problem and reproduction steps: to be supplied by the reporter.\nHardware acceptance is not inferred from collection success.\n");
     return path.string();
 }
 void report_github(const std::string& dir,const std::string& repository) {

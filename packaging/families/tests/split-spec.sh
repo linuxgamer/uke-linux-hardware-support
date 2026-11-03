@@ -44,3 +44,10 @@ awk -v out="$stage/licenses" -v mapping="$stage/rename" -f host/split-spec.awk "
 grep -Fx 'License: MIT' "$stage/licenses/preamble"
 grep -Fx 'License: GFDL-1.1-or-later' "$stage/licenses/preamble"
 printf '%s\n' 'PASS: explicit subpackage licenses are retained once without inheriting the parent license.'
+mkdir "$stage/missing-macro"
+sed '/^%build/a%cargo_prep' "$stage/input" >"$stage/missing-macro-input"
+if awk -v out="$stage/missing-macro" -v mapping="$stage/rename" -f host/split-spec.awk "$stage/missing-macro-input" >"$stage/missing-macro.log" 2>&1; then
+    echo 'Unexpanded build macro was accepted' >&2; exit 1
+fi
+grep -Fq 'Unexpanded build macro' "$stage/missing-macro.log"
+printf '%s\n' 'PASS: missing source-host RPM macros fail before a family SRPM is emitted.'

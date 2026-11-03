@@ -153,3 +153,22 @@ export UKE_CONTROL_COMMIT=$(git rev-parse HEAD)
 UKE_COPR_FAMILY=uke-additional bash "$script"
 test "$(wc -l <"$FIXTURE_REQUESTS")" = 3
 printf '%s\n' 'PASS: production additional watch paths exclude the shared power/sensor adapter.'
+printf '%s\n' '[{"family":"uke-extras","name":"fixture","url":"https://download.copr.fedorainfracloud.org/results/mcc45tr/retired/fixture.src.rpm","sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}]' >packaging/families/source-inputs.json
+git add .; git commit -qm source-mirror-base
+UKE_CONTROL_BEFORE=$(git rev-parse HEAD)
+export UKE_CONTROL_BEFORE
+jq '.[0].url="https://github.com/MCC45TR/uke-linux-hardware-support/releases/download/copr-migration-archive-20261020/fixture.src.rpm"' packaging/families/source-inputs.json >pins.new
+mv pins.new packaging/families/source-inputs.json
+git add .; git commit -qm identical-source-mirror
+UKE_CONTROL_COMMIT=$(git rev-parse HEAD)
+export UKE_CONTROL_COMMIT
+UKE_COPR_FAMILY=uke-extras bash "$script"
+test "$(wc -l <"$FIXTURE_REQUESTS")" = 3
+jq '.[0].sha256="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"' packaging/families/source-inputs.json >pins.new
+mv pins.new packaging/families/source-inputs.json
+git add .; git commit -qm changed-source-bytes
+UKE_CONTROL_COMMIT=$(git rev-parse HEAD)
+export UKE_CONTROL_COMMIT
+if UKE_COPR_FAMILY=uke-extras bash "$script"; then exit 1; fi
+test "$(wc -l <"$FIXTURE_REQUESTS")" = 3
+printf '%s\n' 'PASS: byte-identical mirror relocation skips rebuilding; changed source hashes still require a revision.'

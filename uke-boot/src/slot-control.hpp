@@ -55,13 +55,13 @@ static void header(const Bytes &bytes,uint64_t here,uint64_t other) {
     auto check=bytes;std::fill(check.begin()+16,check.begin()+20,0);
     need(crc32(0,check.data(),le32(check,12))==le32(bytes,16),"GPT header CRC mismatch");
 }
-static Snapshot snapshot(int fd,uint64_t size,unsigned sector) {
+static Snapshot snapshot(int fd,uint64_t size,unsigned sector,bool allow_backup_crc=false) {
     need((sector==512||sector==4096) && size<=2ULL*1024*1024*1024*1024 && size%sector==0 && size/sector>10,"Unsupported GPT geometry");
     const auto last=size/sector-1;
     Snapshot s{read_at(fd,0,sector),read_at(fd,sector,sector),read_at(fd,last*sector,sector),{},0,0,last,sector};
     header(s.primary,1,last);header(s.backup,last,1);
     need(le32(s.primary,12)==le32(s.backup,12) && std::equal(s.primary.begin()+40,s.primary.begin()+72,s.backup.begin()+40) &&
-         std::equal(s.primary.begin()+80,s.primary.begin()+92,s.backup.begin()+80),"GPT primary/backup identity differs");
+         std::equal(s.primary.begin()+80,s.primary.begin()+88,s.backup.begin()+80),"GPT primary/backup identity differs");
     const auto count=le32(s.primary,80),width=le32(s.primary,84);
     need(count && count<=4096 && width==128,"Unsupported GPT entry array");
     const uint64_t length=uint64_t(count)*width,first=le64(s.primary,40),end=le64(s.primary,48);
@@ -74,6 +74,7 @@ static Snapshot snapshot(int fd,uint64_t size,unsigned sector) {
     s.entries=read_at(fd,s.primary_entries,length);
     need(crc32(0,s.entries.data(),s.entries.size())==le32(s.primary,88) &&
          read_at(fd,s.backup_entries,length)==s.entries,"GPT array CRC or backup differs");
+    need(allow_backup_crc || le32(s.backup,88)==le32(s.primary,88),"GPT backup array CRC differs");
     return s;
 }
 struct Part {size_t number;std::string name,type,uuid;uint64_t start,size,attrs;};
@@ -85,6 +86,7 @@ class Disk {
     bool warning=false;
     Fd staged{memfd_create("uke-slot-metadata",MFD_CLOEXEC)};
     std::unique_ptr<fdisk_context,decltype(&fdisk_unref_context)> context{fdisk_new_context(),fdisk_unref_context};
+    Snapshot observed;
     static int ask(fdisk_context*,fdisk_ask *ask,void *data) {
         if(fdisk_is_ask(ask,WARN)||fdisk_is_ask(ask,WARNX))*static_cast<bool*>(data)=true;
         return fdisk_is_ask(ask,INFO)||fdisk_is_ask(ask,WARN)||fdisk_is_ask(ask,WARNX)?0:-EINVAL;
@@ -94,7 +96,16 @@ public:
     Snapshot before;
     std::map<std::string,Part> parts;
     std::map<std::string,std::pair<std::string,uint64_t>> expected;
-    explicit Disk(int descriptor,uint64_t bytes,unsigned logical_sector):fd(descriptor),size(bytes),sector(logical_sector),before(snapshot(fd,size,sector)) {
+    explicit Disk(int descriptor,uint64_t bytes,unsigned logical_sector,bool allow_backup_crc=false)
+        :observed(snapshot(descriptor,bytes,logical_sector,allow_backup_crc)),fd(descriptor),size(bytes),sector(logical_sector),before(observed) {
+        if(le32(before.backup,88)!=le32(before.primary,88)) {
+            // Both arrays match a valid primary; normalize only in private memory until commit.
+            const uint32_t array_crc=htole32(le32(before.primary,88));
+            memcpy(before.backup.data()+88,&array_crc,sizeof(array_crc));
+            std::fill(before.backup.begin()+16,before.backup.begin()+20,0);
+            const uint32_t header_crc=htole32(crc32(0,before.backup.data(),le32(before.backup,12)));
+            memcpy(before.backup.data()+16,&header_crc,sizeof(header_crc));
+        }
         need(!ftruncate(staged.value,size),"Cannot size private GPT staging file");
         write_at(staged.value,0,before.mbr);write_metadata(staged.value,before);
         need(bool(context),"Cannot allocate libfdisk context");
@@ -118,10 +129,20 @@ public:
         }
     }
     void backup(const fs::path &path) const {
-        Bytes data=before.mbr;
-        for(const auto *part:{&before.primary,&before.backup,&before.entries})data.insert(data.end(),part->begin(),part->end());
+        Bytes data=observed.mbr;
+        for(const auto *part:{&observed.primary,&observed.backup,&observed.entries})data.insert(data.end(),part->begin(),part->end());
         if(!fs::exists(path))save_new(path,data);
         need(file(path)==data,"Durable GPT backup differs from current metadata");
+    }
+    bool needs_backup_crc_repair() const {return before.backup!=observed.backup;}
+    void require_selected(unsigned selected) const {
+        need(selected<2,"Invalid selected GPT slot");
+        for(const auto &[name,a]:parts)if(name.ends_with("_a")) {
+            const auto other=name.substr(0,name.size()-1)+"b";
+            need(parts.contains(other),"Unpaired selected GPT partition");
+            need(bool(a.attrs&active)==(selected==0) && bool(parts.at(other).attrs&active)==(selected==1),
+                 "GPT and UFS boot LUN selection differ");
+        }
     }
     bool prepare(unsigned running,unsigned target) {
         need(running<2 && target==1-running,"Inactive slot required");bool changed=false;
@@ -158,9 +179,23 @@ public:
         need(!fdisk_gpt_set_partition_attrs(context.get(),p.number,p.attrs|successful),"Cannot stage successful boot flag");
         expected[name]={p.type,p.attrs|successful};
     }
+    bool fallback(unsigned running,unsigned good) {
+        need(running<2 && good==1-running,"Fallback requires the other accepted slot");
+        const auto accepted=std::string("boot_")+(good?'b':'a');
+        const auto failed=std::string("boot_")+(running?'b':'a');
+        if(parts.contains(accepted))need((parts.at(accepted).attrs&successful) && !(parts.at(accepted).attrs&unbootable),
+                                        "Fallback slot was not marked successful");
+        const bool changed=prepare(running,good);
+        for(const auto &name:{accepted,failed})if(parts.contains(name)) {
+            auto &attrs=expected.at(name).second;
+            attrs=name==accepted?attrs|successful:(attrs&~(successful|retries))|unbootable;
+            need(!fdisk_gpt_set_partition_attrs(context.get(),parts.at(name).number,attrs),"Cannot stage fallback boot flags");
+        }
+        need(!warning,"libfdisk reported a fallback staging warning");return changed;
+    }
     void commit(int(*writer)(fdisk_context*)=fdisk_write_disklabel) {
-        const auto fresh=snapshot(fd,size,sector);
-        need(fresh.primary==before.primary && fresh.backup==before.backup && fresh.entries==before.entries && fresh.mbr==before.mbr,
+        const auto fresh=snapshot(fd,size,sector,needs_backup_crc_repair());
+        need(fresh.primary==observed.primary && fresh.backup==observed.backup && fresh.entries==observed.entries && fresh.mbr==observed.mbr,
              "GPT changed after admission; concurrent storage mutation refused");
         need(!writer(context.get()) && !fsync(staged.value) && !warning,"Private GPT serialization failed");
         const auto after=snapshot(staged.value,size,sector);
@@ -190,13 +225,14 @@ public:
             need(actual.number==p.number && actual.uuid==p.uuid && actual.start==p.start && actual.size==p.size &&
                  actual.type==expected.at(name).first && actual.attrs==expected.at(name).second,"GPT slot metadata readback differs");
         }
-        const auto current=snapshot(fd,size,sector);
-        need(current.primary==before.primary && current.backup==before.backup && current.entries==before.entries && current.mbr==before.mbr,
+        const auto current=snapshot(fd,size,sector,needs_backup_crc_repair());
+        need(current.primary==observed.primary && current.backup==observed.backup && current.entries==observed.entries && current.mbr==observed.mbr,
              "GPT changed during serialization; concurrent storage mutation refused");
         write_metadata(fd,after);
         const auto committed=snapshot(fd,size,sector);
         need(committed.mbr==before.mbr && committed.primary==after.primary && committed.backup==after.backup &&
              committed.entries==after.entries,"Committed GPT metadata differs");
+        if(needs_backup_crc_repair())std::cout<<"GPT backup-header CRC restored from matching validated partition arrays\n";
     }
     void restore() const {
         write_metadata(fd,before);write_at(fd,0,before.mbr);

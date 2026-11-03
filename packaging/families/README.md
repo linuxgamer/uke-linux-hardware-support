@@ -1,5 +1,138 @@
 # COPR source families
 
+24 October 2026: core `1.9.1` adds disconnected DP training ceilings,
+per-device USB runtime power and RTL8153 link capability/profile controls.
+It preserves core `1.8.1`'s bounded native KScreen session controls.
+Metas `1.1.0-2` contains the separate `uke-plasma-controls` RPM, recommended only
+by `uke-kde-plasma-meta`. Removing the widget retains the KDE meta package.
+The applet delegates all settings to `uke-control`, uses standard Polkit for
+USB administration and advertises no unavailable hardware control. GNOME has
+no widget dependency or integration. Source and package checks are separate
+from tablet UI acceptance.
+
+24 October 2026: metas `1.0.6-2` requires original Fedora `firewalld` for
+the policy XSD used by the mandatory native check. `firewalld-filesystem` owns
+the RPM macro and directories but not that schema. Build `11202425` stopped
+at this missing build dependency and produced no installable correction.
+Desktop children advance to `1.0.0-10`, Core metadata to `1.0.5-4`.
+
+24 October 2026: metas `1.0.6-1` delivers Plasma selection `1.0.0-9` with
+original Fedora KDE Connect autostart and a vendor firewalld policy limited to
+private IPv4 and local IPv6 sources. Pairing and administrator overrides remain
+authoritative. The unchanged Core selection advances to `1.0.5-3` for the
+rebuilt cohort. Policy schema/source checks, native COPR packaging and actual
+tablet discovery remain separate validation steps.
+
+23 October 2026: sensors `1.0.9-3` advances every rebuilt child revision before
+integrating the published hardware sources into main. The shared sensor
+Makefile gained touch-capture host targets and is included in the Front Color
+and proximity source archives. Their compiled inputs and runtime behavior are
+unchanged. A source revision still requires new RPM identities; existing
+same-NEVRA and duplicate-build guards remain mandatory.
+
+23 October 2026: hardware `1.8.2-1` carries the DSI connector health correction
+in its matched native children. Unchanged firmware advances to release 9 for
+a coherent, monotonic rebuild. Host checks and tablet validation are distinct.
+
+23 October 2026: hardware `1.8.1-2` advances boot children to `1.8.1-2` and
+the unchanged firmware payload to `3.0.304.0-8`. Build `11199340` was cancelled
+before publication after detecting its unchanged firmware RPM revision.
+
+23 October 2026: hardware `1.8.1` corrects repeated DNF hooks before an A/B
+trial reboot and narrowly restores a stale backup array CRC during acceptance
+or fallback. Both GPT arrays, valid primary data, header identity and header
+CRCs remain mandatory. Host fixtures pass; package and tablet validation are
+separate. The observed B/7.2.12-14 to A/7.2.12-22 boot remains unaccepted.
+
+23 October 2026: hardware `1.8.0` adds pending-trial fallback after bounded
+health retries and admits one exact firmware cohort after external-fastboot
+Linux entry in both slots. Unknown cohorts remain refused. The matching kernel
+contact client waits for valid frames before reporting readiness. Native/DNF
+A/B, hard-hang recovery, power-loss and independent recovery tests remain open.
+
+23 October 2026: the active Uke COPR projects are `uke-linux` and
+`uke-linux-test`. The four frozen SRPM inputs use the
+[permanent source archive](https://github.com/MCC45TR/uke-linux-hardware-support/releases/tag/copr-migration-archive-20261020)
+with their original SHA-256 values. Historical COPR build identifiers remain
+provenance records. A byte-identical URL relocation requires no binary rebuild;
+changed source hashes still require a family revision. Source contract and
+trigger fixtures cover this distinction; tablet state is unaffected.
+
+23 October 2026: sensors `1.0.6` adds the separately installable, root-only
+`uke-proximity-capture` diagnostic. It is not a default dependency or service.
+Fixed bounded modes compare the captured Uke format with libssc's request;
+they do not replace the decoder, set calibration or establish near/far support.
+
+23 October 2026: hardware `1.7.0` is a source migration candidate. Boot
+integration owns the existing calibrated touch service and its legacy rollback
+client, with a native launcher for a client supplied by the running kernel's
+module package. The separate `uke-touchscreen` child is no longer built.
+Private data remains separate. Native source generation, host boot/update/USB
+fixtures and source-family checks pass; COPR and tablet migration are pending.
+See [touch runtime migration](../../uke-boot/docs/TOUCH-RUNTIME.md).
+
+23 October 2026: sensors `1.0.5` builds the front-color publisher from its
+current owning source instead of the archived release-2 source RPM. It retains
+the SUID readiness subscription while publishing unavailable startup state,
+with no timed retry or DSP reset. Host fixtures cover late readiness,
+cancellation and event limits; cold-boot tablet acceptance remains separate.
+
+23 October 2026: extras `1.0.4` delivers `uke-plymonth 1.0.2-4` with a required
+original Fedora label plugin. The first tablet boot exposed a script-plugin
+crash when text rendering was absent. The package build now exercises the
+engine's real space-glyph rendering check as well as the theme parser. This
+dependency correction does not establish physical theme visibility.
+
+22 October 2026: extras `1.0.3` delivers `uke-plymonth 1.0.2-3`, adapting the
+attributed Xiaomi/Fedora artwork from Nabu. Metas `1.0.5` adds it as a Core
+recommendation. Normal DNF upgrades install the new weak dependency; removing
+the theme preserves Core and subsequent upgrades respect that removal under
+the default DNF policy. Original Fedora Plymouth units show the graphical theme
+after root mount and during shutdown. No Nabu repository, boot image update or
+slot operation is introduced. RPM scriptlet, parser and isolated DNF fixtures
+are separate from physical Uke display and shutdown acceptance.
+
+22 October 2026: hardware `1.6.0` adds the native updater's guarded restoration
+of a booted, unaccepted current-slot trial to its recorded accepted B image.
+The failed trial is not marked healthy. Package/module verification, physical
+storage checks, battery admission, durable backup and write/readback remain
+mandatory. Other hardware children retain their inputs with fresh revisions.
+Host tests do not establish tablet restoration or interrupted-write recovery.
+
+22 October 2026: skipped-release resolver checks cover the earliest retained
+`7.2.9-1` component baseline, the pre-family `7.2.11-9` package set and the
+reported mixed `7.2.12` kernel list. Each resolves directly against current
+test COPR and Fedora Rawhide metadata in one transaction. No intermediate
+repository, sequential upgrade or dependency-ignore option is required.
+Name-based replacements cover the first retired power backend and standalone
+Bluetooth packages, with the existing service-state migration. These checks
+use isolated RPM header databases; they do not execute target scriptlets or
+establish tablet installation. Default kernel retention may replace an old
+kernel set, so the proposed transaction remains relevant to rollback planning.
+
+22 October 2026: power `1.3.3` and additional `1.0.0-6` restrict upstream file
+globs to their owning source. UPower no longer includes sibling Uke service,
+D-Bus and udev files; libaccounts-glib-devel no longer includes AccountsService
+interfaces. Shared-root fixtures retain each source's own files and reject
+sibling capture. Rebuilt children receive fresh revisions. Bluetooth source
+changes are watched by the hardware family only.
+
+22 October 2026: hardware `1.5.3` grants the existing Bluetooth factory helper
+read/search access through Android-owned directory permissions. The service
+retains protected read-only persist and its exact identity and input checks.
+A host capability fixture verifies read admission and write refusal. No service
+is newly enabled and no factory permissions are modified. Tablet controller
+startup and pairing remain separate validation.
+
+22 October 2026: power 1.3.2-1 replaces the retired
+`uke-power-profile-backend` package and requires the original Fedora
+`power-profiles-daemon`, the native kernel profile provider and boot readiness
+integration. The migration preserves enabled, active and masked service state;
+it supplies no legacy capability alias. This allows the existing kernel boot
+dependency to remain strict while removing the obsolete backend. All rebuilt
+power children receive fresh revisions. Resolver checks and COPR results are
+recorded separately from tablet power-profile and Bluetooth validation.
+
 22 October 2026: hardware `1.5.2` applies the reviewed panel-start patch to
 the pinned touchscreen source. Touchscreen `1.0.14` can wait for the kernel's
 panel notification while DPMS is off. It reports standby explicitly, creates no
@@ -105,7 +238,7 @@ belong to kernel/DT, original distribution services and bounded Uke helpers.
 | Source family | Child responsibilities |
 |---|---|
 | uke-core | uke-control and optional development diagnostics |
-| uke-hw | retained boot/USB/Wi-Fi integration, separate installation classifier, firmware, Bluetooth factory-address oneshot, touchscreen and original Fastfetch configuration |
+| uke-hw | boot/USB/Wi-Fi integration, installation classifier, firmware, Bluetooth factory address, touch runtime with matched-kernel dispatch and original Fedora Fastfetch |
 | uke-power | original UPower with reviewed corrections, battery observation/control gates, PPD backend, adaptive display |
 | uke-sensors | SSC library, standard SensorProxy with SSC, bounded file service and opt-in front color |
 | uke-additional | AT-SPI, GStreamer, libaccounts-glib, libwacom, C++ runtime and Mesa; original upstream versions retained |
@@ -219,7 +352,11 @@ Native identity and physical-device validation remain separate from this change.
 On Rawhide AArch64, build a source family with
 `make -C packaging/families srpm FAMILY=uke-core`. The source-generation host
 must match the target: RPM's `--target` does not retarget every build/host
-triplet in an expanded recipe. The normal COPR source worker is AArch64.
+triplet in an expanded recipe. COPR source workers can use another architecture;
+generate and upload the SRPM from a native target worker in that case. The
+source host also needs each recipe's RPM macro providers, including
+`cargo-rpm-macros` for current Mesa. Unexpanded build commands are rejected
+before composition instead of being escaped into a broken family recipe.
 Use `TARGET_ARCH=x86_64` only for isolated x86_64 host fixtures.
 Run `make -C packaging/families check` and the original component/native solver
 checks. Before changing COPR, validate every generated package name, dependency,

@@ -1,5 +1,11 @@
 # Stock-ABL kernel updates
 
+22 October 2026 source update: updater 1.6.0 adds a guarded return from a booted,
+unaccepted userdata current-slot trial to its recorded accepted B image. See
+[userdata restoration](USERDATA-AB.md#restore-an-unaccepted-current-slot-trial).
+It retains the existing package, module, storage, power and write/readback gates.
+Host fixtures cover admission and refusal; tablet restoration remains untested.
+
 21 October 2026 correction: updater 1.1.2 also enforces the global disable inside
 its native automatic userdata entry point, before boot acceptance or staging.
 Both global and userdata flags must be valid and enabled. The explicit manual

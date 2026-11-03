@@ -1,5 +1,13 @@
 # Uke sensors
 
+23 October 2026: the optional native `uke-proximity-capture` package compares
+small/large report transport and empty-body presence using one metadata-gated
+default endpoint. Passive/non-wakeup is the default; fixed active modes use
+the same bounded on-change request as libssc. Raw output remains private.
+No unknown vendor vector is converted into a near/far decision. See
+[the capture contract](docs/PROXIMITY-CAPTURE.md). This is a source/package
+diagnostic, not physical proximity acceptance.
+
 21 October 2026 source correction: the native RAM cache compares its packaged
 DSP helper and configuration with installed inputs. A changed generation is
 published with an atomic directory exchange while preserving the current RAM
@@ -58,6 +66,11 @@ COPR contains neither. Registry updates stay in private RAM storage.
 [Source pins](manifests/ssc-desktop-source.json)
 
 ## Persistent touch candidate
+
+23 October 2026: the [kernel capture migration candidate](docs/KERNEL-TOUCH-CAPTURE.md)
+adds a C++ consumer for complete V4L2 THP packets. Host/AArch64 compilation and
+queue/refusal fixtures pass. Kernel/DT packaging and tablet validation remain
+required before the current SPI service can be retired.
 
 14 October 2026: `make touchscreen-rpm` builds a separate AArch64
 `uke-touchscreen` candidate from the reviewed native NT36532 processor. It

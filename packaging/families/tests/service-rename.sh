@@ -68,4 +68,17 @@ phase=restore sh "$stage/fragment"
 grep -Fx 'enable uke-bluetooth-address.service' "$stage/calls"
 if grep -Eq '^start ' "$stage/calls"; then exit 1; fi
 test ! -e "$stage/state/$new"
-printf '%s\n' 'PASS: admitted active/enabled state, disabled/masked refusal, retained failed restoration, symlink rejection and Bluetooth ownership transfer; host stubs only.'
+export old=uke-power-profile-backend new=uke-power unit=power-profiles-daemon.service FIXTURE_OLD=uke-power-profile-backend
+export FIXTURE_ENABLED=enabled FIXTURE_ACTIVE=active
+: >"$stage/calls"
+phase=save sh "$stage/fragment"
+export FIXTURE_ENABLED=disabled FIXTURE_ACTIVE=inactive
+phase=restore sh "$stage/fragment"
+grep -Fx 'enable power-profiles-daemon.service' "$stage/calls"
+grep -Fx 'start power-profiles-daemon.service' "$stage/calls"
+export FIXTURE_ENABLED=masked FIXTURE_ACTIVE=inactive
+: >"$stage/calls"
+phase=save sh "$stage/fragment"
+phase=restore sh "$stage/fragment"
+if grep -Eq '^(enable|start) ' "$stage/calls"; then exit 1; fi
+printf '%s\n' 'PASS: admitted active/enabled state, disabled/masked refusal, retained failed restoration, symlink rejection, Bluetooth transfer and original PPD restoration; host stubs only.'

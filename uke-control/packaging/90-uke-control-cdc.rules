@@ -1,0 +1,4 @@
+# SYSTEMD_WANTS alone does not reactivate an already discovered device on change.
+ACTION=="add|change|remove", SUBSYSTEM=="typec", TEST=="/var/lib/uke-control/cdc-on", RUN+="/usr/bin/systemctl --no-block reload-or-restart uke-control-cdc.service"
+ACTION=="add|change|remove", SUBSYSTEM=="usb_role", TEST=="/var/lib/uke-control/cdc-on", RUN+="/usr/bin/systemctl --no-block reload-or-restart uke-control-cdc.service"
+ACTION=="add|change", SUBSYSTEM=="udc", TEST=="/var/lib/uke-control/cdc-on", RUN+="/usr/bin/systemctl --no-block reload-or-restart uke-control-cdc.service"

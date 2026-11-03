@@ -1,5 +1,15 @@
 # Desktop interface and engineering contract
 
+24 October 2026: `desktop plasma` returns nullable automatic rotation and
+brightness policies for the original KScreen unique internal DSI output. The bounded native
+reader strips terminal color sequences, isolates exactly one internal output
+and refuses missing, duplicate or unknown capability values. The explicit
+`desktop rotation on|off` and `desktop brightness on|off` commands recheck that
+capability before calling original `kscreen-doctor` with fixed arguments.
+They run in the desktop user's session, require no root privileges and do not
+claim physical sensor/display acceptance. `desktop status` remains read-only;
+it also reports UPower's nullable `LidIsPresent` property.
+
 Date: **20 October 2026**. Target: POCO Pad X1, Fedora Rawhide AArch64,
 original KDE 6.8. The device is observed on Linux 7.2.11-6; a staged kernel is
 not running hardware support. Native code and private-bus tests are separate

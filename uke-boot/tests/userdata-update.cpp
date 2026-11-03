@@ -22,6 +22,23 @@ static Bytes image(const std::string &release) {
     memcpy(bytes.data()+page+128,banner.data(),banner.size());return bytes;
 }
 int main() {
+    {
+        std::ifstream fixture("tests/fixtures/early-firmware-20261023.txt");assert(fixture);
+        std::ostringstream contents;contents<<fixture.rdbuf();assert(!fixture.bad());
+        const auto qualified=properties(contents.str());
+        assert(admitted_early_firmware(qualified));
+        for(const auto &[name,hash]:qualified) {
+            auto changed=qualified;changed[name][0]=hash[0]=='0'?'1':'0';
+            assert(!admitted_early_firmware(changed));
+        }
+        auto identical=qualified;for(auto &[name,hash]:identical){(void)name;hash=std::string(64,'a');}
+        assert(admitted_early_firmware(identical));
+        auto changed=qualified;changed.erase("xbl_a");reject([&]{admitted_early_firmware(changed);});
+        changed=qualified;changed["extra"]=std::string(64,'a');reject([&]{admitted_early_firmware(changed);});
+        changed=qualified;changed["xbl_a"]="invalid";reject([&]{admitted_early_firmware(changed);});
+        changed=qualified;for(const auto name:firmware_names)std::swap(changed.at(std::string(name)+"_a"),changed.at(std::string(name)+"_b"));
+        assert(!admitted_early_firmware(changed));
+    }
     for(const std::string global:{"0","1"})for(const std::string profile:{"0","1"})
         assert(automatic_updates("# Local policy\n\nautomatic="+global+"\n","automatic="+profile+"\nvrr_min_hz=30\n")==
                (global=="1" && profile=="1"));
@@ -30,15 +47,80 @@ int main() {
     for(const std::string profile:{"","automatic=2\nvrr_min_hz=30\n","automatic=1\n","automatic=1\nvrr_min_hz=31\n","automatic=1\nautomatic=1\nvrr_min_hz=30\n"})
         reject([&]{automatic_updates("automatic=0\n",profile);});
     char temporary[]="/tmp/uke-userdata-state.XXXXXX";assert(mkdtemp(temporary));const fs::path root=temporary;
+    {
+        const auto drm=root/"drm";fs::create_directory(drm);
+        auto connector=[&](const std::string &name,const std::string &status,const std::string &enabled) {
+            fs::create_directories(drm/name);
+            std::ofstream(drm/name/"status")<<status;std::ofstream(drm/name/"enabled")<<enabled;
+        };
+        assert(!internal_display_enabled(drm));
+        connector("card0-DP-1","connected\n","enabled\n");
+        connector("card0-HDMI-A-1","connected\n","enabled\n");
+        assert(!internal_display_enabled(drm));
+        for(const auto name:{"card1-DSI-1","card2-DSI-2","card3-DSI-12"}) {
+            connector(name,"connected\n","enabled\n");assert(internal_display_enabled(drm));
+            connector(name,"disconnected\n","enabled\n");assert(!internal_display_enabled(drm));
+            connector(name,"connected\n","disabled\n");assert(!internal_display_enabled(drm));
+            fs::remove(drm/name/"enabled");assert(!internal_display_enabled(drm));
+            fs::remove_all(drm/name);
+        }
+        fs::remove_all(drm);
+    }
     UserdataUpdate saved{{uke_install::Profile::userdata,uke_install::Slot::b,"7.2.11-14",uke_install::Phase::stable,{},{}},std::string(64,'a'),{}, {}};
+    for(const auto good:{uke_install::Slot::a,uke_install::Slot::b}) {
+        auto trial=saved;trial.policy.good=good;
+        const auto target=unsigned(uke_install::stage(trial.policy,good,"7.2.11-14","7.2.11-16"));
+        trial.candidate_image=std::string(64,'b');trial.staged_boot_id="00000000-1234-5678-aaaa-ffffffffffff";
+        const std::string boot_id="00000000-1234-5678-aaaa-eeeeeeeeeeee";
+        assert(!booted_ab_trial(trial,target,"7.2.11-16",trial.candidate_image,boot_id));
+        uke_install::verified(trial.policy);
+        assert(!booted_ab_trial(trial,target,"7.2.11-16",trial.candidate_image,boot_id));
+        (void)uke_install::arm(trial.policy);const auto before=encode(trial);
+        assert(awaiting_ab_reboot(trial,unsigned(good),"7.2.11-14",trial.good_image,trial.staged_boot_id));
+        assert(!awaiting_ab_reboot(trial,unsigned(good),"7.2.11-14",trial.good_image,boot_id));
+        assert(!awaiting_ab_reboot(trial,target,"7.2.11-16",trial.candidate_image,boot_id));
+        reject([&]{awaiting_ab_reboot(trial,unsigned(good),"7.2.11-15",trial.good_image,trial.staged_boot_id);});
+        reject([&]{awaiting_ab_reboot(trial,unsigned(good),"7.2.11-14",trial.candidate_image,trial.staged_boot_id);});
+        reject([&]{awaiting_ab_reboot(trial,2,"7.2.11-14",trial.good_image,trial.staged_boot_id);});
+        reject([&]{awaiting_ab_reboot(trial,unsigned(good),"7.2.11-14",trial.good_image,"bad");});
+        assert(booted_ab_trial(trial,target,"7.2.11-16",trial.candidate_image,boot_id));
+        assert(!booted_ab_trial(trial,unsigned(good),"7.2.11-14",trial.good_image,trial.staged_boot_id));
+        assert(!booted_ab_trial(trial,unsigned(good),"7.2.11-14",trial.good_image,boot_id));
+        reject([&]{booted_ab_trial(trial,target,"7.2.11-16",trial.candidate_image,trial.staged_boot_id);});
+        reject([&]{booted_ab_trial(trial,target,"7.2.11-15",trial.candidate_image,boot_id);});
+        reject([&]{booted_ab_trial(trial,target,"7.2.11-16",trial.good_image,boot_id);});
+        reject([&]{booted_ab_trial(trial,unsigned(good),"7.2.11-16",trial.good_image,boot_id);});
+        reject([&]{booted_ab_trial(trial,2,"7.2.11-16",trial.candidate_image,boot_id);});
+        reject([&]{booted_ab_trial(trial,target,"7.2.11-16",trial.candidate_image,"bad");});
+        assert(encode(trial)==before);
+    }
+    assert(!booted_ab_trial(saved,1,"7.2.11-14",saved.good_image,"00000000-1234-5678-aaaa-eeeeeeeeeeee"));
     save_update(root/"state",saved);assert(encode(decode(file(root/"state")))==encode(saved));
     {
         const auto baseline=saved;
         const auto next_hash=std::string(64,'b');
         const std::string boot_id="00000000-1234-5678-aaaa-ffffffffffff";
         auto manual=current_slot_trial(baseline,"7.2.11-14",baseline.good_image,"7.2.11-16",next_hash,boot_id);
+        assert(!booted_ab_trial(manual,1,"7.2.11-16",next_hash,"00000000-1234-5678-aaaa-eeeeeeeeeeee"));
         save_update(root/"manual",manual);manual=decode(file(root/"manual"));
         assert(manual.policy.phase==uke_install::Phase::current_slot_trial && manual.policy.good_release=="7.2.11-14" && manual.good_image==baseline.good_image);
+        const std::string trial_boot_id="00000000-1234-5678-aaaa-eeeeeeeeeeee";
+        const auto unchanged=encode(manual);
+        require_current_restore(manual,"7.2.11-16",next_hash,"7.2.11-14",baseline.good_image,trial_boot_id);
+        assert(encode(manual)==unchanged);
+        reject([&]{require_current_restore(baseline,"7.2.11-16",next_hash,"7.2.11-14",baseline.good_image,trial_boot_id);});
+        reject([&]{require_current_restore(manual,"7.2.11-14",next_hash,"7.2.11-14",baseline.good_image,trial_boot_id);});
+        reject([&]{require_current_restore(manual,"7.2.11-16",baseline.good_image,"7.2.11-14",baseline.good_image,trial_boot_id);});
+        reject([&]{require_current_restore(manual,"7.2.11-16",next_hash,"7.2.11-17",baseline.good_image,trial_boot_id);});
+        reject([&]{require_current_restore(manual,"7.2.11-16",next_hash,"7.2.11-14",next_hash,trial_boot_id);});
+        reject([&]{require_current_restore(manual,"7.2.11-16","bad","7.2.11-14",baseline.good_image,trial_boot_id);});
+        reject([&]{require_current_restore(manual,"7.2.11-16",next_hash,"7.2.11-14",baseline.good_image,boot_id);});
+        reject([&]{require_current_restore(manual,"7.2.11-16",next_hash,"7.2.11-14",baseline.good_image,"bad");});
+        auto wrong_restore=manual;wrong_restore.policy.phase=uke_install::Phase::trial;
+        reject([&]{require_current_restore(wrong_restore,"7.2.11-16",next_hash,"7.2.11-14",baseline.good_image,trial_boot_id);});
+        wrong_restore=manual;wrong_restore.policy.good=uke_install::Slot::a;
+        reject([&]{require_current_restore(wrong_restore,"7.2.11-16",next_hash,"7.2.11-14",baseline.good_image,trial_boot_id);});
+        assert(encode(manual)==unchanged);
         reject([&]{uke_install::arm(manual.policy);});
         reject([&]{uke_install::stage(manual.policy,uke_install::Slot::b,"7.2.11-14","7.2.11-17");});
         reject([&]{uke_install::accept(manual.policy,uke_install::Slot::a,"7.2.11-16",true);});

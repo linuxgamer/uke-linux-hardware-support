@@ -1,6 +1,6 @@
 %global debug_package %{nil}
 Name: uke-core-meta
-Version: 1.0.4
+Version: 1.0.5
 Release: 1%{?dist}
 Summary: Console package selection for the Senemos Uke build candidate
 License: MIT
@@ -8,15 +8,6 @@ URL: https://github.com/MCC45TR/uke-linux-hardware-support/tree/main/uke-core-me
 Source0: %{name}-%{version}.tar.xz
 ExclusiveArch: aarch64
 BuildRequires: tar xz
-%if 0%{?fedora} == 44
-# Fedora 44 composes a reviewed boot_a image separately; do not pull in an
-# upstream boot updater or a kernel build newer than this release profile.
-Requires: senemos-uke-linux-kernel-mainline-core >= 7.2.11-9
-Requires: senemos-uke-linux-kernel-mainline-modules >= 7.2.11-9
-Requires: senemos-uke-linux-kernel-mainline-dtbs >= 7.2.11-9
-Requires: bash coreutils util-linux-core kmod
-Requires: NetworkManager openssh-server sudo libstdc++
-%else
 Requires: (senemos-uke-linux-kernel-mainline >= 7.2.11-16 or senemos-uke-linux-kernel-mainline-singleboot >= 7.2.11-16)
 Requires: uke-core >= 1.0.21 uke-hw >= 1.1.1 uke-power >= 1.0.15 uke-sensors
 Requires: uke-control uke-kernel-update uke-installation-profile
@@ -30,7 +21,7 @@ Requires: uke-ssc-fileservice uke-upower
 Requires: bash coreutils util-linux-core kmod
 Requires: NetworkManager openssh-server sudo
 Requires: senemos-native-runtime(libstdc++)
-%endif
+Recommends: uke-plymonth >= 1.0.2-3
 %description
 A minimal console package selection and explicit Uke readiness record.
 No unqualified firmware, Nabu hardware services or boot selection is installed.
@@ -46,6 +37,9 @@ install -Dm644 src/profile.json %{buildroot}%{_datadir}/senemos/uke/core/profile
 %{_datadir}/senemos/uke/core/profile.json
 
 %changelog
+* Thu Oct 22 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.0.5-1
+- Recommend the removable Uke Plymouth theme on normal DNF upgrades.
+
 * Thu Oct 22 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.0.4-1
 - Select factory Bluetooth identity through the owning boot-integration capability.
 

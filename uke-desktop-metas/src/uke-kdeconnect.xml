@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<policy target="CONTINUE" priority="-500">
+  <short>Uke KDE Connect</short>
+  <description>Allow KDE Connect from private IPv4 and local IPv6 addresses. Pairing remains mandatory. Administrators can disable or override this vendor policy.</description>
+  <ingress-zone name="ANY"/>
+  <egress-zone name="HOST"/>
+  <rule family="ipv4">
+    <source address="10.0.0.0/8"/>
+    <service name="kdeconnect"/>
+    <accept/>
+  </rule>
+  <rule family="ipv4">
+    <source address="172.16.0.0/12"/>
+    <service name="kdeconnect"/>
+    <accept/>
+  </rule>
+  <rule family="ipv4">
+    <source address="192.168.0.0/16"/>
+    <service name="kdeconnect"/>
+    <accept/>
+  </rule>
+  <rule family="ipv6">
+    <source address="fe80::/10"/>
+    <service name="kdeconnect"/>
+    <accept/>
+  </rule>
+  <rule family="ipv6">
+    <source address="fc00::/7"/>
+    <service name="kdeconnect"/>
+    <accept/>
+  </rule>
+</policy>

@@ -12,6 +12,12 @@
     "unit": "upower.service"
   },
   {
+    "family": "uke-power",
+    "old": "uke-power-profile-backend",
+    "new": "uke-power",
+    "unit": "power-profiles-daemon.service"
+  },
+  {
     "family": "uke-additional",
     "old": "accountsservice",
     "new": "uke-accountsservice",

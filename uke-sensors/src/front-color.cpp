@@ -76,6 +76,17 @@ static void gate_metadata(View event, Uid selected) {
     }
     require(type_ok && available && physical && on_change, "Front-color endpoint metadata unavailable");
 }
+static Bytes color_client_request(Uid sensor, unsigned message, View payload) {
+    auto packet = client_request(sensor, message, payload);
+    if (message == 512 || message == 1) {
+        // Match OEM discovery/attribute delivery; measurement requests stay non-wakeup.
+        const auto client = fields(tlv(tlvs(packet), 1).subspan(2));
+        const auto delivery = one(fields(one(client, 3, 2)), 2, 0);
+        require(delivery.size() == 1 && delivery[0] == 1, "Unexpected metadata delivery encoding");
+        packet.at(delivery.data() - packet.data()) = 0;
+    }
+    return packet;
+}
 struct Connection {
     Fd fd{socket(AF_QIPCRTR, SOCK_DGRAM | SOCK_CLOEXEC | SOCK_NONBLOCK, 0)};
     sockaddr_qrtr server{};
@@ -110,7 +121,7 @@ struct Connection {
             found = true; break;
         }
         require(found && !stopped, "SSC service lookup unavailable");
-        send(fd.value, server, client_request(selected, message_id, payload));
+        send(fd.value, server, color_client_request(selected, message_id, payload));
         while (!stopped && packets++ < 64) {
             auto data = receive(fd.value, peer, deadline);
             if (peer.sq_node != server.sq_node || peer.sq_port != server.sq_port) continue;
@@ -174,26 +185,44 @@ static std::optional<Uid> color_endpoint(View event) {
     require(found.size() <= 1, "Ambiguous front-color endpoint");
     return found.empty() ? std::nullopt : std::optional<Uid>(found[0]);
 }
-static Uid discover_color() {
+template<class Lookup, class Progress>
+static Uid wait_for_color_endpoint(Lookup &lookup, Progress progress) {
     std::optional<Uid> selected;
-    {
-        const auto payload = color_lookup_payload();
-        Connection lookup(lookup_uid, 512, payload);
-        const auto deadline = boottime_ns() + 30'000'000'000ULL;
-        unsigned events = 0;
-        while (!stopped && !selected && boottime_ns() < deadline && events < 64) {
-            auto event = lookup.next();
-            if (!event) continue;
+    unsigned events = 0;
+    while (!stopped && !selected && events < 64) {
+        auto event = lookup.next();
+        if (event) {
             ++events;
             selected = color_endpoint(*event);
         }
+        progress();
     }
     require(!stopped, "Front-color discovery interrupted");
-    require(selected.has_value(), "Front-color endpoint not ready within bounded discovery");
+    require(selected.has_value(), "Front-color lookup event limit reached before endpoint readiness");
+    return *selected;
+}
+static Uid discover_color(uke::color::State &state, int directory, std::uint64_t &published) {
+    Uid selected;
+    {
+        const auto payload = color_lookup_payload();
+        std::cerr << "Front-color discovery starting\n";
+        Connection lookup(lookup_uid, 512, payload);
+        std::cerr << "Front-color discovery acknowledged\n";
+        // Keep the existing subscription until the endpoint publishes readiness.
+        selected = wait_for_color_endpoint(lookup, [&] {
+            const auto now = boottime_ns();
+            if (now - published >= 1'000'000'000ULL) {
+                uke::color::write_snapshot(directory, state.json(now));
+                published = now;
+            }
+        });
+    }
     Fd metadata(socket(AF_QIPCRTR, SOCK_DGRAM | SOCK_CLOEXEC | SOCK_NONBLOCK, 0));
     require(metadata.value >= 0, "QRTR metadata socket unavailable");
-    gate_metadata(rpc(metadata.value, request("", *selected, 1), 128), *selected);
-    return *selected;
+    std::cerr << "Front-color endpoint discovered; requesting attributes\n";
+    gate_metadata(rpc(metadata.value, color_client_request(selected, 1, {}), 128), selected);
+    std::cerr << "Front-color metadata admitted\n";
+    return selected;
 }
 static void update(uke::color::State &state, View event, Uid selected, std::uint64_t now_ns) {
     auto root = fields(event), uid = fields(one(root, 1, 2));
@@ -220,6 +249,7 @@ static void wait_for_stop() {
 #ifndef UKE_FRONT_COLOR_TEST
 int main(int argc, char **) {
     (void)&attributes;
+    (void)&request;
     if (argc != 1) { std::cerr << "Service accepts no arguments; collection requires explicit service activation\n"; return 2; }
     std::signal(SIGTERM, stop_handler); std::signal(SIGINT, stop_handler);
     try {
@@ -235,7 +265,7 @@ int main(int argc, char **) {
         uke::color::write_snapshot(directory.value, state.json(published));
         auto stage = uke::color::Error::metadata;
         try {
-            auto selected = discover_color();
+            auto selected = discover_color(state, directory.value, published);
             stage = uke::color::Error::transport;
             Connection connection(selected);
             state.connect();

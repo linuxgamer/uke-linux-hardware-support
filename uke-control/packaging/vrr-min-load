@@ -1,0 +1,15 @@
+#!/bin/sh
+# Append a validated saved floor after firmware/module command-line defaults.
+set -eu
+minimum=$(/usr/bin/uke-control display vrr-min configured 2>/dev/null) || minimum=unset
+case "$minimum" in [3-9][0-9]|1[0-3][0-9]|14[0-3]) ;; *) minimum=unset;; esac
+supported=false
+api=false
+for parameter in $(/usr/sbin/modinfo -F parmtype msm 2>/dev/null); do
+    [ "$parameter" != o82_vrr_test_min_hz:uint ] || supported=true
+    [ "$parameter" != o82_vrr_floor_api:uint ] || api=true
+done
+if [ "$minimum" != unset ] && [ "$supported" = true ] && [ "$api" = true ]; then
+    exec /usr/sbin/modprobe --ignore-install msm "$@" "o82_vrr_test_min_hz=$minimum"
+fi
+exec /usr/sbin/modprobe --ignore-install msm "$@"

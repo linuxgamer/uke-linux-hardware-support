@@ -8,6 +8,7 @@ srpm:
 	bash host/compose.sh '$(FAMILY)' '$(outdir)'
 check:
 	bash tests/split-spec.sh
+	bash tests/filelists.sh
 	bash tests/cohort.sh
 	bash tests/service-rename.sh
 	bash tests/contracts.sh

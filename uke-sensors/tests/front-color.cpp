@@ -42,6 +42,30 @@ int main() {
     std::size_t offset = 0;
     assert(varint(one(lookup_fields,2,0),offset) == 1);
     offset = 0; assert(varint(one(lookup_fields,3,0),offset) == 0);
+    const auto lookup_packet = color_client_request(lookup_uid,512,lookup_payload);
+    const Bytes wakeup_lookup{
+        0,1,0,0x20,0,0x37,0,1,0x34,0,0x32,0,
+        0x0a,18,9,0xab,0xab,0xab,0xab,0xab,0xab,0xab,0xab,
+        0x11,0xab,0xab,0xab,0xab,0xab,0xab,0xab,0xab,
+        0x15,0,2,0,0,0x1a,4,8,1,0x10,0,
+        0x22,17,0x12,15,0x0a,9,'c','c','t','_','f','r','o','n','t',0x10,1,0x18,0
+    };
+    assert(lookup_packet == wakeup_lookup);
+    auto lookup_client = fields(tlv(tlvs(lookup_packet),1).subspan(2));
+    assert(little(one(fields(one(lookup_client,3,2)),2,0)) == 0);
+    const auto sample_packet = color_client_request({1,2},514,{});
+    auto sample_client = fields(tlv(tlvs(sample_packet),1).subspan(2));
+    assert(little(one(fields(one(sample_client,3,2)),2,0)) == 1);
+    const auto metadata_packet = color_client_request({1,2},1,{});
+    const Bytes wakeup_metadata{
+        0,1,0,0x20,0,40,0,1,37,0,35,0,
+        0x0a,18,9,1,0,0,0,0,0,0,0,0x11,2,0,0,0,0,0,0,0,
+        0x15,1,0,0,0,0x1a,4,8,1,0x10,0,0x22,2,0x12,0
+    };
+    assert(metadata_packet == wakeup_metadata);
+    const auto diagnostic_metadata = request("",{1,2},1);
+    const auto diagnostic_client = fields(tlv(tlvs(diagnostic_metadata),1).subspan(2));
+    assert(little(one(fields(one(diagnostic_client,3,2)),2,0)) == 1);
     Bytes lookup_result;
     const std::string_view type = "cct_front";
     length_field(lookup_result,1,View(reinterpret_cast<const std::uint8_t *>(type.data()),type.size()));
@@ -49,6 +73,28 @@ int main() {
     Bytes uid{9}; put(uid,1,8); uid.push_back(0x11); put(uid,2,8);
     length_field(lookup_result,2,uid);
     assert((color_endpoint(event(lookup_uid,768,lookup_result)) == Uid{1,2}));
+    struct Lookup {
+        std::vector<std::optional<Bytes>> events;
+        std::size_t consumed = 0;
+        std::optional<Bytes> next() { return events.at(consumed++); }
+    };
+    Lookup late;
+    late.events.resize(45); // Simulated one-second transport polls before readiness.
+    late.events.push_back(event(lookup_uid,768,lookup_result));
+    std::uint64_t elapsed = 0;
+    assert((wait_for_color_endpoint(late,[&] { elapsed += 1'000'000'000ULL; }) == Uid{1,2}));
+    assert(elapsed > 30'000'000'000ULL && late.consumed == 46);
+    Lookup cancelled;
+    cancelled.events.resize(2);
+    rejects([&] { wait_for_color_endpoint(cancelled,[] { stopped = 1; }); });
+    assert(cancelled.consumed == 1);
+    stopped = 0;
+    Bytes empty_result;
+    length_field(empty_result,1,View(reinterpret_cast<const std::uint8_t *>(type.data()),type.size()));
+    Lookup excessive;
+    excessive.events.assign(65,event(lookup_uid,768,empty_result));
+    rejects([&] { wait_for_color_endpoint(excessive,[] {}); });
+    assert(excessive.consumed == 64);
     rejects([&] { color_endpoint(event({1,2},768,lookup_result)); });
     length_field(lookup_result,2,uid);
     rejects([&] { color_endpoint(event(lookup_uid,768,lookup_result)); });

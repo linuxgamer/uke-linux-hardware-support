@@ -1,5 +1,27 @@
 # Uke boot integration
 
+23 October 2026. Version `1.8.2` recognizes an enabled internal DSI output
+without assuming connector index 1. A POCO Pad X1 repeat boot exposed DSI-2;
+the former health check refused that connected, enabled output. Host fixtures
+cover changing indices and reject external-only, disconnected, disabled and
+missing-data cases. Signed-package and corrected tablet validation are pending.
+
+23 October 2026. Version `1.8.1` verifies a staged A/B trial before returning
+from repeated DNF hooks. Acceptance and fallback may restore a stale backup
+array CRC only when both entry arrays match a valid primary and both header
+identities and header CRCs are valid. Raw metadata is backed up before commit.
+Native host fixtures pass; signed-package and tablet validation remain pending.
+
+23 October 2026. Version `1.8.0` adds bounded health retries and a native
+fallback for a matching booted userdata A/B trial. Host state, GPT and UFS
+fixtures pass; physical alternate-slot boot, retry exhaustion, interruption,
+watchdog reset and independent recovery remain required. See
+[userdata boot A/B](docs/USERDATA-AB.md).
+
+The exact differing firmware cohort that entered A/release 21 and returned to
+B/release 14 on 23 October is pinned for further native A/B testing. Unknown
+cohorts remain refused. The release 21 touch failure is not a healthy-trial result.
+
 22 October 2026. Version `1.5.0` also owns the existing native Bluetooth
 factory-address bridge, service and udev rule. Its canonical C++ source and
 GPL-3.0-or-later license remain in `uke-desktop-integration`; the boot source RPM

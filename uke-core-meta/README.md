@@ -1,5 +1,16 @@
 # Uke core package selection
 
+22 October 2026. Version `1.0.5` recommends `uke-plymonth` for installation with
+normal `dnf update` when weak dependencies are enabled. It is not required:
+`sudo dnf remove uke-plymonth` keeps Core installed. DNF's default
+`exclude_from_weak_autodetect=True` prevents subsequent updates from pulling
+the removed recommendation back in. No Nabu repository is enabled.
+
+An existing image with `install_weak_deps=False` needs one initial transaction:
+`sudo dnf --setopt=install_weak_deps=True update uke-core-meta`.
+This changes the option only for that transaction. Once installed, the theme
+receives normal package updates even when weak dependencies remain disabled.
+
 22 October 2026. Version `1.0.4` selects the factory WLAN and Bluetooth bridges
 through their boot-integration capabilities. The touchscreen remains a separate
 native runtime. Package ownership does not imply a kernel port or hardware

@@ -8,6 +8,8 @@ static void reject(const std::function<void()> &call) {
     bool refused=false;try{call();}catch(const std::exception &){refused=true;}assert(refused);
 }
 static int physical_fd=-1;
+static void set32(Bytes &bytes,size_t at,uint32_t value) {value=htole32(value);memcpy(bytes.data()+at,&value,sizeof(value));}
+static void header_crc(Bytes &bytes) {set32(bytes,16,0);set32(bytes,16,crc32(0,bytes.data(),le32(bytes,12)));}
 static int torn_write(fdisk_context *context) {
     const int fd=fdisk_get_devfd(context);
     assert(fd!=physical_fd);
@@ -40,10 +42,12 @@ int main(int argc,char **argv) {
     auto pmbr=slot::read_at(fd.value,0,sector);pmbr[448]=1;
     std::fill(pmbr.begin()+458,pmbr.begin()+462,0xff);slot::write_at(fd.value,0,pmbr);
     slot::Disk a(fd.value,st.st_size,sector);assert(a.parts.size()==5);
+    a.require_selected(0);reject([&]{a.require_selected(1);});reject([&]{a.require_selected(2);});
     const auto original=a.before;
     const auto backup=path.string()+".metadata";a.backup(backup);a.backup(backup);
     assert(a.prepare(0,1));a.commit();
     slot::Disk b(fd.value,st.st_size,sector);
+    b.require_selected(1);reject([&]{b.require_selected(0);});
     assert(b.parts.at("boot_b").type==a.parts.at("boot_a").type);
     assert(b.parts.at("boot_a").type==a.parts.at("boot_b").type);
     assert(b.parts.at("boot_b").attrs==(uint64_t(0x3f)<<48));
@@ -62,6 +66,54 @@ int main(int argc,char **argv) {
     auto corrupt=back.before.backup;corrupt[16]^=1;slot::write_at(fd.value,back.before.last*sector,corrupt);
     reject([&]{slot::Disk damaged(fd.value,st.st_size,sector);});back.restore();
     a.restore();assert(slot::snapshot(fd.value,st.st_size,sector).entries==original.entries);
+    {
+        auto stale_header=original.backup;set32(stale_header,88,le32(stale_header,88)^1);header_crc(stale_header);
+        slot::write_at(fd.value,original.last*sector,stale_header);
+        reject([&]{slot::Disk strict(fd.value,st.st_size,sector);});
+        slot::Disk repair(fd.value,st.st_size,sector,true);assert(repair.needs_backup_crc_repair());
+        assert(slot::read_at(fd.value,original.last*sector,sector)==stale_header);
+        const auto raw_backup=path.string()+".stale-metadata";repair.backup(raw_backup);
+        auto recorded=file(raw_backup);assert(std::equal(stale_header.begin(),stale_header.end(),recorded.begin()+2*sector));
+        repair.commit();const auto fixed=slot::snapshot(fd.value,st.st_size,sector);
+        assert(fixed.mbr==original.mbr && fixed.primary==original.primary && fixed.backup==original.backup && fixed.entries==original.entries);
+        repair.restore();assert(slot::snapshot(fd.value,st.st_size,sector).backup==original.backup);fs::remove(raw_backup);
+        auto broken_header=stale_header;broken_header[16]^=1;slot::write_at(fd.value,original.last*sector,broken_header);
+        reject([&]{slot::Disk bad_crc(fd.value,st.st_size,sector,true);});a.restore();
+        auto foreign=stale_header;foreign[56]^=1;header_crc(foreign);slot::write_at(fd.value,original.last*sector,foreign);
+        reject([&]{slot::Disk foreign_identity(fd.value,st.st_size,sector,true);});a.restore();
+        auto different=original.entries;different[16]^=1;auto different_header=original.backup;
+        set32(different_header,88,crc32(0,different.data(),different.size()));header_crc(different_header);
+        slot::write_at(fd.value,original.backup_entries,different);slot::write_at(fd.value,original.last*sector,different_header);
+        reject([&]{slot::Disk conflicting_arrays(fd.value,st.st_size,sector,true);});a.restore();
+        slot::write_at(fd.value,original.primary_entries,different);slot::write_at(fd.value,original.backup_entries,different);
+        reject([&]{slot::Disk bad_primary(fd.value,st.st_size,sector,true);});a.restore();
+        slot::write_at(fd.value,original.last*sector,stale_header);slot::Disk stale_concurrent(fd.value,st.st_size,sector,true);
+        slot::write_at(fd.value,original.last*sector,original.backup);
+        reject([&]{stale_concurrent.commit();});assert(slot::snapshot(fd.value,st.st_size,sector).backup==original.backup);
+    }
+    for(unsigned good=0;good<2;++good) {
+        if(good==1) {
+            slot::Disk first(fd.value,st.st_size,sector);assert(first.prepare(0,1));first.commit();
+            slot::Disk healthy(fd.value,st.st_size,sector);healthy.success(1);healthy.commit();
+        }
+        const unsigned failed=1-good;
+        slot::Disk stage(fd.value,st.st_size,sector);assert(stage.prepare(good,failed));stage.commit();
+        const auto staged=slot::snapshot(fd.value,st.st_size,sector);
+        auto stale_header=staged.backup;set32(stale_header,88,le32(stale_header,88)^1);header_crc(stale_header);
+        slot::write_at(fd.value,staged.last*sector,stale_header);
+        reject([&]{slot::Disk strict(fd.value,st.st_size,sector);});
+        slot::Disk trial(fd.value,st.st_size,sector,true);assert(trial.needs_backup_crc_repair());
+        assert(trial.fallback(failed,good));trial.commit();
+        slot::Disk returned(fd.value,st.st_size,sector);
+        returned.require_selected(good);
+        const auto good_flags=returned.parts.at(good?"boot_b":"boot_a").attrs;
+        const auto failed_flags=returned.parts.at(failed?"boot_b":"boot_a").attrs;
+        assert((good_flags&slot::active) && (good_flags&slot::successful) && !(good_flags&slot::unbootable));
+        assert(!(failed_flags&(slot::active|slot::successful|slot::retries)) && (failed_flags&slot::unbootable));
+        assert(returned.parts.at("userdata").uuid==a.parts.at("userdata").uuid);
+        reject([&]{returned.fallback(good,failed);});
+        a.restore();
+    }
     auto stale=original.entries;stale[0]^=1;slot::write_at(fd.value,original.primary_entries,stale);
     reject([&]{slot::snapshot(fd.value,st.st_size,sector);});a.restore();
     slot::Disk interrupted(fd.value,st.st_size,sector);assert(interrupted.prepare(0,1));

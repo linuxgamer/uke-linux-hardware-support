@@ -7,6 +7,7 @@
 #include <array>
 #include <cerrno>
 #include <cstring>
+#include <elf.h>
 #include <fcntl.h>
 #include <iostream>
 #include <linux/fs.h>
@@ -319,9 +320,12 @@ static Bytes validate_bundle(const fs::path &bundle,const fs::path &modules,cons
     const auto raw_manifest=file(bundle/"manifest");
     const auto manifest=properties(std::string(raw_manifest.begin(),raw_manifest.end()));
     const std::set<std::string> keys={"format","kernel_release","linux_image_sha256","userdata_image_sha256","linux_kernel_sha256","userdata_kernel_sha256","modules_sha256"};
-    need(manifest.size()==keys.size() ||
-         (manifest.size()==keys.size()+1 && manifest.contains("root_selector_capability") &&
-          (manifest.at("root_selector_capability")=="uke-elfnote-v1" || manifest.at("root_selector_capability")=="uke-elfnote-v2")),"Unexpected update manifest fields");
+    for(const auto &[key,value]:manifest) {
+        (void)value;
+        need(keys.contains(key) || key=="root_selector_capability" || key=="touch_client_sha256","Unexpected update manifest fields");
+    }
+    if(manifest.contains("root_selector_capability"))
+        need(manifest.at("root_selector_capability")=="uke-elfnote-v1" || manifest.at("root_selector_capability")=="uke-elfnote-v2","Unknown root selector capability");
     for(const auto &key:keys) need(manifest.contains(key),"Missing manifest field");
     need(manifest.at("format")=="1" && token(manifest.at("kernel_release")),"Unsupported bundle format");
     const auto release=manifest.at("kernel_release");
@@ -337,6 +341,21 @@ static Bytes validate_bundle(const fs::path &bundle,const fs::path &modules,cons
     need(actual.size()==expected.size(),"Module set differs from build inventory");
     std::map<fs::path,std::string> module_files;
     for(const auto &[path,hash]:expected) {trusted(modules/release/path);need(actual.contains(path) && digest(file(modules/release/path))==hash,"Module bytes differ: "+path);module_files.emplace(modules/release/path,hash);}
+    const bool capture=expected.contains("kernel/drivers/media/spi/nt36532-uke/nt36532-uke-thp.ko.zst");
+    need(capture==manifest.contains("touch_client_sha256"),"Kernel THP transport and client inventory must be paired");
+    if(capture) {
+        const auto path=modules/release/"uke/uke-touch-capture";
+        Fd client=regular(path);struct stat st{};
+        need(fstat(client.value,&st)==0 && (st.st_mode&S_IXUSR),"Kernel THP client is not executable");
+        const auto bytes=read_fd(client.value,st.st_size);
+        need(bytes.size()>=sizeof(Elf64_Ehdr) && !memcmp(bytes.data(),ELFMAG,SELFMAG) &&
+             bytes[EI_CLASS]==ELFCLASS64 && bytes[EI_DATA]==ELFDATA2LSB &&
+             bytes[EI_VERSION]==EV_CURRENT && (bytes[16]==ET_EXEC || bytes[16]==ET_DYN) && !bytes[17] &&
+             bytes[18]==(EM_AARCH64&255) && bytes[19]==(EM_AARCH64>>8),"Kernel THP client must be AArch64 ELF");
+        const auto &hash=manifest.at("touch_client_sha256");
+        need(hex(hash) && digest(bytes)==hash,"Kernel THP client digest differs");
+        module_files.emplace(path,hash);
+    }
     const auto image=bundle/(label+".img");trusted(image);
     const auto bytes=file(image),kernel=boot_kernel(bytes);
     const std::string selector(reinterpret_cast<const char*>(bytes.data()+44));
@@ -393,13 +412,15 @@ static Fd inhibit_shutdown() {
 int main(int argc,char **argv) {
     try {
         need((argc==3 && (std::string(argv[1])=="check"||std::string(argv[1])=="apply" ||
-                         std::string(argv[1])=="check-current"||std::string(argv[1])=="apply-current")) ||
-             (argc==2 && (std::string(argv[1])=="accept"||std::string(argv[1])=="auto")),
-             "Usage: uke-kernel-update check|apply|check-current|apply-current BUNDLE | accept | auto");
+                         std::string(argv[1])=="check-current"||std::string(argv[1])=="apply-current" ||
+                         std::string(argv[1])=="check-restore-current"||std::string(argv[1])=="restore-current")) ||
+             (argc==2 && (std::string(argv[1])=="accept"||std::string(argv[1])=="fallback"||std::string(argv[1])=="auto")),
+             "Usage: uke-kernel-update check|apply|check-current|apply-current|check-restore-current|restore-current BUNDLE | accept | fallback | auto");
         need(geteuid()==0,"Root privileges are required");
         const std::string action=argv[1];const bool automatic=action=="auto";
-        const bool current_only=action=="check-current"||action=="apply-current";
-        const bool apply=action=="apply"||action=="apply-current";
+        const bool restore=action=="check-restore-current"||action=="restore-current";
+        const bool current_only=restore||action=="check-current"||action=="apply-current";
+        const bool apply=action=="restore-current"||action=="apply"||action=="apply-current";
         if(automatic && (!fs::exists("/sys/firmware/devicetree/base/compatible") ||
                          !uke_device(read_text("/sys/firmware/devicetree/base/compatible"))))return 0;
         need(uke_device(read_text("/sys/firmware/devicetree/base/compatible")),"Exact Uke/SM7675 identity required");
@@ -410,10 +431,10 @@ int main(int argc,char **argv) {
         const auto label=root_label(read_text("/proc/cmdline"));
         if(automatic && label!="userdata")return 0;
         need(!current_only || label=="userdata","Current-slot mode is specific to the userdata profile");
-        need(label=="userdata"||action!="accept","Boot acceptance is specific to userdata A/B installations");
+        need(label=="userdata"||(action!="accept" && action!="fallback"),"Boot acceptance/fallback is specific to userdata A/B installations");
         const auto root=partition(label);const auto filesystem=root_mount(root.second,read_text("/proc/self/mountinfo"),label);
         struct utsname current{};need(!uname(&current) && token(current.release),"Running kernel identity unavailable");
-        fs::path bundle=action=="accept"?fs::path("/usr/lib/senemos/kernel-updates")/current.release:argc==3?fs::path(argv[2]):fs::path();
+        fs::path bundle=(action=="accept"||action=="fallback")?fs::path("/usr/lib/senemos/kernel-updates")/current.release:argc==3?fs::path(argv[2]):fs::path();
         if(automatic) {
             auto parent=directory("/usr/lib/senemos");struct stat link{};
             need(!fstatat(parent.value,"default-boot.img",&link,AT_SYMLINK_NOFOLLOW) && S_ISLNK(link.st_mode) && link.st_uid==0,"Trusted default profile link required");
@@ -427,12 +448,12 @@ int main(int argc,char **argv) {
         Fd state_dir=directory(state,true);need(!fchmod(state_dir.value,0700),"Cannot protect update state");
         Fd lock(openat(state_dir.value,"lock",O_RDWR|O_CREAT|O_NOFOLLOW|O_CLOEXEC,0600));trusted_fd(lock.value);
         need(!flock(lock.value,LOCK_EX|LOCK_NB),"Another kernel update is active");
-        auto bytes=validate_bundle(bundle,"/usr/lib/modules",label,current.release);
+        auto bytes=action=="fallback"?Bytes{}:validate_bundle(bundle,"/usr/lib/modules",label,current.release);
         if(label=="userdata" && !current_only) {
             if(automatic) {
                 const auto raw=file(bundle/"manifest");
                 (void)userdata_vrr(bytes,vrr_policy(),properties(std::string(raw.begin(),raw.end())),filesystem);
-                matched_early_firmware();
+                verify_early_firmware();
                 const fs::path running_bundle=fs::path("/usr/lib/senemos/kernel-updates")/current.release;
                 const auto baseline=validate_bundle(running_bundle,"/usr/lib/modules",label,current.release);
                 userdata_update("accept",running_bundle,baseline,state,current.release,filesystem);
@@ -472,7 +493,8 @@ int main(int argc,char **argv) {
             accepted=decode(file(state/"userdata.state"));
             auto boot_id=read_text("/proc/sys/kernel/random/boot_id");
             need(boot_id.ends_with('\n'),"Missing current-slot staging boot identity");boot_id.pop_back();
-            current_trial=current_slot_trial(*accepted,current.release,previous_hash,release,next_hash,boot_id);
+            if(restore)require_current_restore(*accepted,current.release,previous_hash,release,next_hash,boot_id);
+            else current_trial=current_slot_trial(*accepted,current.release,previous_hash,release,next_hash,boot_id);
         }
         if(!apply) {std::cout<<"Matched boot/module bundle and physical boot_b checks passed; no partition write\n";return 0;}
         need(charging(),"Verified battery must be at least 50%, or at least 30% with external power");

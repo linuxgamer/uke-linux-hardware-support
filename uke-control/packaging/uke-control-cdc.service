@@ -1,0 +1,24 @@
+[Unit]
+Description=Apply the saved Uke CDC ACM startup policy
+Requires=sys-kernel-config.mount
+After=sys-kernel-config.mount systemd-udev-trigger.service uke-control.service
+ConditionFirmware=device-tree-compatible(xiaomi,uke)
+ConditionPathExists=/var/lib/uke-control/cdc-on
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/uke-control cdc apply
+ExecReload=/usr/bin/uke-control cdc apply
+TimeoutStartSec=120
+StateDirectory=uke-control
+StateDirectoryMode=0700
+RuntimeDirectory=senemos-uke
+RuntimeDirectoryMode=0700
+RuntimeDirectoryPreserve=yes
+ProtectHome=yes
+PrivateTmp=yes
+ProtectSystem=strict
+
+[Install]
+WantedBy=multi-user.target

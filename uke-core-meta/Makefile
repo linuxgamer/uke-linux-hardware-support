@@ -2,7 +2,7 @@ SHELL := /bin/bash
 .SHELLFLAGS := -Eeuo pipefail -c
 .ONESHELL:
 .PHONY: validate srpm
-version := 1.0.4
+version := 1.0.5
 package := $(notdir $(CURDIR))
 outdir ?= $(CURDIR)/build/srpm
 validate:
@@ -10,6 +10,7 @@ validate:
 	jq -e '.device == "uke" and .hardware_tested == false and .boot_tested == false' src/profile.json >/dev/null
 	! grep -Eq '^(Requires|Recommends):.*(nabu)' packaging/*.spec
 srpm: validate
+	if [[ '$(FEDORA44_LEGACY)' == 1 ]]; then bash ../packaging/fedora44/legacy-srpm.sh uke-core-meta '$(outdir)'; exit 0; fi
 	top="$$(realpath -m "$(outdir)/rpmbuild")"
 	mkdir -p "$$top"/{BUILD,BUILDROOT,RPMS,SRPMS,SOURCES,SPECS}
 	tar --sort=name --mtime=@1791158400 --owner=0 --group=0 --numeric-owner -cJf "$$top/SOURCES/$(package)-$(version).tar.xz" --transform 's,^,$(package)-$(version)/,' LICENSE README.md src/profile.json

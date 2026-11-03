@@ -1,14 +1,14 @@
 SHELL := /bin/bash
 .SHELLFLAGS := -Eeuo pipefail -c
 .ONESHELL:
-.PHONY: validate srpm test-native test-cache test-hexagonrpc test-touch-normal test-touch-panel test-touch-thp touchscreen-rpm
+.PHONY: validate srpm test-native test-cache test-hexagonrpc test-touch-normal test-touch-panel test-touch-thp test-touch-capture test-touch-capture-queue touchscreen-rpm test-proximity-capture proximity-capture-srpm
 PACKAGE ?= libssc
 outdir ?= $(CURDIR)/build/srpm/$(PACKAGE)
 validate:
 	jq -e '.schema_version == 1 and .device == "uke" and .soc == "SM7675" and .hardware_tested == false and (.expected_packages | length > 0)' manifests/component.json >/dev/null
 	for spec in packaging/{libssc,iio-sensor-proxy,uke-ssc-fileservice}/*.spec; do
 		test -f "$$spec"
-		if grep -E '^(Version|Release):.*[Uu][Kk][Ee]' "$$spec"; then exit 1; fi
+		if grep -E '^(Version|Release):.*[Uu][Kk][Ee]|^Requires:[[:space:]]*(python|pypy|libpython)' "$$spec"; then exit 1; fi
 	done
 srpm: validate
 	case '$(PACKAGE)' in libssc|iio-sensor-proxy|uke-ssc-fileservice) ;; *) echo 'Unreviewed sensor package' >&2; exit 1;; esac
@@ -41,8 +41,9 @@ build/uke-front-color: src/front-color.cpp src/front-color-state.hpp src/front-c
 test-front-color: build/uke-front-color
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++20 -O2 -UNDEBUG -Wall -Wextra -Werror $(LDFLAGS) tests/front-color.cpp -o build/front-color-test
 	./build/front-color-test
+front-color-srpm: outdir = $(CURDIR)/build/front-color-rpmbuild
 front-color-srpm:
-	top="$$(realpath -m build/front-color-rpmbuild)"
+	top="$$(realpath -m '$(outdir)')"
 	mkdir -p "$$top"/{SOURCES,SPECS,SRPMS}
 	tar --sort=name --mtime=@1792270800 --owner=0 --group=0 --numeric-owner \
 	 --transform='s#^#uke-front-color-0.1.0/#' -czf "$$top/SOURCES/uke-front-color-0.1.0.tar.gz" \
@@ -51,8 +52,24 @@ front-color-srpm:
 	 packaging/systemd/90-uke-front-color.preset docs/FRONT-COLOR.md Makefile LICENSE
 	cp packaging/uke-front-color/uke-front-color.spec "$$top/SPECS/"
 	rpmbuild -bs --nodeps --target aarch64 --define "_topdir $$top" "$$top/SPECS/uke-front-color.spec"
+test-proximity-capture:
+	mkdir -p build
+	$(CXX) $(CXXFLAGS) -std=c++20 -O2 -Wall -Wextra -Werror $(LDFLAGS) src/ssc-proximity-capture.cpp -o build/uke-proximity-capture
+	$(CXX) $(CXXFLAGS) -std=c++20 -O2 -UNDEBUG -Wall -Wextra -Werror $(LDFLAGS) tests/proximity-capture.cpp -o build/proximity-capture-test
+	./build/proximity-capture-test
+	./build/uke-proximity-capture --help
+proximity-capture-srpm: outdir = $(CURDIR)/build/proximity-capture-rpmbuild
+proximity-capture-srpm:
+	top="$$(realpath -m '$(outdir)')"
+	mkdir -p "$$top"/{SOURCES,SPECS,SRPMS}
+	tar --sort=name --mtime=@1792702800 --owner=0 --group=0 --numeric-owner \
+	 --transform='s#^#uke-proximity-capture-0.1.0/#' -cJf "$$top/SOURCES/uke-proximity-capture-0.1.0.tar.xz" \
+	 src/ssc-proximity-capture.cpp src/ssc-discovery.cpp tests/proximity-capture.cpp \
+	 docs/PROXIMITY-CAPTURE.md Makefile LICENSE
+	cp packaging/uke-proximity-capture/uke-proximity-capture.spec "$$top/SPECS/"
+	rpmbuild -bs --nodeps --target aarch64 --define "_topdir $$top" "$$top/SPECS/uke-proximity-capture.spec"
 touchscreen-srpm:
-	bash src/fetch-touch-core.sh
+	test -s src/upstream/nt36532-thp/nvt_touch_core.cpp
 	top="$$(realpath -m build/rpmbuild)"; mkdir -p "$$top"/{BUILD,BUILDROOT,RPMS,SRPMS,SOURCES,SPECS}
 	tar --sort=name --mtime=@1791024250 --owner=0 --group=0 --numeric-owner \
 	 --transform='s#^#uke-touchscreen-0.1.0/#' -cJf "$$top/SOURCES/uke-touchscreen-0.1.0.tar.xz" \
@@ -64,6 +81,7 @@ touchscreen-rpm: touchscreen-srpm
 	rpmbuild -ba --define "_topdir $$(realpath -m build/rpmbuild)" "$$(realpath -m build/rpmbuild)/SPECS/uke-touchscreen.spec"
 test-native:
 	bash tests/source-contract.sh
+	$(MAKE) test-proximity-capture
 	$(MAKE) test-cache
 	mkdir -p build
 	$(CXX) -std=c++20 -O2 -Wall -Wextra -Werror tests/ssc-discovery.cpp -o build/ssc-contract
@@ -77,6 +95,7 @@ test-native:
 	$(CXX) -std=c++20 -O2 -Wall -Wextra -Werror tests/touch-readonly.cpp -o build/touch-contract
 	./build/touch-contract
 	$(CXX) -std=c++20 -O2 -Wall -Wextra -Werror src/touch-readonly.cpp -o build/uke-touch-readonly
+	$(MAKE) test-touch-capture-queue
 test-cache:
 	mkdir -p build
 	$(CXX) -std=c++20 -O2 -Wall -Wextra -Werror tests/ssc-cache.cpp -o build/ssc-cache-contract
@@ -114,7 +133,6 @@ test-touch-normal:
 # Laboratory only: private OEM calibration/reference packets are not RPM payloads.
 test-touch-thp:
 	test -n "$(TOUCH_CORE_REFERENCE)" -a -n "$(TOUCH_FRAME_REFERENCE)" -a -n "$(TOUCH_CONFIG)"
-	$(MAKE) test-touch-panel
 	bash src/prepare-touch-core.sh "$(TOUCH_CORE_REFERENCE)"
 	mkdir -p build
 	$(CXX) -std=c++20 -O2 -Wall -Wextra -Werror tests/touch-assignment.cpp -o build/touch-assignment-contract
@@ -126,6 +144,19 @@ test-touch-thp:
 	$(CXX) -std=c++20 -O2 -Wall -Wextra -Werror tests/touch-replay.cpp src/upstream/nt36532-thp/nvt_touch_core.cpp -lcrypto -o build/touch-replay
 	bash tests/touch-replay.sh ./build/touch-replay "$(TOUCH_CONFIG)" "$(TOUCH_FRAME_REFERENCE)"
 	$(CXX) -std=c++20 -O2 -Wall -Wextra -Werror src/touch-thp.cpp src/upstream/nt36532-thp/nvt_touch_core.cpp -lcrypto -lsystemd -o build/uke-touch-thp
+
+test-touch-capture-queue:
+	mkdir -p build
+	$(CXX) -std=c++20 -O2 -Wall -Wextra -Werror tests/touch-capture.cpp -o build/test-touch-capture
+	./build/test-touch-capture
+	$(CXX) -std=c++20 -O2 -Wall -Wextra -Werror tests/touch-capture-stream.cpp -o build/test-touch-capture-stream
+	./build/test-touch-capture-stream
+
+# Host only; the new consumer is not installed or selected by this target.
+test-touch-capture: test-touch-capture-queue
+	test -n "$(TOUCH_CORE_REFERENCE)"
+	bash src/prepare-touch-core.sh "$(TOUCH_CORE_REFERENCE)"
+	$(CXX) -std=c++20 -O2 -Wall -Wextra -Werror src/touch-capture.cpp src/upstream/nt36532-thp/nvt_touch_core.cpp -lcrypto -lsystemd -o build/uke-touch-capture
 
 test-touch-panel:
 	contract=$$(mktemp); trap 'rm -f -- "$$contract"' EXIT

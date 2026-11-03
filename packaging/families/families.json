@@ -4,9 +4,10 @@
   "families": [
     {
       "name": "uke-core",
-      "version": "1.2.0",
+      "version": "1.10.2",
+      "release": 1,
       "requires": [
-        "uke-control = 1.2.0-1%{?dist}"
+        "uke-control = 1.10.2-1%{?dist}"
       ],
       "suggests": [
         "uke-control-tests"
@@ -20,17 +21,15 @@
     },
     {
       "name": "uke-hw",
-      "version": "1.5.2",
+      "version": "1.8.2",
       "requires": [
-        "uke-boot-integration = 1.5.2-2%{?dist}",
-        "uke-installation-profile = 1.5.2-2%{?dist}",
-        "uke-kernel-update = 1.5.2-2%{?dist}",
+        "uke-boot-integration = 1.8.2-1%{?dist}",
+        "uke-installation-profile = 1.8.2-1%{?dist}",
+        "uke-kernel-update = 1.8.2-1%{?dist}",
         "fastfetch"
       ],
-      "suggests": [
-        "uke-touchscreen"
-      ],
-      "release": 2,
+      "suggests": [],
+      "release": 1,
       "watch_paths": [
         "uke-boot/src",
         "uke-boot/packaging/uke-installation-profile.spec",
@@ -40,12 +39,14 @@
         "uke-desktop-integration/packaging/uke-bluetooth-address.service",
         "uke-desktop-integration/packaging/70-uke-bluetooth.rules",
         "uke-desktop-integration/LICENSE.GPL-3.0",
-        "packaging/families/patches/touch-panel-start.patch"
+        "packaging/families/patches/touch-panel-start.patch",
+        "uke-sensors/src/prepare-touch-runtime.sh",
+        "uke-sensors/manifests/touch-runtime-source.json"
       ]
     },
     {
       "name": "uke-power",
-      "version": "1.3.1",
+      "version": "1.3.3",
       "requires": [
         "uke-upower",
         "power-profiles-daemon",
@@ -53,7 +54,7 @@
         "uke-boot-integration >= 1.3.4"
       ],
       "suggests": [
-        "uke-adaptive-display = 1.0.16-4%{?dist}",
+        "uke-adaptive-display = 1.0.16-6%{?dist}",
         "uke-battery-observer",
         "uke-charge-control"
       ],
@@ -71,13 +72,15 @@
         "uke-platform-runtime/tests/fixtures/upower",
         "uke-desktop-integration/patches/0001-ppd-native-uke-cpu-driver.patch",
         "uke-desktop-integration/tests/ppd-cpufreq.cpp",
-        "uke-desktop-integration/docs/POWER-PROFILES.md"
+        "uke-desktop-integration/docs/POWER-PROFILES.md",
+        ":(exclude)uke-desktop-integration/src/bluetooth-address.cpp",
+        ":(exclude)uke-desktop-integration/packaging/uke-bluetooth-address.service"
       ],
       "release": 3
     },
     {
       "name": "uke-sensors",
-      "version": "1.0.4",
+      "version": "1.0.9",
       "requires": [
         "uke-libssc",
         "uke-iio-sensor-proxy"
@@ -86,7 +89,7 @@
         "uke-ssc-fileservice",
         "uke-front-color"
       ],
-      "release": 3,
+      "release": 4,
       "watch_paths": [
         "uke-sensors/packaging/libssc",
         "uke-sensors/patches/libssc",
@@ -106,21 +109,36 @@
         "uke-sensors/patches/iio-sensor-proxy",
         "uke-sensors/src/dual-light.h",
         "uke-sensors/tests/dual-light.cpp",
-        "uke-sensors/packaging/selinux/uke-ssc.cil"
+        "uke-sensors/packaging/selinux/uke-ssc.cil",
+        "uke-sensors/src/front-color.cpp",
+        "uke-sensors/src/front-color-state.hpp",
+        "uke-sensors/src/front-color-file.hpp",
+        "uke-sensors/src/ssc-discovery.cpp",
+        "uke-sensors/src/ssc-sample.cpp",
+        "uke-sensors/tests/front-color.cpp",
+        "uke-sensors/packaging/uke-front-color",
+        "uke-sensors/docs/FRONT-COLOR.md",
+        "uke-sensors/src/ssc-proximity-capture.cpp",
+        "uke-sensors/tests/proximity-capture.cpp",
+        "uke-sensors/packaging/uke-proximity-capture",
+        "uke-sensors/docs/PROXIMITY-CAPTURE.md"
       ]
     },
     {
       "name": "uke-extras",
-      "version": "1.0.2",
+      "version": "1.0.4",
       "requires": [],
       "suggests": [
-        "uke-plymonth = 1.0.2-2%{?dist}",
+        "uke-plymonth = 1.0.2-4%{?dist}",
         "material-decoration"
       ],
       "watch_paths": [
-        "uke-desktop-packaging/packaging/plymouth-uke"
+        "uke-desktop-packaging/packaging/plymouth-uke",
+        "uke-desktop-packaging/src/plymouth-uke",
+        "uke-desktop-packaging/Makefile",
+        "uke-desktop-packaging/tests/plymouth-parser.cpp"
       ],
-      "release": 2
+      "release": 1
     },
     {
       "name": "uke-additional",
@@ -142,13 +160,14 @@
         "uke-desktop-packaging/src/native-runtime/runtime-smoke.cpp",
         "uke-desktop-packaging/src/native-runtime/fedora-exported-symbols.txt"
       ],
-      "release": 7
+      "release": 8
     },
     {
       "name": "uke-metas",
-      "version": "1.0.4",
+      "version": "1.2.2",
+      "release": 2,
       "requires": [
-        "uke-core-meta >= 1.0.4"
+        "uke-core-meta >= 1.0.5"
       ],
       "suggests": [
         "uke-core-meta",
@@ -200,32 +219,34 @@
     "material-decoration": "material-decoration"
   },
   "native_versions": {
-    "uke-control": "1.2.0",
+    "uke-control": "1.10.2",
     "uke-adaptive-display": "1.0.16",
-    "uke-boot-integration": "1.5.2",
-    "uke-touchscreen": "1.0.14",
+    "uke-boot-integration": "1.8.2",
     "uke-battery-observer": "1.1.0",
     "uke-front-color": "1.0.2",
-    "uke-installation-profile": "1.5.2"
+    "uke-installation-profile": "1.8.2"
   },
   "release_overrides": {
-    "iio-sensor-proxy": "17.fc46",
+    "iio-sensor-proxy": "23.fc46",
     "uke-boot-integration": "1.fc46",
-    "uke-touchscreen": "1.fc46",
-    "uke-plymonth": "2.fc46",
-    "upower": "12.fc46",
-    "uke-adaptive-display": "4.fc46",
-    "uke-firmware": "5.fc46",
-    "libssc": "12.fc46",
-    "uke-ssc-fileservice": "17.fc46",
-    "uke-front-color": "9.fc46",
-    "at-spi2-core": "8.fc46",
-    "gstreamer1": "8.fc46",
-    "libaccounts-glib": "36.fc46",
-    "libwacom": "9.fc46",
-    "libstdcxx-uke-runtime": "10.fc46",
-    "mesa": "10.fc46",
-    "uke-battery-observer": "8.fc46",
-    "accountsservice": "7.fc46"
+    "uke-plymonth": "4.fc46",
+    "upower": "14.fc46",
+    "uke-adaptive-display": "6.fc46",
+    "uke-firmware": "9.fc46",
+    "libssc": "18.fc46",
+    "uke-ssc-fileservice": "23.fc46",
+    "uke-front-color": "13.fc46",
+    "at-spi2-core": "9.fc46",
+    "gstreamer1": "9.fc46",
+    "libaccounts-glib": "37.fc46",
+    "libwacom": "10.fc46",
+    "libstdcxx-uke-runtime": "11.fc46",
+    "mesa": "11.fc46",
+    "uke-battery-observer": "10.fc46",
+    "accountsservice": "8.fc46",
+    "material-decoration": "6.fc46",
+    "uke-desktop-metas": "19.fc46",
+    "uke-core-meta": "4.fc46",
+    "uke-proximity-capture": "5.fc46"
   }
 }

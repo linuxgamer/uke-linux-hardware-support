@@ -1,17 +1,24 @@
 Name: uke-control
-Version: 1.2.0
+Version: 1.10.2
 Release: 1%{?dist}
 Summary: Native Uke settings backend and command-line client
 License: MIT
 URL: https://github.com/MCC45TR/uke-linux-hardware-support
 Source0: %{name}-%{version}.tar.gz
 ExclusiveArch: aarch64 x86_64
-BuildRequires: gcc-c++ make pkgconfig(libdrm) pkgconfig(libsystemd)
+BuildRequires: gcc-c++ make pkgconfig(libdrm) pkgconfig(libsystemd) >= 257
 BuildRequires: pkgconfig(wayland-client) wayland-devel wayland-protocols-devel
 BuildRequires: pkgconfig(libselinux) systemd-rpm-macros
 BuildRequires: libdnf5-devel >= 5.4.6.0 pkgconfig(rpm)
 BuildRequires: dbus-daemon
 Requires: util-linux-core util-linux systemd procps-ng
+Requires: coreutils findutils rpm
+Requires: ethtool >= 7.1
+Requires: systemd-udev
+Requires: dracut >= 111
+Requires: f2fs-tools >= 1.16.0
+Requires: policycoreutils
+Requires: kmod
 Requires: libdnf5 >= 5.4.6.0
 Provides: uke-control(channel-api) = 1
 %{?systemd_requires}
@@ -42,16 +49,23 @@ package selections. Numeric readings alone do not establish physical acceptance.
 %install
 install -Dm755 build/uke-control %{buildroot}%{_bindir}/uke-control
 install -Dm755 build/uke-control-packages %{buildroot}%{_libexecdir}/uke-control/packages
+install -Dm755 build/resize-system %{buildroot}%{_libexecdir}/uke-control/resize-system
+install -Dm755 packaging/vrr-min-load %{buildroot}%{_libexecdir}/uke-control/vrr-min-load
+install -Dm644 packaging/60-uke-control-vrr.conf %{buildroot}%{_prefix}/lib/modprobe.d/60-uke-control-vrr.conf
 install -Dm755 build/libuke-control.so.0 %{buildroot}%{_libdir}/libuke-control.so.0
 install -Dm644 src/backend.hpp %{buildroot}%{_includedir}/uke-control/backend.hpp
 install -Dm644 src/charge-policy.hpp %{buildroot}%{_includedir}/uke-control/charge-policy.hpp
 install -Dm644 src/front-color.hpp %{buildroot}%{_includedir}/uke-control/front-color.hpp
 install -Dm644 src/desktop.hpp %{buildroot}%{_includedir}/uke-control/desktop.hpp
+install -Dm644 src/vrr.hpp %{buildroot}%{_includedir}/uke-control/vrr.hpp
 install -Dm755 build/uke-control-tests %{buildroot}%{_libexecdir}/uke-control/tests
 install -Dm755 build/ssc-discovery %{buildroot}%{_libexecdir}/uke-control/ssc-discovery
 install -Dm755 build/ssc-sample %{buildroot}%{_libexecdir}/uke-control/ssc-sample
 install -Dm644 packaging/uke-control.service %{buildroot}%{_unitdir}/uke-control.service
 install -Dm644 packaging/uke-control-wake.service %{buildroot}%{_unitdir}/uke-control-wake.service
+install -Dm644 packaging/uke-control-cdc.service %{buildroot}%{_unitdir}/uke-control-cdc.service
+install -Dm644 packaging/uke-control-flashlight.service %{buildroot}%{_unitdir}/uke-control-flashlight.service
+install -Dm644 packaging/90-uke-control-cdc.rules %{buildroot}%{_udevrulesdir}/90-uke-control-cdc.rules
 install -d %{buildroot}%{_unitdir}/sleep.target.requires
 ln -s ../uke-control-wake.service %{buildroot}%{_unitdir}/sleep.target.requires/uke-control-wake.service
 install -Dm644 packaging/80-uke-control.preset %{buildroot}%{_presetdir}/80-uke-control.preset
@@ -64,25 +78,33 @@ install -d -m700 %{buildroot}%{_localstatedir}/lib/uke-control
 %make_build check
 
 %post
-%systemd_post uke-control.service uke-control-wake.service
+%systemd_post uke-control.service uke-control-wake.service uke-control-cdc.service
+/usr/bin/udevadm control --reload >/dev/null 2>&1 || :
 %systemd_user_post uke-control-moisture-notify.service
 %preun
-%systemd_preun uke-control.service uke-control-wake.service
+%systemd_preun uke-control.service uke-control-wake.service uke-control-cdc.service uke-control-flashlight.service
 %systemd_user_preun uke-control-moisture-notify.service
 %postun
-%systemd_postun uke-control.service uke-control-wake.service
+%systemd_postun uke-control.service uke-control-wake.service uke-control-cdc.service uke-control-flashlight.service
+/usr/bin/udevadm control --reload >/dev/null 2>&1 || :
 %systemd_user_postun uke-control-moisture-notify.service
 
 %files
 %license LICENSE
-%doc README.md CHARGING.md DISPLAY.md CHANNELS.md SENSORS.md DESKTOP.md HARDWARE.md
+%doc README.md CHARGING.md DISPLAY.md CHANNELS.md SENSORS.md DESKTOP.md HARDWARE.md DIAGNOSTIC.md RESIZE.md LIGHTS.md
 %{_bindir}/uke-control
 %dir %{_libexecdir}/uke-control
 %{_libexecdir}/uke-control/packages
+%{_libexecdir}/uke-control/resize-system
+%{_libexecdir}/uke-control/vrr-min-load
+%{_prefix}/lib/modprobe.d/60-uke-control-vrr.conf
 %{_libdir}/libuke-control.so.0
 %{_includedir}/uke-control/*.hpp
 %{_unitdir}/uke-control.service
 %{_unitdir}/uke-control-wake.service
+%{_unitdir}/uke-control-cdc.service
+%{_unitdir}/uke-control-flashlight.service
+%{_udevrulesdir}/90-uke-control-cdc.rules
 %dir %{_unitdir}/sleep.target.requires
 %{_unitdir}/sleep.target.requires/uke-control-wake.service
 %{_presetdir}/80-uke-control.preset
@@ -97,6 +119,92 @@ install -d -m700 %{buildroot}%{_localstatedir}/lib/uke-control
 %{_datadir}/applications/uke-control-tests.desktop
 
 %changelog
+* Sun Oct 25 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.10.2-1
+- Validate the parent controller DT link and exact LED label used by the original LED class.
+- Cover providers without a per-LED OF symlink while retaining all mapping and current checks.
+
+* Sun Oct 25 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.10.1-1
+- Stop the torch service before sleep and count suspended time in the worker deadline.
+- Exercise the actual worker's expiry, failure cleanup and ownership checks with simulated IO.
+
+* Sun Oct 25 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.10.0-1
+- Add exact-profile torch and RGB control through original kernel LED class interfaces.
+- Limit torch to the 20 mA kernel profile and a supervised 60-second lifetime.
+- Keep RGB at low fixed PWM duty and refuse missing or mismatched providers.
+
+* Sat Oct 24 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.9.1-1
+- Restrict speed profiles to speed bits and preserve pause/other advertisements.
+- Withdraw the uninstalled 1.9.0 candidate before delivery.
+
+* Sat Oct 24 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.9.0-1
+- Add disconnected DP lane ceilings, per-device USB power and RTL8153 link profiles.
+- Query original ethtool capabilities and require link-down speed changes with readback.
+
+* Sat Oct 24 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.8.1-1
+- Resolve exactly one internal DSI output instead of assuming connector numbering.
+- Preserve the published DisplayPort profile commands and their admission checks.
+
+* Sat Oct 24 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.8.0-1
+- Add standard Type-C display lane profile requests and cached link observations
+- Refuse unavailable firmware controls and the unimplemented MST profile
+- Preserve the 1.7.0 KScreen backend and desktop commands
+
+* Sat Oct 24 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.7.0-1
+- Add bounded KScreen panel capability queries and session rotation/brightness commands.
+- Keep device operations in the native backend for the removable KDE tray applet.
+
+* Sat Oct 24 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.6.2-1
+- Record loaded MSM, panel and touch module build IDs and taint in private diagnostics.
+- Preserve bounded collection, existing package dependencies and hardware policies.
+
+* Sat Oct 24 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.6.1-1
+- Combine saved CDC notification reload with the existing VRR minimum controls
+- Preserve the Release 2 module loader and older-kernel fallback
+
+* Sat Oct 24 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.6.0-2
+- Keep the saved floor outside modprobe options to preserve older rollback kernels
+
+* Sat Oct 24 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.6.0-1
+- Add a validated per-boot VRR minimum policy and loaded/pending status
+- Preserve normal module loading when the kernel lacks the floor policy API
+
+* Fri Oct 23 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.5.3-1
+- Reapply saved CDC policy through reload without exhausting successful start limits
+- Preserve explicit on/off application and propagate reload errors
+
+* Fri Oct 23 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.5.2-1
+- Wait without spinning when a child closes its output before exiting
+- Test the actual runner's EOF, exit status, timeout and output bounds
+
+* Fri Oct 23 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.5.1-1
+- Confirm offline expansion and normal reboot; clarify read-only capacity checks
+- Admit only the exact standard dracut character nodes in the audited RAM payload
+
+* Fri Oct 23 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.5.0-2
+- Keep the CDC fixture process stub separate for GCC 16 AArch64 diagnostics.
+
+* Fri Oct 23 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.5.0-1
+- Save explicit CDC ACM startup policy and reconcile USB readiness events.
+- Retain one-shot requests, device-role guards and owned-gadget cleanup.
+
+* Thu Oct 22 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.4.0-1
+- Prepare explicit offline F2FS userdata expansion at the next normal reboot.
+- Verify physical root, power, geometry, identity and unmounted exclusive access.
+- Preserve existing shutdown environments and retain read-only capacity checks.
+
+* Thu Oct 22 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.3.0-3
+- Keep sensor, display and power reports within their selected subsystem.
+- Read existing SensorProxy and UPower interfaces without activation.
+
+* Thu Oct 22 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.3.0-2
+- Construct collection results directly for GCC 16 LTO compatibility.
+- Retain compiler warnings, fixture coverage and collector error receipts.
+
+* Thu Oct 22 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.3.0-1
+- Collect private single-file diagnostics in the caller's working directory.
+- Include hardware paths, subsystem logs, RPM/DNF, boot and service evidence.
+- Bound collection and preserve existing reports and unavailable-source receipts.
+
 * Wed Oct 21 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.2.0-1
 - Persist native wake permissions and apply them before system sleep.
 - Retain a recovery key and disable unqualified Bluetooth UART wake by default.

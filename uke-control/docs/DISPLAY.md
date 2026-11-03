@@ -1,5 +1,104 @@
 # Display controls and raw front-color data
 
+## USB-C DisplayPort profiles, 24 October 2026
+
+`sudo uke-control display lane-limit 1|2|4` sets the matching kernel's
+disconnected-only training ceiling. It resets to four at driver initialization
+and never changes the Type-C pin assignment. The resulting link remains bounded
+by the firmware route, source, sink and repeaters. In particular, selecting four
+cannot turn JH925's observed two-lane route into four lanes. `display profiles`
+reports this ceiling separately from the observed link and standard pin control.
+Disconnect the USB-C display before changing it; an attached or starting stream
+returns `EBUSY`. A successful readback confirms policy, not physical link training.
+
+`uke-control usb status` includes negotiated device speed and runtime power,
+autosuspend, wakeup and persistence attributes. To prevent runtime autosuspend
+for one external USB device under Uke's controller, use
+`sudo uke-control usb power 2-1 performance`; restore kernel-managed autosuspend
+with `sudo uke-control usb power 2-1 auto`. Discover the current device name in
+the status output. These one-shot settings neither force USB generations nor
+change charger/PD policy; they reset on device removal. System sleep remains
+separate from runtime autosuspend.
+
+`uke-control ethernet status IFACE` queries the original Fedora `ethtool` for
+the RTL8153's link/advertisement, offloads, EEE, pause, rings, coalescing and
+channels. Unsupported operations report their error, without invented values.
+The cached section includes RX/TX errors and drops. Use
+`sudo uke-control ethernet profile IFACE auto|1000-full|100-full|10-full` to
+restrict auto-negotiation to supported modes. The ethtool value/mask changes
+only copper speed bits; pause and other advertised
+features are preserved. First disconnect that interface
+through the original NetworkManager controls and bring it administratively
+down; an up interface is refused. Reconnect afterwards. Driver readback checks
+advertised modes, while cable/peer negotiation and throughput need a separate
+physical test. Keep Wi-Fi available. These settings are not saved as a
+NetworkManager connection profile. Advanced EEE/offload controls remain with
+the original `ethtool`; this release inventories them and preserves their values.
+
+Use `uke-control display profiles` to list profiles, the standard Type-C
+selection interface and the active DP driver's cached lane count, rate and
+wire bits per pixel. A missing cache, unsupported version, inactive stream or
+invalid data remains `null`. These are sequential software observations;
+they do not establish a visible image or working USB devices.
+
+| Profile | Requested DP lanes | USB and display contract |
+| --- | --- | --- |
+| `usb3-display` | 2, pins D/F | Reserve lanes for USB3 alongside DP. |
+| `display4` | 4, pins C/E | Prioritize DP bandwidth, including direct monitor cables. USB2 uses separate pins; dock USB/Ethernet fallback needs physical testing. |
+| `dual-display` | 4 plus MST | Unavailable until the Uke driver implements MST stream/connector management. |
+
+Request an available standard profile with
+`sudo uke-control display profile display4` or
+`sudo uke-control display profile usb3-display`. This is a one-shot request;
+the command stores no boot preference. It accepts only an active, uniquely
+associated DP partner's advertised pin assignments. A kernel write acceptance
+and a matching pin cache are reported separately from link training and
+physical validation. Attached storage, active USB networking, a bound gadget,
+ambiguous ports or a changed attachment refuse the transition. Changing lanes
+can interrupt video and SuperSpeed devices; retain another management path.
+
+On POCO Pad X1 running 7.2.12-31 with Juo JH925, the firmware reports no UCSI
+alternate-mode details or override feature, and no standard DP alternate-mode
+control appears. Requests therefore return `DP_ALTMODE_CONTROL_UNAVAILABLE`.
+The existing firmware-negotiated display/USB path is retained. This failure
+does not establish that automatic four-lane negotiation with a direct DP cable
+is impossible. No forced PHY/mux setting or raw firmware command is used.
+
+Resolution, refresh rate, HDR, color depth and Adaptive Sync remain under the
+distribution's original KDE controls and actual DRM/monitor capabilities.
+A lane profile cannot manufacture those capabilities. Four HBR2 lanes provide
+17.28 Gbit/s of payload: a 594 MHz 4K60 RGB8 stream fits (14.256 Gbit/s), while
+RGB10 at the same timing needs 17.82 Gbit/s. Two such RGB8 4K60 streams also
+exceed that link. These calculations are limits, not Uke hardware acceptance.
+
+Current physical evidence covers one 2560x1440/75 Hz monitor, mouse, DP audio
+and a Gigabit Ethernet link on the two-lane path. Actual HDR, external VRR,
+four-lane USB/Ethernet fallback, two external monitors and DDC/CI brightness
+remain unqualified. The cached stream ABI requires a matching newer kernel;
+older kernels report `observed_link: null`.
+
+## VRR minimum, 24 October 2026
+
+On Uke / SM7675, use `sudo uke-control display vrr-min status` to read the
+loaded minimum, saved minimum and whether a reboot is required. Save a minimum
+with `sudo uke-control display vrr-min set 30` (or another integer from 30 to
+143 Hz, below the currently selected mode). Select the 144 Hz mode in the
+distribution's original KDE display settings for the full 30–144 Hz range.
+KDE continues to control whether Adaptive Sync is enabled.
+
+The command requires the kernel's O82 VRR floor API version 1 and an active,
+VRR-capable internal display. Unsupported kernels refuse the write. The saved
+policy takes effect when MSM loads on the next boot; the command does not
+restart the desktop. The packaged loader appends the validated value after
+firmware defaults. Without a valid saved policy or the driver API it preserves
+normal module loading. The managed file is
+`/var/lib/uke-control/vrr-min`. It contains only the numeric policy; no module
+options leak into older rollback kernels that lack the required API.
+
+The setting exposes the driver's range; it does not certify touch stability at
+every minimum. Each minimum requires separate physical validation. A 1 Hz
+minimum is not supported.
+
 ## Cached external-display diagnosis, 20 October 2026
 
 `uke-control usb status` includes standard Type-C alternate modes and cached

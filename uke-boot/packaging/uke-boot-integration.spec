@@ -1,14 +1,9 @@
 %global debug_package %{nil}
-%if 0%{?fedora} == 44
-%global uke_cxx_runtime libstdc++
-%else
-%global uke_cxx_runtime senemos-native-runtime(libstdc++)
-%endif
 Name: uke-boot-integration
-Version: 1.5.2
-Release: 4%{?dist}
+Version: 1.8.2
+Release: 1%{?dist}
 Summary: Uke image configuration and native boot integration
-License: MIT AND GPL-3.0-or-later
+License: MIT AND GPL-3.0-or-later AND Apache-2.0
 URL: https://github.com/MCC45TR/uke-linux-hardware-support/tree/main/uke-boot
 Source0: %{name}-%{version}.tar.xz
 ExclusiveArch: aarch64
@@ -20,11 +15,12 @@ BuildRequires: pkgconfig(fdisk) pkgconfig(zlib) util-linux
 BuildRequires: pkgconfig(libdrm)
 BuildRequires: jq
 BuildRequires: dbus-daemon systemd-udev pkgconfig(umockdev-1.0)
-Requires: %{uke_cxx_runtime}
+Requires: senemos-native-runtime(libstdc++)
 Requires: kmod bash systemd NetworkManager openssh-server chrony
 Requires: util-linux-core coreutils grep
 Requires: systemd-udev
 Requires: bluez
+Requires: senemos-uke-linux-kernel-mainline-modules >= 7.2.9-1.53.native53
 Requires(pre): rpm systemd coreutils sed
 Requires(posttrans): systemd coreutils sed
 Provides: uke-usb-gadget-ownership-api = 2
@@ -36,6 +32,10 @@ Obsoletes: uke-wifi-factory < %{version}-%{release}
 Provides: uke-boot-integration(factory-bluetooth-v1) = 1
 Provides: uke-bluetooth = %{version}-%{release}
 Obsoletes: uke-bluetooth < %{version}-%{release}
+Provides: uke-boot-integration(touch-runtime-v1) = 1
+Provides: uke-boot-integration(kernel-touch-dispatch-v1) = 1
+Provides: uke-touchscreen = %{version}-%{release}
+Obsoletes: uke-touchscreen < %{version}-%{release}
 
 %description
 Reviewed Uke partition-role, command-line and dracut input templates, with a
@@ -49,7 +49,7 @@ does not establish RAM/UFS/firmware handoff or physical tablet boot.
 License: MIT
 Summary: Native ESP32-S3 CDC journal forwarding for the Uke Core debug profile
 Requires: %{name} = %{version}-%{release}
-Requires: systemd %{uke_cxx_runtime}
+Requires: systemd senemos-native-runtime(libstdc++)
 %description -n uke-esp32-cdc
 Native raw-TTY configuration and real-root journal forwarding to an explicitly
 configured ttyACM USB-host port. Core composition may apply the separate original
@@ -81,24 +81,30 @@ The console grants local root access over USB. USB networking stays optional.
 %package -n uke-kernel-update
 License: MIT
 Summary: Native checked installation of matched Uke stock-ABL kernel bundles
-Requires: %{uke_cxx_runtime} openssl-libs systemd rpm
+Requires: senemos-native-runtime(libstdc++) openssl-libs rpm
+Requires: systemd >= 254
 Requires: uke-installation-profile = %{version}-%{release}
 Provides: uke-kernel-update(userdata-ab) = 1
 Provides: uke-kernel-update(guarded-automatic) = 1
 Provides: uke-kernel-update(root-filesystem-v2) = 1
+Provides: uke-kernel-update(current-slot-restore) = 1
+Provides: uke-kernel-update(kernel-touch-client-v1) = 1
+Provides: uke-kernel-update(userdata-fallback-v1) = 1
+Provides: uke-kernel-update(qualified-firmware-cohort-v1) = 1
 %description -n uke-kernel-update
 Validates matched installed boot-v4 payloads and module inventories. The Linux
 root profile retains its opt-in boot_b writer. The userdata profile writes an
 inactive boot slot and selects the QTI slot only after full readback, coherent
 GPT/boot-LUN checks and durable backups. Boot health accepts a matching trial.
 Automatic staging requires both the global and userdata policies to be enabled;
-the global default is disabled. Reboot remains manual. Physical power-loss
+the global default is disabled. Failed alternating trials select the verified
+accepted slot and request a normal reboot after bounded health retries. Physical power-loss
 recovery requires device validation.
 
 %package -n uke-installation-profile
 License: MIT
 Summary: Native classification of the Uke Linux root partition
-Requires: %{uke_cxx_runtime} systemd
+Requires: senemos-native-runtime(libstdc++) systemd
 Requires: /usr/lib/systemd/systemd-growfs
 Requires: %{name} = %{version}-%{release}
 %description -n uke-installation-profile
@@ -108,9 +114,9 @@ durable; classification does not write block devices or select a boot slot.
 
 %prep
 %setup -q
+cp touch-runtime/legacy/src/upstream/nt36532-thp/LICENSE THP-LICENSE
 %build
 %{__cxx} %{optflags} -std=c++17 -ffile-prefix-map=$PWD=. src/boot-status.cpp -o uke-boot-status %{build_ldflags}
-%{__cxx} %{optflags} -std=c++17 -Wall -Wextra -Werror -ffile-prefix-map=$PWD=. src/clock-state.cpp -o uke-clock-state %{build_ldflags}
 %{__cxx} %{optflags} -std=c++17 -Wall -Wextra -Werror -ffile-prefix-map=$PWD=. src/usb-port.cpp -o uke-usb-port $(pkg-config --cflags --libs libsystemd libdrm) %{build_ldflags}
 %{__cxx} %{optflags} -std=c++17 -ffile-prefix-map=$PWD=. src/esp32-cdc.cpp -o uke-esp32-cdc %{build_ldflags}
 %{__cxx} %{optflags} -std=c++17 -Wall -Wextra -Werror -ffile-prefix-map=$PWD=. src/wifi-factory.cpp -o uke-wifi-factory %{build_ldflags}
@@ -120,6 +126,8 @@ durable; classification does not write block devices or select a boot slot.
 %{__cxx} %{optflags} -std=c++20 -Wall -Wextra -Werror -ffile-prefix-map=$PWD=. src/kernel-update.cpp -o uke-kernel-update $(pkg-config --cflags --libs fdisk zlib openssl libsystemd) %{build_ldflags}
 %{__cxx} %{optflags} -std=c++20 -Wall -Wextra -Werror -ffile-prefix-map=$PWD=. src/install-profile.cpp -o uke-install-profile %{build_ldflags}
 %{__cxx} %{optflags} -std=c++17 -Wall -Wextra -Werror -ffile-prefix-map=$PWD=. src/native-profile-ready.cpp -o uke-native-power-profile-ready $(pkg-config --cflags --libs libsystemd) %{build_ldflags}
+%{__cxx} %{optflags} -std=c++20 -Wall -Wextra -Werror -ffile-prefix-map=$PWD=. src/touch-launcher.cpp -o uke-touchscreen %{build_ldflags}
+%{__cxx} %{optflags} -std=c++20 -Wall -Wextra -Werror -Wno-unused-function -ffile-prefix-map=$PWD=. touch-runtime/legacy/src/touch-thp.cpp touch-runtime/legacy/src/upstream/nt36532-thp/nvt_touch_core.cpp -lcrypto -lsystemd -o uke-touch-thp %{build_ldflags}
 %check
 bash tests/installation-policy.sh
 bash tests/slot-control.sh
@@ -141,12 +149,26 @@ bash tests/startup-native.sh
 bash tests/native-profile-ready.sh ./native-profile-ready-contract
 %{__cxx} -std=c++17 -O2 -Wall -Wextra -Werror tests/native-profile-udev.cpp -o native-profile-udev-contract $(pkg-config --cflags --libs umockdev-1.0)
 timeout --signal=KILL 25 umockdev-wrapper ./native-profile-udev-contract "$PWD/tests/native-profile-udev.sh"
+%{__cxx} -std=c++20 -O2 -Wall -Wextra -Werror tests/touch-launcher.cpp -o touch-launcher-contract
+./touch-launcher-contract
+%{__cxx} -std=c++20 -O2 -Wall -Wextra -Werror touch-runtime/legacy/tests/touch-input.cpp touch-runtime/legacy/src/upstream/nt36532-thp/nvt_touch_core.cpp -lcrypto -lsystemd -o touch-input-contract
+./touch-input-contract
+%{__cxx} -std=c++20 -O2 -Wall -Wextra -Werror touch-runtime/legacy/tests/touch-normal-probe.cpp -lcrypto -o touch-normal-contract
+./touch-normal-contract
+%{__cxx} -std=c++20 -O2 -Wall -Wextra -Werror touch-runtime/legacy/tests/touch-assignment.cpp -o touch-assignment-contract
+timeout 15 bash -c 'ulimit -v 262144; exec ./touch-assignment-contract'
 %install
+install -Dm755 uke-touchscreen %{buildroot}%{_libexecdir}/senemos-uke/uke-touchscreen
+install -Dm755 uke-touch-thp %{buildroot}%{_libexecdir}/senemos-uke/uke-touch-thp
+install -d %{buildroot}%{_unitdir}
+sed 's@ExecStart=/usr/libexec/senemos-uke/uke-touch-thp --daemon@ExecStart=/usr/libexec/senemos-uke/uke-touchscreen --daemon@' touch-runtime/legacy/src/units/uke-touchscreen.service > %{buildroot}%{_unitdir}/uke-touchscreen.service
+install -Dm644 touch-runtime/legacy/src/units/80-uke-touchscreen.preset %{buildroot}%{_presetdir}/80-uke-touchscreen.preset
+install -Dm644 touch-runtime/legacy/src/udev/70-uke-touchscreen.rules %{buildroot}%{_udevrulesdir}/70-uke-touchscreen.rules
+install -Dm644 touch-runtime/legacy/src/modules-load.d/uke-touchscreen.conf %{buildroot}%{_prefix}/lib/modules-load.d/uke-touchscreen.conf
+install -Dm644 touch-runtime/legacy/src/modprobe.d/uke-touchscreen.conf %{buildroot}%{_prefix}/lib/modprobe.d/uke-touchscreen.conf
+install -d %{buildroot}%{_prefix}/lib/firmware/novatek/uke
+ln -s /var/lib/uke-touch/normal.bin %{buildroot}%{_prefix}/lib/firmware/novatek/uke/nt36532-normal.bin
 install -Dm644 src/units/70-uke-chronyd-clock.conf %{buildroot}%{_unitdir}/chronyd.service.d/70-uke-clock.conf
-install -Dm755 uke-clock-state %{buildroot}%{_libexecdir}/senemos-uke/uke-clock-state
-install -Dm644 src/units/uke-clock-restore.service %{buildroot}%{_unitdir}/uke-clock-restore.service
-install -Dm644 src/units/uke-clock-save.service %{buildroot}%{_unitdir}/uke-clock-save.service
-install -Dm644 src/units/uke-clock-save.timer %{buildroot}%{_unitdir}/uke-clock-save.timer
 install -Dm755 uke-boot-status %{buildroot}%{_bindir}/uke-boot-status
 install -Dm755 uke-native-power-profile-ready %{buildroot}%{_libexecdir}/senemos-uke/uke-native-power-profile-ready
 install -Dm644 src/units/uke-native-power-profile-ready.service %{buildroot}%{_unitdir}/uke-native-power-profile-ready.service
@@ -177,6 +199,7 @@ install -Dm644 src/profiles/kernel-update.conf %{buildroot}%{_sysconfdir}/senemo
 install -Dm644 src/profiles/userdata-update.conf %{buildroot}%{_sysconfdir}/senemos/userdata-update.conf
 install -Dm644 src/profiles/80-uke-boot.preset %{buildroot}%{_presetdir}/80-uke-boot.preset
 install -Dm644 src/units/uke-userdata-accept.service %{buildroot}%{_unitdir}/uke-userdata-accept.service
+install -Dm644 src/units/uke-userdata-fallback.service %{buildroot}%{_unitdir}/uke-userdata-fallback.service
 install -Dm755 uke-install-profile %{buildroot}%{_libexecdir}/senemos-uke/uke-install-profile
 install -Dm644 src/units/uke-install-profile.service %{buildroot}%{_unitdir}/uke-install-profile.service
 install -Dm644 src/units/uke-root-grow.service %{buildroot}%{_unitdir}/uke-root-grow.service
@@ -191,9 +214,22 @@ ln -s ../../../usr/bin/uke-reboot %{buildroot}/usr/local/sbin/reboot
 
 %pre
 # @bluetooth-migration-save
+# @touch-migration-save
+
+%post
+%systemd_post uke-touchscreen.service
+/usr/bin/udevadm control --reload >/dev/null 2>&1 || :
+
+%preun
+%systemd_preun uke-touchscreen.service
+
+%postun
+%systemd_postun_with_restart uke-touchscreen.service
+/usr/bin/udevadm control --reload >/dev/null 2>&1 || :
 
 %posttrans
 # @bluetooth-migration-restore
+# @touch-migration-restore
 
 %post -n uke-kernel-update
 %systemd_post uke-userdata-accept.service
@@ -231,11 +267,23 @@ fi
 %files
 %license LICENSE
 %license LICENSE.GPL-3.0
+%license THP-LICENSE
 %doc README.md
 %doc docs/BLUETOOTH.md
 %doc docs/USB-TYPEC.md
 %doc docs/NATIVE-POWER-PROFILES.md
+%doc docs/TOUCH-RUNTIME.md
 %{_libexecdir}/senemos-uke/uke-native-power-profile-ready
+%{_libexecdir}/senemos-uke/uke-touchscreen
+%{_libexecdir}/senemos-uke/uke-touch-thp
+%{_unitdir}/uke-touchscreen.service
+%{_presetdir}/80-uke-touchscreen.preset
+%{_udevrulesdir}/70-uke-touchscreen.rules
+%{_prefix}/lib/modules-load.d/uke-touchscreen.conf
+%{_prefix}/lib/modprobe.d/uke-touchscreen.conf
+%dir %{_prefix}/lib/firmware/novatek
+%dir %{_prefix}/lib/firmware/novatek/uke
+%{_prefix}/lib/firmware/novatek/uke/nt36532-normal.bin
 %{_unitdir}/uke-native-power-profile-ready.service
 %{_udevrulesdir}/72-uke-native-power-profile.rules
 %{_libexecdir}/senemos-uke/uke-wifi-factory
@@ -248,10 +296,6 @@ fi
 %{_unitdir}/uke-usb-observer.service
 %{_datadir}/dbus-1/system.d/org.senemos.Uke.USB1.conf
 %{_unitdir}/chronyd.service.d/70-uke-clock.conf
-%{_libexecdir}/senemos-uke/uke-clock-state
-%{_unitdir}/uke-clock-restore.service
-%{_unitdir}/uke-clock-save.service
-%{_unitdir}/uke-clock-save.timer
 %{_presetdir}/80-uke-boot.preset
 %{_datadir}/senemos/boot/uke
 %{_unitdir}/uke-cdc-acm.service
@@ -279,6 +323,7 @@ fi
 %config(noreplace) %{_sysconfdir}/senemos/kernel-update.conf
 %config(noreplace) %{_sysconfdir}/senemos/userdata-update.conf
 %{_unitdir}/uke-userdata-accept.service
+%{_unitdir}/uke-userdata-fallback.service
 
 %files -n uke-installation-profile
 %license LICENSE
@@ -299,14 +344,33 @@ fi
 %{_prefix}/lib/dracut/modules.d/93uke-boot-guard
 
 %changelog
-* Mon Oct 26 2026 Uke Fedora Maintainers <linuxgamer@users.noreply.github.com> - 1.5.2-4
-- Allow the Bluetooth address helper to read Android-owned factory data.
+* Fri Oct 23 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.8.2-1
+- Recognize an enabled internal DSI output independently of probe-order numbering.
 
-* Sun Oct 25 2026 Uke Fedora Maintainers <linuxgamer@users.noreply.github.com> - 1.5.2-3
-- Keep chronyd from replacing the restored clock with the Uke RTC's 1970 date.
+* Fri Oct 23 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.8.1-2
+- Advance the complete rebuilt hardware cohort, including unchanged firmware.
 
-* Sun Oct 25 2026 Uke Fedora Maintainers <linuxgamer@users.noreply.github.com> - 1.5.2-2
-- Restore a saved clock floor before desktop startup and save it periodically.
+* Fri Oct 23 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.8.1-1
+- Verify and retain a staged alternating trial until the next boot.
+- Restore only a stale backup array CRC with matching validated GPT arrays.
+
+* Fri Oct 23 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.8.0-1
+- Return failed alternating userdata trials to the verified accepted boot slot.
+- Bound health retries independently of service run time; retain firmware admission guards.
+
+* Fri Oct 23 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.7.0-2
+- Compile the retained touch processor with the matching Fedora hardening flags.
+
+* Fri Oct 23 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.7.0-1
+- Own the calibrated legacy touch service and select the matched kernel client.
+- Preserve private data, independent Bluetooth/touch migration and kernel rollback.
+
+* Thu Oct 22 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.6.0-1
+- Restore only the accepted installed bundle from a booted current-slot trial.
+- Retain the unaccepted trial state until the restored kernel passes boot health.
+
+* Thu Oct 22 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.5.3-1
+- Permit read-only factory Bluetooth access through Android directory permissions.
 
 * Thu Oct 22 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 1.5.2-1
 - Advance the coherent hardware cohort for the panel-off touchscreen startup fix.

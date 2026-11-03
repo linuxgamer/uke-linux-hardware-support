@@ -22,6 +22,27 @@ function mapped_dependency(line,  old,head,tail,pattern) {
     return line
 }
 function output(file,line) {print line >> (out "/" file)}
+function owned_file(line) {
+    # Family children share a buildroot; upstream directory globs can steal siblings' files.
+    if(original=="upower") {
+        if(line=="/usr/share/dbus-1/system.d/*.conf")return "/usr/share/dbus-1/system.d/org.freedesktop.UPower.conf"
+        if(line=="/usr/lib/udev/rules.d/*.rules")return "/usr/lib/udev/rules.d/*-upower-*.rules"
+        if(line=="/usr/lib/udev/hwdb.d/*.hwdb")return "/usr/lib/udev/hwdb.d/*-upower-*.hwdb"
+        if(line=="/usr/share/dbus-1/system-services/*.service")return "/usr/share/dbus-1/system-services/org.freedesktop.UPower.service"
+        if(line=="/usr/lib/systemd/system/*.service")return "/usr/lib/systemd/system/upower.service"
+        if(line=="/usr/share/man/man1/*")return "/usr/share/man/man1/upower.1*"
+        if(line=="/usr/share/man/man7/*")return "/usr/share/man/man7/UPower.7*"
+        if(line=="/usr/share/man/man8/*")return "/usr/share/man/man8/upowerd.8*"
+        if(line=="/usr/share/zsh/*")return "%dir /usr/share/zsh/site-functions\n/usr/share/zsh/site-functions/_upower"
+        if(line=="/usr/lib64/girepository-1.0/*.typelib")return "/usr/lib64/girepository-1.0/UPowerGlib-1.0.typelib"
+        if(line=="/usr/share/dbus-1/interfaces/*.xml")return "/usr/share/dbus-1/interfaces/org.freedesktop.UPower*.xml"
+        if(line=="/usr/lib64/pkgconfig/*.pc")return "/usr/lib64/pkgconfig/upower-glib.pc"
+        if(line=="/usr/share/gir-1.0/*.gir")return "/usr/share/gir-1.0/UPowerGlib-1.0.gir"
+    }
+    if(original=="libaccounts-glib" && line=="/usr/share/dbus-1/interfaces/*.xml")
+        return "/usr/share/dbus-1/interfaces/com.google.code.AccountsSSO.Accounts.Manager.xml"
+    return line
+}
 function section_package(line, prefix,  a,n,pkg,options,i) {
     n=split(line,a,/[[:space:]]+/);pkg=original;options=""
     if(n>=3 && a[2]=="-n"){pkg=a[3];i=4}
@@ -57,6 +78,9 @@ BEGIN {
 /^: __UKE_CWD__=/ {cwd=substr($0,index($0,"=")+1);next}
 /^: __UKE_BUILDROOT__=/ {buildroot=substr($0,index($0,"=")+1);next}
 /^: __UKE_BUILDDIR__=/ {builddir=substr($0,index($0,"=")+1);next}
+phase ~ /^(prep|generate_buildrequires|build|install|check)$/ && /^[[:space:]]*%[A-Za-z_]/ {
+    fail("Unexpanded build macro; install its RPM macro provider before composition: " $0)
+}
 {
     if(phase=="header" || phase=="package") header[package]=header[package] $0 "\n"
     else if(phase=="description") description[package]=description[package] $0 "\n"
@@ -114,6 +138,6 @@ END {
     for(i=1;i<=tails;i++) {
         split(tail[i],lines,"\n");marker=lines[1];sub(/[[:space:]].*/,"",marker)
         print section_package(lines[1],marker) >>out "/tail"
-        for(j=2;j<=length(lines);j++)print lines[j] >>out "/tail"
+        for(j=2;j<=length(lines);j++)print (marker=="%files"?owned_file(lines[j]):lines[j]) >>out "/tail"
     }
 }

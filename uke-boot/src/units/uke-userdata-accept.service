@@ -4,7 +4,8 @@ ConditionFirmware=device-tree-compatible(xiaomi,uke)
 ConditionKernelCommandLine=root=PARTLABEL=userdata
 After=display-manager.service uke-install-profile.service uke-touchscreen.service uke-adaptive-display.target
 Wants=uke-adaptive-display.target
-StartLimitIntervalSec=600
+OnFailure=uke-userdata-fallback.service
+StartLimitIntervalSec=infinity
 StartLimitBurst=5
 
 [Service]
@@ -13,6 +14,7 @@ ExecStart=/usr/bin/uke-kernel-update accept
 ExecStart=/usr/bin/uke-kernel-update auto
 TimeoutStartSec=120
 Restart=on-failure
+RestartMode=direct
 RestartSec=30
 UMask=0077
 ProtectHome=yes

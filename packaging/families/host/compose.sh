@@ -35,9 +35,15 @@ uke-core)
     controls=("$stage/control/"*.src.rpm); [[ ${#controls[@]} == 1 && -f ${controls[0]} ]]
     printf '%s\t%s\n' uke-control "${controls[0]}" >"$stage/inputs";;
 uke-sensors)
+    make -C uke-sensors proximity-capture-srpm outdir="$stage/proximity-capture" >"$stage/local.log"
+    captures=("$stage/proximity-capture/SRPMS/"*.src.rpm); [[ ${#captures[@]} == 1 && -s ${captures[0]} ]]
+    printf '%s\t%s\n' uke-proximity-capture "${captures[0]}" >"$stage/inputs"
+    make -C uke-sensors front-color-srpm outdir="$stage/front-color" >>"$stage/local.log"
+    colors=("$stage/front-color/SRPMS/"*.src.rpm); [[ ${#colors[@]} == 1 && -s ${colors[0]} ]]
+    printf '%s\t%s\n' uke-front-color "${colors[0]}" >>"$stage/inputs"
     make -C uke-sensors srpm PACKAGE=libssc outdir="$stage/libssc" >"$stage/local.log"
     libraries=("$stage/libssc/"*.src.rpm); [[ ${#libraries[@]} == 1 && -f ${libraries[0]} ]]
-    printf '%s\t%s\n' libssc "${libraries[0]}" >"$stage/inputs"
+    printf '%s\t%s\n' libssc "${libraries[0]}" >>"$stage/inputs"
     make -C uke-sensors srpm PACKAGE=uke-ssc-fileservice outdir="$stage/ssc" >>"$stage/local.log"
     services=("$stage/ssc/"*.src.rpm); [[ ${#services[@]} == 1 && -f ${services[0]} ]]
     printf '%s\t%s\n' uke-ssc-fileservice "${services[0]}" >>"$stage/inputs";;
@@ -50,7 +56,7 @@ uke-power)
     printf '%s\t%s\n' uke-battery-observer "${batteries[0]}" >>"$stage/inputs";;
 uke-extras)
     make -C uke-desktop-packaging srpm PACKAGE=plymouth-uke outdir="$root/uke-desktop-packaging/build/srpm/plymouth-uke" >"$stage/local.log"
-    printf '%s\t%s\n' uke-plymonth "$root/uke-desktop-packaging/build/srpm/plymouth-uke/uke-plymonth-1.0.2-1$(rpm --eval '%{?dist}').src.rpm" >"$stage/inputs";;
+    printf '%s\t%s\n' uke-plymonth "$root/uke-desktop-packaging/build/srpm/plymouth-uke/uke-plymonth-1.0.2-4$(rpm --eval '%{?dist}').src.rpm" >"$stage/inputs";;
 uke-metas)
     for component in uke-core-meta uke-desktop-metas; do
         make -C "$component" srpm outdir="$stage/$component" >"$stage/local.log"
@@ -72,7 +78,7 @@ while IFS=$'\t' read -r key url hash; do
     mkdir -p "$(dirname "$input")"
     if [[ ! -s $input ]]; then
         case "$key:$url" in
-        *:https://download.copr.fedorainfracloud.org/results/mcc45tr/*) ;;
+        *:https://download.copr.fedorainfracloud.org/results/mcc45tr/*|*:https://github.com/MCC45TR/uke-linux-hardware-support/releases/download/copr-migration-archive-20261020/*.src.rpm) ;;
         *) echo 'Unreviewed source RPM URL' >&2; exit 1;;
         esac
         curl --fail --location --silent --show-error --proto '=https' --proto-redir '=https' --max-time 240 "$url" -o "$input.part"
@@ -93,12 +99,12 @@ while IFS=$'\t' read -r key input; do
     cpio -t --quiet <"$part/source.cpio" >"$part/source-files"
     awk '/^\/|(^|\/)\.\.($|\/)/ {bad=1} END {exit bad}' "$part/source-files"
     (cd "$source"; cpio -idm --quiet --no-absolute-filenames <"$part/source.cpio")
-    specs=("$source/"*.spec); [[ ${#specs[@]} == 1 ]]
-    if [[ $key == uke-touchscreen ]]; then
-        cp packaging/families/patches/touch-panel-start.patch "$source/"
-        sed -i '/^Source0:/aPatch0: touch-panel-start.patch' "${specs[0]}"
-        sed -i 's/^%autosetup$/%autosetup -p1/' "${specs[0]}"
+    if [[ $key == uke-front-color ]]; then
+        for path in src/front-color.cpp src/front-color-state.hpp src/front-color-file.hpp src/ssc-discovery.cpp src/ssc-sample.cpp tests/front-color.cpp; do
+            cmp "$root/uke-sensors/$path" <(tar -xOf "$source/uke-front-color-0.1.0.tar.gz" "uke-front-color-0.1.0/$path")
+        done
     fi
+    specs=("$source/"*.spec); [[ ${#specs[@]} == 1 ]]
     if [[ $key == uke-firmware ]]; then
         cp "${specs[0]}" "$source/uke-firmware.spec.original"
         # Mandatory paths must resolve without DNF's optional filelists metadata.
@@ -126,6 +132,10 @@ spec="$output/SPECS/$family.spec"
         # DSP firmware ELF data is not a host executable and has no build-id link.
         printf '%%global _build_id_links none\n%%global _binaries_in_noarch_packages_terminate_build 0\n'
         printf 'Obsoletes: uke-fastfetch-config <= 1.0.1-4.fc46\n'
+    fi
+    if [[ $family == uke-power ]]; then
+        printf 'Obsoletes: uke-power-profile-backend < 1.3.2\nConflicts: uke-power-profile-backend\n'
+        printf 'Requires(pre): rpm systemd coreutils sed\nRequires(posttrans): systemd coreutils sed\n'
     fi
     jq -r '.requires[]|"Requires: "+.' <<<"$profile"
     jq -r '.suggests[]|"Suggests: "+.' <<<"$profile"

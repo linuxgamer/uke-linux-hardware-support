@@ -29,7 +29,7 @@ if git cat-file -e "$commit:$map" 2>/dev/null; then
     paths+=("${watched[@]}")
     own_paths=("${watched[@]}")
     jq -Sc 'del(.watch_paths)' "$stage/new.json" >"$stage/new-policy"
-    git show "$commit:$pins" | jq -Sc --arg f "$family" '[.[]|select(.family==$f)]' >"$stage/new-pins"
+    git show "$commit:$pins" | jq -Sc --arg f "$family" '[.[]|select(.family==$f)|del(.url)]' >"$stage/new-pins"
     if git cat-file -e "$commit:$migrations" 2>/dev/null; then
         git show "$commit:$migrations" | jq -Sc --arg f "$family" '[.[]|select(.family==$f)]' >"$stage/new-migrations"
         if git cat-file -e "$base:$migrations" 2>/dev/null; then
@@ -49,7 +49,7 @@ if git cat-file -e "$commit:$map" 2>/dev/null; then
         git show "$base:$map" | jq -ce --arg f "$family" '.families[]|select(.name==$f)' >"$stage/old.json"
         old=$(jq -er '.version+"-"+((.release // 1)|tostring)' "$stage/old.json")
         jq -Sc 'del(.watch_paths)' "$stage/old.json" >"$stage/old-policy"
-        git show "$base:$pins" | jq -Sc --arg f "$family" '[.[]|select(.family==$f)]' >"$stage/old-pins"
+        git show "$base:$pins" | jq -Sc --arg f "$family" '[.[]|select(.family==$f)|del(.url)]' >"$stage/old-pins"
     fi
     if [[ $family == uke-core ]]; then
         git show "$commit:uke-control/packaging/uke-control.spec" >"$stage/new.spec"

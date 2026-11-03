@@ -3,8 +3,11 @@
 #include "../src/kernel-update.cpp"
 #include <cassert>
 #include <functional>
-static void reject(const std::function<void()> &call) {
-    bool refused=false;try{call();}catch(const std::exception &){refused=true;}assert(refused);
+#include <source_location>
+static void reject(const std::function<void()> &call,const std::source_location where=std::source_location::current()) {
+    bool refused=false;try{call();}catch(const std::exception &){refused=true;}
+    if(!refused)std::cerr<<"Expected refusal at line "<<where.line()<<'\n';
+    assert(refused);
 }
 static void text(const fs::path &path,const std::string &value) {
     fs::create_directories(path.parent_path());std::ofstream(path,std::ios::binary)<<value;
@@ -143,6 +146,58 @@ int main() {
     text(bundle/"manifest",manifest+"unknown=uke-elfnote-v1\n");
     reject([&]{validate_bundle(bundle,modules,"userdata",running,fake_rpm);});
     text(bundle/"manifest",manifest);dumps[boot_package]=boot_dump;
+    {
+        const auto base_owners=owners,base_dumps=dumps;
+        const auto transport=modules/release/"kernel/drivers/media/spi/nt36532-uke/nt36532-uke-thp.ko.zst";
+        const auto client=modules/release/"uke/uke-touch-capture";
+        text(transport,"synthetic THP transport");
+        const auto next_inventory=inventory+digest(file(transport))+"  kernel/drivers/media/spi/nt36532-uke/nt36532-uke-thp.ko.zst\n";
+        Bytes elf(sizeof(Elf64_Ehdr));memcpy(elf.data(),ELFMAG,SELFMAG);
+        elf[EI_CLASS]=ELFCLASS64;elf[EI_DATA]=ELFDATA2LSB;elf[EI_VERSION]=EV_CURRENT;
+        elf[16]=ET_DYN;elf[18]=EM_AARCH64&255;elf[19]=EM_AARCH64>>8;
+        const auto put_client=[&](const Bytes &bytes) {
+            text(client,std::string(reinterpret_cast<const char *>(bytes.data()),bytes.size()));
+            assert(chmod(client.c_str(),0755)==0);
+        };
+        const auto sync_manifest=[&](const std::string &extra) {
+            text(bundle/"modules.sha256",next_inventory);
+            auto next=manifest;const auto old=digest(Bytes(inventory.begin(),inventory.end()));
+            next.replace(next.find(old),old.size(),digest(file(bundle/"modules.sha256")));
+            text(bundle/"manifest",next+extra);
+            owners=base_owners;dumps=base_dumps;dumps[boot_package].clear();
+            record_package("-boot",{bundle/"manifest",bundle/"modules.sha256",bundle/"linux.img",bundle/"userdata.img"});
+            record_package("-modules",{transport});
+            if(fs::exists(client))record_package("-modules",{client});
+        };
+        sync_manifest("");reject([&]{validate_bundle(bundle,modules,"userdata",running,fake_rpm);});
+        const auto field="touch_client_sha256="+digest(elf)+"\n";
+        sync_manifest(field);reject([&]{validate_bundle(bundle,modules,"userdata",running,fake_rpm);});
+        put_client(elf);sync_manifest(field+"root_selector_capability=uke-elfnote-v2\n");
+        assert(validate_bundle(bundle,modules,"userdata",running,fake_rpm)==up);
+        auto bad=elf;bad.back()^=1;put_client(bad);
+        reject([&]{validate_bundle(bundle,modules,"userdata",running,fake_rpm);});put_client(elf);
+        assert(chmod(client.c_str(),0644)==0);
+        reject([&]{validate_bundle(bundle,modules,"userdata",running,fake_rpm);});assert(chmod(client.c_str(),0755)==0);
+        bad=elf;bad[18]=EM_X86_64;put_client(bad);sync_manifest("touch_client_sha256="+digest(bad)+"\n");
+        reject([&]{validate_bundle(bundle,modules,"userdata",running,fake_rpm);});
+        bad=elf;bad[16]=ET_REL;put_client(bad);sync_manifest("touch_client_sha256="+digest(bad)+"\n");
+        reject([&]{validate_bundle(bundle,modules,"userdata",running,fake_rpm);});
+        put_client(elf);sync_manifest(field);
+        owners[client.string()]="senemos-uke-linux-kernel-mainline-modules\t0\t7.2.9\t1.41.fc46\taarch64\t8\n";
+        auto &module_dump=dumps["senemos-uke-linux-kernel-mainline-modules-0:7.2.9-1.40.fc46.aarch64"];
+        const auto client_row=client.string()+"\t"+digest(file(client))+"\n";
+        module_dump.erase(module_dump.find(client_row),client_row.size());
+        reject([&]{validate_bundle(bundle,modules,"userdata",running,fake_rpm);});
+        sync_manifest("touch_client_sha256=invalid\n");
+        reject([&]{validate_bundle(bundle,modules,"userdata",running,fake_rpm);});
+        fs::remove(transport);text(bundle/"modules.sha256",inventory);text(bundle/"manifest",manifest+field);
+        owners=base_owners;dumps=base_dumps;dumps[boot_package].clear();
+        record_package("-boot",{bundle/"manifest",bundle/"modules.sha256",bundle/"linux.img",bundle/"userdata.img"});
+        reject([&]{validate_bundle(bundle,modules,"userdata",running,fake_rpm);});
+        fs::remove(client);text(bundle/"modules.sha256",inventory);text(bundle/"manifest",manifest);
+        owners=base_owners;dumps=base_dumps;
+        std::cout<<"Matched kernel THP client: optional legacy compatibility, required pairing, digest, executable AArch64 ELF and RPM cohort refusal passed\n";
+    }
     const auto good_owner=owners.at(module.string());owners[module.string()]="other\t0\t7.2.9\t1.40.fc46\taarch64\t8\n";
     reject([&]{validate_bundle(bundle,modules,"linux",running,fake_rpm);});owners[module.string()]=good_owner;
     owners[module.string()]="senemos-uke-linux-kernel-mainline-modules\t0\t7.2.9\t1.41.fc46\taarch64\t8\n";

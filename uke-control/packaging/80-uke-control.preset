@@ -1,1 +1,2 @@
 enable uke-control.service
+disable uke-control-cdc.service

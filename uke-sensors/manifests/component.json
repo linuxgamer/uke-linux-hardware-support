@@ -9,7 +9,9 @@
   "expected_packages": [
     "libssc",
     "iio-sensor-proxy",
-    "uke-ssc-fileservice"
+    "uke-ssc-fileservice",
+    "uke-front-color",
+    "uke-proximity-capture"
   ],
   "nabu_reference_packages": [
     "nabu-sensors"

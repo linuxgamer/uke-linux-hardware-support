@@ -149,7 +149,7 @@ public:
 std::string snapshot(sd_bus *system, sd_bus *session) {
     Reader reader;
     reader.properties(system, "org.freedesktop.UPower", "/org/freedesktop/UPower", "org.freedesktop.UPower",
-        {{"DaemonVersion","s",""},{"OnBattery","b",""},{"LidIsClosed","b",""}});
+        {{"DaemonVersion","s",""},{"OnBattery","b",""},{"LidIsClosed","b",""},{"LidIsPresent","b",""}});
     reader.properties(system, "org.freedesktop.UPower", "/org/freedesktop/UPower/devices/DisplayDevice", "org.freedesktop.UPower.Device",
         {{"State","u","UPower state enum"},{"Percentage","d","percent"},{"Energy","d","Wh"},{"EnergyFull","d","Wh"},
          {"EnergyRate","d","W magnitude; direction is State"},{"TimeToFull","x","s",true},{"TimeToEmpty","x","s",true}});

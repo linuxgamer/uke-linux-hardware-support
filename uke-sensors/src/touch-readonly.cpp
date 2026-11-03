@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Fixed NT36532 identity reads; no reset, firmware download, GPIO or rail writes.
+#include "touch-common.hpp"
 #include <algorithm>
 #include <array>
 #include <cassert>
@@ -18,31 +19,10 @@
 #include <sys/file.h>
 #include <unistd.h>
 
-static void require(bool ok, const char *message) {
-    if (!ok) throw std::runtime_error(message);
-}
 static std::function<void()> touch_transfer_guard;
 static void lock_touch(int fd) {
     // Advisory ownership coordinates these tools; unrelated SPI clients must still be stopped.
     require(flock(fd,LOCK_EX|LOCK_NB)==0,"Touch SPI transport is already owned or cannot be locked");
-}
-static bool matches(const std::string &data, const std::string &expected) {
-    if(data.size()>4096) return false;
-    bool found=false;
-    for(std::size_t p=0;p<data.size();) {
-        auto end=data.find('\0',p);
-        if(end==std::string::npos) return false;
-        if(data.compare(p,end-p,expected)==0) found=true;
-        p=end+1;
-    }
-    return found;
-}
-static bool compatible(const char *path, const std::string &expected) {
-    std::ifstream input(path, std::ios::binary);
-    if(!input) return false;
-    std::array<char,4097> data{};
-    input.read(data.data(),data.size());
-    return input.eof() && !input.bad() && matches(std::string(data.data(),input.gcount()),expected);
 }
 static std::array<std::uint8_t,3> page(std::uint32_t address) {
     require(address == 0x1fb104 || address == 0x1fb12c || address == 0x125878 || address == 0x11c478, "Address outside fixed identity-read scope");

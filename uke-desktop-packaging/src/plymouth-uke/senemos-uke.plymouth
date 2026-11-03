@@ -1,6 +1,6 @@
 [Plymouth Theme]
 Name=Senemos Uke
-Description=Optional display-independent Senemos Uke development theme
+Description=Xiaomi and Fedora boot, shutdown and update theme for Uke
 ModuleName=script
 
 [script]
