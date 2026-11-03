@@ -73,7 +73,7 @@ function gnome_preamble() {
     print "License: MIT"
     print "BuildArch: noarch"
     print "Requires: (senemos-uke-linux-kernel-mainline >= 7.2.11-16 or senemos-uke-linux-kernel-mainline-singleboot >= 7.2.11-16)"
-    print "Requires: uke-control-gtk >= 1.0.0-2"
+    print "Requires: uke-control-gui-gtk >= 1.0.0-3"
     print "Requires: gnome-shell gnome-session gnome-control-center gnome-settings-daemon"
     print "Requires: gdm gnome-keyring nautilus xdg-desktop-portal-gnome"
     print "%description -n uke-gnome-meta"
@@ -90,7 +90,7 @@ function gnome_preamble() {
 /^Source0:/ {
     print
     print "Source1: uke-control-frontend-contract.tar.xz"
-    print "Source2: uke-control-published.spec"
+    print "Source2: uke-control-published-spec.txt"
     print "Source3: input.json"
     print "Source4: copr-public-key.asc"
     next
@@ -109,8 +109,11 @@ function gnome_preamble() {
         print "Provides: /usr/libexec/uke-control/frontend-request"
         print "Requires: uke-control-client%{?_isa} = " version["uke-control"] "-" newer["uke-control"]
     }
-    if(current=="uke-kde-plasma-meta") print "Requires: uke-control-qt >= 1.0.0-2"
+    if(current=="uke-kde-plasma-meta") print "Requires: uke-control-gui-qt >= 1.0.0-3"
     next
+}
+current=="uke-kde-plasma-meta" && /^Requires: glibc-all-langpacks$/ {
+    print;print "Requires: hunspell-tr";next
 }
 /^%(prep|build|install|check)([[:space:]]|$)/ {
     finish_phase()
@@ -148,8 +151,8 @@ END {
     }
     print ""
     print "%changelog"
-    if(build_phase=="backend") print "* Mon Nov 02 2026 Uke contributors - 2.8.1-6"
-    else print "* Mon Nov 02 2026 Uke contributors - 1.0.0-36"
+    if(build_phase=="backend") print "* Tue Nov 03 2026 Uke contributors - 2.8.1-7"
+    else print "* Tue Nov 03 2026 Uke contributors - 1.0.0-37"
     print "- Preserve the published backend and add the typed GUI client contract."
     print "- Require the corresponding native application in each desktop selection."
 }

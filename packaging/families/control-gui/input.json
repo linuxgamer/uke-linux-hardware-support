@@ -7,8 +7,8 @@
   "source_builder_url": "https://download.copr.fedorainfracloud.org/results/mcc45tr/uke-linux-unstable/srpm-builds/11240837/uke-control-2.8.1-5.fc46.src.rpm",
   "sha256": "44755d1c58f919bcd76c2a13c6dabefe2cf574464542bfa58fb29309fca5881a",
   "signing_key": "2204A661EA630A5303500085538797E72A3E4ECA",
-  "output_evr": "2.8.1-6.fc46",
-  "release_increment": 1,
-  "desktop_meta_evr": "1.0.0-36.fc46",
+  "output_evr": "2.8.1-7.fc46",
+  "release_increment": 2,
+  "desktop_meta_evr": "1.0.0-37.fc46",
   "policy": "Preserve the published DNF/backend sources and existing maintainer scripts; add the typed frontend contract and required desktop GUI dependencies."
 }

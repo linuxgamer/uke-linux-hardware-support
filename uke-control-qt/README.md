@@ -115,7 +115,7 @@ source archives built against an installed client may disable tests with
 
 ## Packaging and observed validation
 
-`packaging/uke-control-qt.spec` builds the independent `uke-control-qt` RPM against
+`packaging/uke-control-qt.spec` builds the independent `uke-control-gui-qt` RPM against
 the existing monolithic `uke-control` package. CMake installs the executable,
 desktop entry and scalable icon using standard GNU installation directories.
 It does not change the existing family package metadata.

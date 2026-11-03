@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MIT
 # Host/source-chroot only. No RPM payload or maintainer script is executed.
 set -Eeuo pipefail
+test ! -e /etc/senemos/kernel-update.conf
 here=$(cd -- "$(dirname -- "$0")"; pwd)
 root=$(cd -- "$here/../../.."; pwd)
 out=$(realpath -m "${1:-$here/build/srpm}")
@@ -46,7 +47,7 @@ awk -F '\t' -v increment="$increment" 'BEGIN{OFS="\t"} $3 !~ /^[0-9]+[.]fc46$/ {
 top="$out/rpmbuild"
 mkdir -p "$top"/{BUILD,BUILDROOT,RPMS,SRPMS,SOURCES,SPECS}
 cp "$stage/input/uke-control-2.8.1.tar.xz" "$top/SOURCES/"
-cp "$stage/input/uke-control.spec" "$top/SOURCES/uke-control-published.spec"
+cp "$stage/input/uke-control.spec" "$top/SOURCES/uke-control-published-spec.txt"
 cp "$manifest" "$here/copr-public-key.asc" "$top/SOURCES/"
 mkdir "$stage/contract"
 cp "$root/uke-control/src/"{frontend.hpp,frontend-request.cpp,client.hpp} "$stage/contract/"

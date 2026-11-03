@@ -1,10 +1,13 @@
-Name: uke-control-gtk
+%global source_name uke-control-gtk
+Name: uke-control-gui-gtk
 Version: 1.0.0
-Release: 2%{?dist}
+Release: 3%{?dist}
 Summary: Native GTK frontend for Uke device controls
 License: MIT
 URL: https://github.com/MCC45TR/uke-linux-hardware-support
-Source0: %{name}-%{version}.tar.gz
+Source0: %{source_name}-%{version}.tar.gz
+Provides: uke-control-gtk = %{version}-%{release}
+Obsoletes: uke-control-gtk < 1.0.0-3
 BuildRequires: gcc-c++ cmake
 BuildRequires: pkgconfig(gtk4) >= 4.12
 BuildRequires: pkgconfig(libadwaita-1) >= 1.5
@@ -13,7 +16,7 @@ BuildRequires: pkgconfig(uke-control-client) >= 2.8.0
 BuildRequires: %{_includedir}/uke-control/frontend.hpp
 BuildRequires: uke-control(frontend-sdk-v1) >= 1
 BuildRequires: desktop-file-utils
-Requires: uke-control >= 2.8.1-6
+Requires: uke-control >= 2.8.1-7
 Requires: uke-control(frontend-v1) >= 1
 Requires: %{_libexecdir}/uke-control/frontend-request
 Requires: gnome-terminal
@@ -25,7 +28,7 @@ explicit request review and simulation. Changes continue in a distribution
 terminal through the original Uke Control backend.
 
 %prep
-%autosetup
+%autosetup -n %{source_name}-%{version}
 
 %build
 %cmake -DBUILD_TESTING=ON
@@ -46,5 +49,8 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/org.uke.Control.Gtk.d
 %{_datadir}/icons/hicolor/scalable/apps/org.uke.Control.Gtk.svg
 
 %changelog
+* Tue Nov 03 2026 Uke contributors - 1.0.0-3
+- Publish the GTK GUI under its canonical name with matched backend requirements.
+
 * Mon Nov 02 2026 Uke contributors - 1.0.0-2
 - Prepare the independent source build and retain native fixture checks.

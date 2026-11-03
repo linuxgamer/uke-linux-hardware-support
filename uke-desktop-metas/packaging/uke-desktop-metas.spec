@@ -1,7 +1,7 @@
 %global debug_package %{nil}
 Name: uke-desktop-metas
 Version: 1.0.0
-Release: 36%{?dist}
+Release: 37%{?dist}
 Summary: Explicit desktop package selections for the Uke development platform
 License: MIT
 URL: https://github.com/MCC45TR/uke-linux-hardware-support/tree/main/uke-desktop-metas
@@ -24,7 +24,7 @@ Requires: (senemos-uke-linux-kernel-mainline >= 7.2.11-16 or senemos-uke-linux-k
 Requires(posttrans): firewalld
 Requires(postun): firewalld
 Recommends: uke-plasma-controls >= 1.0.0
-Requires: uke-control-qt >= 1.0.0-2
+Requires: uke-control-gui-qt >= 1.0.0-3
 # Keep this optional selection independent of the Python-free console meta.
 # BEGIN ORIGINAL FEDORA PLASMA PACKAGES
 Requires: PackageKit
@@ -108,7 +108,7 @@ policy. Pairing still requires confirmation in the original application.
 Summary: Original Fedora GNOME applications and native Uke Control
 BuildArch: noarch
 Requires: (senemos-uke-linux-kernel-mainline >= 7.2.11-16 or senemos-uke-linux-kernel-mainline-singleboot >= 7.2.11-16)
-Requires: uke-control-gtk >= 1.0.0-2
+Requires: uke-control-gui-gtk >= 1.0.0-3
 Requires: gnome-shell gnome-session gnome-control-center gnome-settings-daemon
 Requires: gdm gnome-keyring nautilus xdg-desktop-portal-gnome
 
@@ -189,6 +189,9 @@ fi
 %{_datadir}/plasma/plasmoids/org.senemos.uke.controls/
 
 %changelog
+* Tue Nov 03 2026 Uke contributors - 1.0.0-37
+- Require the matching Qt or GTK Control GUI in its original desktop selection.
+
 * Mon Nov 02 2026 Uke contributors - 1.0.0-36
 - Require the native Qt frontend for KDE and the native GTK frontend for GNOME.
 

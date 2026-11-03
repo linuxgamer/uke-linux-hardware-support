@@ -7,7 +7,7 @@ make srpm outdir=build/backend
 make srpm PHASE=metas outdir=build/metas
 top=build/backend/rpmbuild
 metatop=build/metas/rpmbuild
-old="$top/SOURCES/uke-control-published.spec"
+old="$top/SOURCES/uke-control-published-spec.txt"
 new="$top/SPECS/uke-control.spec"
 # The imported nested archives contain the existing DNF/boot/device behavior.
 stage=$(mktemp -d)
@@ -39,16 +39,22 @@ selection() {
 }
 selection uke-kde-plasma-meta > "$stage/kde"
 selection uke-gnome-meta > "$stage/gnome"
-grep -Fx 'Requires: uke-control-qt >= 1.0.0-2' "$stage/kde"
-grep -Fx 'Requires: uke-control-gtk >= 1.0.0-2' "$stage/gnome"
-! grep -E '^Requires:.*(uke-control-gtk|gnome-shell|uke-gnome-meta)' "$stage/kde"
-! grep -E '^Requires:.*(uke-control-qt|plasma-workspace|uke-kde-plasma-meta)' "$stage/gnome"
+grep -Fx 'Requires: uke-control-gui-qt >= 1.0.0-3' "$stage/kde"
+grep -Fx 'Requires: uke-control-gui-gtk >= 1.0.0-3' "$stage/gnome"
+grep -Fx 'Requires: hunspell-tr' "$stage/kde"
+! grep -E '^Requires:.*(uke-control-gui-gtk|gnome-shell|uke-gnome-meta)' "$stage/kde"
+! grep -E '^Requires:.*(uke-control-gui-qt|plasma-workspace|uke-kde-plasma-meta)' "$stage/gnome"
 grep -Fx 'Provides: uke-control(frontend-v1) = 1' "$new"
 grep -Fx 'Provides: uke-control(frontend-sdk-v1) = 1' "$new"
 grep -Fx 'Provides: /usr/include/uke-control/frontend.hpp' "$new"
 grep -Fx 'Provides: /usr/libexec/uke-control/frontend-request' "$new"
-grep -Fx 'Requires: uke-control(aarch-64) = 2.8.1-6.fc46' "$new"
-grep -Fx 'Recommends: uke-control-tui(aarch-64) = 2.8.1-6.fc46' "$new"
+grep -Fx 'Requires: uke-control(aarch-64) = 2.8.1-7.fc46' "$new"
+grep -Fx 'Recommends: uke-control-tui(aarch-64) = 2.8.1-7.fc46' "$new"
+for rpm in "$top"/SRPMS/*.src.rpm "$metatop"/SRPMS/*.src.rpm; do
+    rpm2cpio "$rpm" | cpio -t --quiet > "$stage/generated-members"
+    [[ $(grep -c '[.]spec$' "$stage/generated-members") == 1 ]]
+    grep -q 'uke-control-published-spec[.]txt$' "$stage/generated-members"
+done
 rpmspec --target aarch64 --parse --define "_sourcedir $(realpath "$top/SOURCES")" "$new" > "$stage/expanded.spec"
 grep -F 'frontend-request.cpp' "$stage/expanded.spec"
 printf '%s\n' 'GUI source contract, monotonic identities, mandatory DE dependencies and preserved payload/scriptlets passed.'

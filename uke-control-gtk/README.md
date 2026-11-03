@@ -1,6 +1,8 @@
 # Uke Control GTK
 
 Native C++20 GTK 4 / libadwaita frontend for the shared Uke Control client.
+The `uke-control-gui-gtk` RPM retains the `uke-control-gtk` executable and
+provides the previous package name for upgrades.
 The application constructs native widgets directly. It has no Python, webview,
 QML or embedded desktop application dependency.
 
