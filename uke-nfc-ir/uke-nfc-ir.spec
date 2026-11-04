@@ -1,6 +1,6 @@
 Name: uke-nfc-ir
 Version: 1.1.0
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: Native read-only NFC tag client and Uke infrared session access
 License: MIT AND (GPL-2.0-only WITH Linux-syscall-note)
 URL: https://github.com/MCC45TR/uke-linux-hardware-support
@@ -10,6 +10,7 @@ ExclusiveArch: aarch64
 BuildRequires: systemd-udev
 BuildRequires: systemd-rpm-macros
 BuildRequires: gcc-c++ clang compiler-rt libasan libubsan kernel-headers jq binutils
+BuildRequires: acl
 Requires: systemd-udev
 Requires: /usr/bin/ir-ctl
 Requires: uke-kernel(nfc-ir-v2) >= 1
@@ -39,6 +40,7 @@ install -Dm755 uke-nfc-tag %{buildroot}%{_bindir}/uke-nfc-tag
 
 %check
 udevadm verify --resolve-names=never 70-uke-nfc-ir.rules
+bash tests/session-acl.sh
 bash tests/check.sh
 printf '%%s  %%s\n' "$(jq -er .sha256 uapi-source.json)" include/fm19511.h | sha256sum -c -
 readelf -h uke-nfc-tag | grep -E 'Machine:.*AArch64'
@@ -70,6 +72,10 @@ fi
 %{_bindir}/uke-nfc-tag
 
 %changelog
+* Wed Nov 04 2026 Uke contributors - 1.1.0-2
+- Restore the exact NFC node's ACL mask before applying session access.
+- Reproduce masked and repaired grants with real filesystem ACLs in COPR.
+
 * Wed Nov 04 2026 Uke contributors - 1.1.0-1
 - Add a bounded native client for the exact read-only FM19511 kernel API.
 - Expose tag information, raw notifications, explicit memory reads and waits.

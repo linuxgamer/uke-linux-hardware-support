@@ -23,7 +23,10 @@ int main(int argc, char **argv) try {
     const fs::path fixture = fs::canonical(argv[1]), root = fs::canonical(argv[2]);
     need(root.string().starts_with(fixture.string() + "/roots/"), "Require an isolated fixture root");
     const std::string mode = argv[3];
-    need(mode == "upgrade-noarch" || mode == "fresh", "Unknown NFC check mode");
+    need(mode == "upgrade-noarch" || mode == "upgrade-native" || mode == "fresh", "Unknown NFC check mode");
+    const bool upgrading = mode != "fresh";
+    const std::string baseline_version = mode == "upgrade-noarch" ? "1.0.0" : "1.1.0";
+    const std::string baseline_arch = mode == "upgrade-noarch" ? "noarch" : "aarch64";
     libdnf5::Base base;
     auto &config = base.get_config();
     config.get_installroot_option().set(root.string());
@@ -54,13 +57,13 @@ int main(int argc, char **argv) try {
     installed.filter_installed();
     unsigned baseline = 0;
     for (const auto &package : installed) if (package.get_name() == "uke-nfc-ir") {
-        need(package.get_version() == "1.0.0" && package.get_release() == "1.fc46" &&
-             package.get_arch() == "noarch", "Wrong installed NFC baseline");
+        need(package.get_version() == baseline_version && package.get_release() == "1.fc46" &&
+             package.get_arch() == baseline_arch, "Wrong installed NFC baseline");
         ++baseline;
     }
-    need(baseline == (mode == "upgrade-noarch" ? 1U : 0U), "Unexpected NFC baseline count");
+    need(baseline == (upgrading ? 1U : 0U), "Unexpected NFC baseline count");
     libdnf5::Goal goal(base);
-    if (mode == "upgrade-noarch") goal.add_rpm_upgrade();
+    if (upgrading) goal.add_rpm_upgrade();
     else goal.add_rpm_install("uke-nfc-ir");
     auto transaction = goal.resolve();
     if (transaction.get_problems() != libdnf5::GoalProblem::NO_PROBLEM) {
@@ -72,14 +75,15 @@ int main(int argc, char **argv) try {
         const auto package = item.get_package();
         const auto action = item.get_action();
         if (libdnf5::transaction::transaction_item_action_is_outbound(action)) {
-            need(package.get_name() == "uke-nfc-ir" && package.get_version() == "1.0.0" &&
-                 package.get_arch() == "noarch", "Unexpected outbound package");
+            need(package.get_name() == "uke-nfc-ir" && package.get_version() == baseline_version &&
+                 package.get_release() == "1.fc46" && package.get_arch() == baseline_arch,
+                 "Unexpected outbound package");
             ++old_outbound;
         }
         if (!libdnf5::transaction::transaction_item_action_is_inbound(action)) continue;
         ++inbound;
         if (package.get_name() == "uke-nfc-ir") {
-            need(package.get_version() == "1.1.0" && package.get_release() == "1.fc46" &&
+            need(package.get_version() == "1.1.0" && package.get_release() == "2.fc46" &&
                  package.get_arch() == "aarch64" && package.get_repo_id() == "uke",
                  "Wrong NFC client selection");
             ++clients;
@@ -94,9 +98,9 @@ int main(int argc, char **argv) try {
         }
     }
     need(clients == 1 && providers == 1, "Missing unique native client or kernel-v2 provider");
-    need(old_outbound == baseline, "Old noarch client was not replaced exactly once");
-    std::cout << "UKE_NFC_DELIVERY mode=" << mode << " client=1.1.0-1.fc46.aarch64"
-              << " old_noarch_outbound=" << old_outbound << " kernel_v2_providers=" << providers
+    need(old_outbound == baseline, "Installed client was not replaced exactly once");
+    std::cout << "UKE_NFC_DELIVERY mode=" << mode << " client=1.1.0-2.fc46.aarch64"
+              << " baseline_outbound=" << old_outbound << " kernel_v2_providers=" << providers
               << " inbound=" << inbound << " weak_dependencies=true payload_transaction_executed=false hardware_tested=false\n";
     return 0;
 } catch (const std::exception &error) {

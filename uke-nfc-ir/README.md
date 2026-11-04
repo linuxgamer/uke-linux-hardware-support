@@ -52,6 +52,14 @@ and request change events for the corresponding misc/LIRC nodes. Installation
 does not send infrared codes or modify NFC tag contents. Source and udev rule
 checks remain separate from optical/RF hardware acceptance.
 
+Release 1.1.0-2 explicitly sets mode 0660 for the exact NFC provider before
+session ACL handling. A pre-existing named-user grant can remain ineffective
+when its ACL mask is zero; an unchanged grant does not make systemd recalculate
+that mask. The explicit mode restores the mask. Other users receive no access,
+and logind still controls the named-user grant and its revocation. The kernel's
+restrictive default and read-only API are unchanged. The package's COPR check
+reproduces this failure and repair on temporary-file ACLs without opening NFC.
+
 The 1.1.0 source requires remote client ABI/bounds/fault/poll checks and an
 AArch64 package build. It is not installed or physically qualified by those
 checks. Use an external compatible reader for the tablet's tag role and a

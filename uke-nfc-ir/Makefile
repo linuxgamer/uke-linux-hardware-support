@@ -11,4 +11,5 @@ srpm:
 	cp ../uke-control-qt/LICENSE "$$top/SOURCES/"
 	cp uke-nfc-ir.spec "$$top/SPECS/"
 	rpmbuild -bs --nodeps --target aarch64 --define "_topdir $$top" "$$top/SPECS/uke-nfc-ir.spec"
-	install -Dm644 "$$top/SRPMS/uke-nfc-ir-1.1.0-1"*.src.rpm "$(outdir)/uke-nfc-ir-1.1.0-1.src.rpm"
+	identity=$$(rpmspec -q --srpm --qf '%{NAME}-%{VERSION}-%{RELEASE}' "$$top/SPECS/uke-nfc-ir.spec")
+	install -Dm644 "$$top/SRPMS/$$identity.src.rpm" "$(outdir)/$$identity.src.rpm"
