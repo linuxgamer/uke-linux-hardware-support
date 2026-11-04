@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-05",
+  "scope": "Private v5 preparation in actual guarded activation plus exactly three kernel packaging lines; no kernel candidate or target operation",
+  "parent": {
+    "copr_build": 11261155,
+    "version": "1.8.93-1.fc46",
+    "source_commit": "cda5ed3452d1d29e88c2edfb00cecaa57257e27f",
+    "url": "https://download.copr.fedorainfracloud.org/results/mcc45tr/uke-linux-unstable/srpm-builds/11261155/uke-boot-integration-1.8.93-1.fc46.src.rpm",
+    "sha256": "da04eaf6ddc2f3d51aed23b75097516027799ccd4bcfadd6f1170641329e87e5",
+    "bytes": 344711
+  },
+  "native_changes": [
+    {
+      "path": "src/kernel-update.cpp",
+      "before": "be9830d0859d8358cc5ace5dc4d5d4b0b2294c711b7942e49aa27645ac8aba0a",
+      "after": "47805a2cb4a3c2048454ba30afea9675811d452074cf17633c686f194ff1819f"
+    },
+    {
+      "path": "src/oem-video.hpp",
+      "before": "19b1897ee6de470013f7d3ea40fb5db6b97aa26e7ae9b2d77380308a7b552cdb",
+      "after": "f8af3591efe435bbe8f0749fa62ff139f23c242bf46210c15c6497322fac6a4b"
+    }
+  ],
+  "retention": {
+    "all_other_native_sources_tests_and_services": "Exact parent bytes",
+    "automatic_staging": true,
+    "package_rollback_default": "enforced",
+    "local_preference": "Preserved by original noreplace policy; never reapplied",
+    "default_child_timeout_seconds": 15,
+    "private_preparation_timeout_seconds": 120
+  },
+  "kernel_layer": {
+    "commit": "1437234614c163ce08d7a93169cec7059f944113",
+    "assets": [
+      {
+        "path": "packaging/native/overlay-o82-private-dnf731.sh",
+        "sha256": "b48cc562e412e095165fd3b1f85722b122ecb9732e3eace973a855f4cbc87e48"
+      },
+      {
+        "path": "tests/o82-private-dnf-layer.sh",
+        "sha256": "5ca25c4f8d06b6ba58517aae65ebab64a4bc926e7d893904e5e366fc6f1a3e77"
+      }
+    ],
+    "parent_build": 11260781,
+    "parent_url": "https://download.copr.fedorainfracloud.org/results/mcc45tr/uke-linux-unstable/fedora-rawhide-aarch64/Packages/s/senemos-uke-linux-kernel-mainline-unstable-7.3.1-12101.fc46.src.rpm",
+    "parent_sha256": "8c436d285a39067097507972b7b1f8e4199e94f75abddf30d9fe35072449f342",
+    "scope": "Actual complete12101/v5 RPM spec, exact three-line delta and retention; no native kernel build or replacement of queued touch/geometry/GMU features"
+  },
+  "runtime": {
+    "version": "1.8.94-1.fc46",
+    "capability": "uke-kernel-update(o82-private-color-v5) = 1",
+    "utility_requirement": "uke-o82-color-profile >= 0.7.0-1",
+    "utility_check": 11261358,
+    "boot_manifest_marker": "o82_private_color=5",
+    "markerless_or_dry_stock_access": false,
+    "helper_failure_stops_activation": true
+  },
+  "qualification": {
+    "state": "pending",
+    "copr_build": null
+  },
+  "delivery": {
+    "single_coordinator_required": true,
+    "full_kernel_submitted": false,
+    "installation_or_selection": false,
+    "private_preparation_on_tablet": false,
+    "physical_acceptance": false
+  },
+  "inputs": [
+    {
+      "path": "src/o82-private-color.hpp",
+      "sha256": "98e52a0bb2cf9c04d871bb01e344d90ddda030b0859cf70756b3314ee9b792e6"
+    },
+    {
+      "path": "tests/o82-private-color.cpp",
+      "sha256": "91f2bfb37aec21f71c356b6177a0e71c6042399248ee6224e15b30ff9caf1f0b"
+    },
+    {
+      "path": "tests/o82-private-color.sh",
+      "sha256": "876b8680cf9e9ca449fdb0d8bb3c401aad97f52f4d13663f83d48897bb6feb99"
+    },
+    {
+      "path": "patches/o82-private-color-dnf.patch",
+      "sha256": "8858ff9b70238f7a6af05c7e4e55a75f6e979bac76a535d7408e3ba0c0ac243d"
+    },
+    {
+      "path": "host/copr-o82-private-color.sh",
+      "sha256": "f75649440c5b590fe030be5d19244c7d7cdb97fac4086dcdaa3d3c119f42d843"
+    },
+    {
+      "path": "docs/O82-PRIVATE-COLOR.md",
+      "sha256": "4bdb05876fe6badbfc32a8cfcb991fc14202ffc3fa2f81cb45734a117f3dd429"
+    }
+  ]
+}

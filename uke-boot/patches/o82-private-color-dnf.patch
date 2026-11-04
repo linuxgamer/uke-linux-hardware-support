@@ -1,0 +1,141 @@
+--- a/src/kernel-update.cpp
++++ b/src/kernel-update.cpp
+@@ -3,6 +3,7 @@
+ #include "boot-common.hpp"
+ #include "installation-policy.hpp"
+ #include "trial-health.hpp"
++#include "o82-private-color.hpp"
+ #include <openssl/evp.h>
+ #include <algorithm>
+ #include <array>
+@@ -344,13 +345,14 @@
+     const std::set<std::string> keys={"format","kernel_release","linux_image_sha256","userdata_image_sha256","linux_kernel_sha256","userdata_kernel_sha256","modules_sha256"};
+     for(const auto &[key,value]:manifest) {
+         (void)value;
+-        need(keys.contains(key) || key=="root_selector_capability" || key=="touch_client_sha256","Unexpected update manifest fields");
++        need(keys.contains(key) || key=="root_selector_capability" || key=="touch_client_sha256" || key=="o82_private_color","Unexpected update manifest fields");
+     }
+     if(manifest.contains("root_selector_capability"))
+         need(manifest.at("root_selector_capability")=="uke-elfnote-v1" || manifest.at("root_selector_capability")=="uke-elfnote-v2","Unknown root selector capability");
+     for(const auto &key:keys) need(manifest.contains(key),"Missing manifest field");
+     need(manifest.at("format")=="1" && token(manifest.at("kernel_release")),"Unsupported bundle format");
+     const auto release=manifest.at("kernel_release");
++    (void)uke_color::required(manifest);
+     need(development || fs::is_directory(modules/running/"kernel"),"Keep the running kernel modules installed for rollback");
+     const auto inventory=file(bundle/"modules.sha256");
+     need(digest(inventory)==manifest.at("modules_sha256"),"Module inventory digest mismatch");
+@@ -469,6 +471,11 @@
+ }
+ #include "userdata-update.hpp"
+ #include "select-existing-slot.hpp"
++static void prepare_private_color(const std::string &release) {
++    trusted("/usr/bin/uke-o82-color-profile");
++    (void)uke_video::capture({"/usr/bin/uke-o82-color-profile","--prepare-kernel",release},4096,
++                             std::chrono::seconds(120));
++}
+ static bool activation_enabled(const std::string &label) {
+     if(label=="userdata" && !automatic_policy_ready("/var/lib/senemos/kernel-update")) {
+         std::cout<<"Automatic policy migration is incomplete; boot activation deferred\n";return false;
+@@ -608,22 +615,25 @@
+         const auto stage_selected=[&](const fs::path &selected,const Bytes &bytes,bool dry) {
+             need(fs::exists(state/"userdata.state"),"Seamless staging requires protected baseline state");
+             const auto saved=decode(file(state/"userdata.state"));
+-            const auto raw=file(selected/"manifest");const auto next=properties(std::string(raw.begin(),raw.end())).at("kernel_release");
++            const auto raw=file(selected/"manifest");const auto manifest=properties(std::string(raw.begin(),raw.end()));
++            const auto next=manifest.at("kernel_release");
+             const auto plan=seamless_stage(rollback,saved.policy,saved.staged_boot_id,boot_id,current.release,next);
+             if(plan==SeamlessStage::current || plan==SeamlessStage::pending || plan==SeamlessStage::older || plan==SeamlessStage::deferred) {
+                 std::cout<<"Seamless policy enabled; current, pending or older development selection needs no additional staging\n";return;
+             }
+             const bool replacing=plan==SeamlessStage::replace_trial;
+-            if(!dry) {
+-                const auto super=partition("super");
+-                need(ufs_controller(fs::path("/sys/class/block")/super.first)==ufs_controller(fs::path("/sys/class/block")/root.first),
+-                     "Seamless firmware import requires the measured userdata UFS controller");
+-                uke_video::import_firmware(next,current.release,super);
+-                trusted("/usr/libexec/senemos-uke/uke-install-profile");
+-                (void)uke_video::capture({"/usr/libexec/senemos-uke/uke-install-profile","clock-save-required"},4096);
+-            }
+-            userdata_update(replacing?(dry?"check-trial":"replace-trial"):(dry?"check":"apply"),selected,bytes,state,
+-                            current.release,filesystem,false,rollback==RollbackMode::off);
++            uke_color::with_prepared(manifest,current.release,dry,prepare_private_color,[&] {
++                if(!dry) {
++                    const auto super=partition("super");
++                    need(ufs_controller(fs::path("/sys/class/block")/super.first)==ufs_controller(fs::path("/sys/class/block")/root.first),
++                         "Seamless firmware import requires the measured userdata UFS controller");
++                    uke_video::import_firmware(next,current.release,super);
++                    trusted("/usr/libexec/senemos-uke/uke-install-profile");
++                    (void)uke_video::capture({"/usr/libexec/senemos-uke/uke-install-profile","clock-save-required"},4096);
++                }
++                userdata_update(replacing?(dry?"check-trial":"replace-trial"):(dry?"check":"apply"),selected,bytes,state,
++                                current.release,filesystem,false,rollback==RollbackMode::off);
++            });
+         };
+         if(action=="boot") {
+             boot_userdata(bundle,
+@@ -649,8 +659,15 @@
+                 if(bundle==running_bundle){std::cout<<"Installed userdata kernel already running; no slot update\n";return 0;}
+                 stage_selected(bundle,bytes,preflight);return 0;
+             }
+-            userdata_update(preflight?"check":automatic?"apply":action,bundle,bytes,state,current.release,filesystem,false,
+-                            !automatic && !preflight && (action=="check" || action=="apply" || action=="check-trial" || action=="replace-trial"));return 0;
++            const auto update=[&] {
++                userdata_update(preflight?"check":automatic?"apply":action,bundle,bytes,state,current.release,filesystem,false,
++                                !automatic && !preflight && (action=="check" || action=="apply" || action=="check-trial" || action=="replace-trial"));
++            };
++            if(action=="apply" || action=="replace-trial") {
++                const auto raw=file(bundle/"manifest");
++                uke_color::with_prepared(properties(std::string(raw.begin(),raw.end())),current.release,false,prepare_private_color,update);
++            } else update();
++            return 0;
+         }
+         const auto target=partition("boot_b");
+         need(ufs_controller(fs::path("/sys/class/block")/target.first)==ufs_controller(fs::path("/sys/class/block")/root.first),"Root and boot_b must share the measured UFS controller");
+@@ -690,14 +707,17 @@
+         need(charging(),"Verified battery must be at least 50%, or at least 30% with external power");
+         need(fs::space(state).available>capacity+16*1024*1024,"Insufficient durable backup space");
+         auto inhibitor=inhibit_shutdown();
+-        const auto backup=state/(previous_hash+"-"+next_hash+"-previous.img");
+-        if(current_trial)save_update(state/"userdata.state",*current_trial);
+-        try {replace_verified(boot.value,bytes,backup);}
+-        catch(...) {
+-            if(accepted && read_fd(boot.value,capacity)==previous)save_update(state/"userdata.state",*accepted);
+-            throw;
+-        }
+-        std::cout<<"boot_b updated, synced and read back; previous image retained at "<<backup<<". Reboot manually.\n";
++        const auto manifest=properties(std::string(raw.begin(),raw.end()));
++        uke_color::with_prepared(manifest,current.release,false,prepare_private_color,[&] {
++            const auto backup=state/(previous_hash+"-"+next_hash+"-previous.img");
++            if(current_trial)save_update(state/"userdata.state",*current_trial);
++            try {replace_verified(boot.value,bytes,backup);}
++            catch(...) {
++                if(accepted && read_fd(boot.value,capacity)==previous)save_update(state/"userdata.state",*accepted);
++                throw;
++            }
++            std::cout<<"boot_b updated, synced and read back; previous image retained at "<<backup<<". Reboot manually.\n";
++        });
+         return 0;
+     } catch(const TrialHealthFailure &e) {
+         std::cerr<<"uke-kernel-update: trial health rejected: "<<e.what()<<"; accepted rollback retained\n";return trial_health_rejected;
+--- a/src/oem-video.hpp
++++ b/src/oem-video.hpp
+@@ -88,7 +88,9 @@
+     }
+     need(!out.empty(),"No admitted ODM/vendor partition found");return out;
+ }
+-static inline Bytes capture(const std::vector<std::string> &args,size_t maximum=8*1024*1024) {
++static inline Bytes capture(const std::vector<std::string> &args,size_t maximum=8*1024*1024,
++                            std::chrono::milliseconds timeout=std::chrono::seconds(15)) {
++    need(timeout.count()>0 && timeout<=std::chrono::seconds(120),"Invalid bounded helper timeout");
+     need(!args.empty(),"Missing read-only helper command");int descriptors[2];
+     need(!pipe2(descriptors,O_CLOEXEC|O_NONBLOCK),"Cannot open bounded helper output");
+     Fd reader(descriptors[0]),writer(descriptors[1]);const auto child=fork();need(child>=0,"Cannot fork read-only helper");
+@@ -102,7 +104,7 @@
+         execve(argv[0],argv.data(),env);_exit(127);
+     }
+     close(writer.value);writer.value=-1;Bytes result;bool eof=false,child_done=false;int status=0;
+-    const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(15);
++    const auto deadline=std::chrono::steady_clock::now()+timeout;
+     try {
+         while(!eof) {
+             need(std::chrono::steady_clock::now()<deadline,"Read-only firmware helper timed out");
