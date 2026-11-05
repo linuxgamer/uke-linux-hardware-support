@@ -31,7 +31,7 @@
     "private_preparation_timeout_seconds": 120
   },
   "kernel_layer": {
-    "commit": "1437234614c163ce08d7a93169cec7059f944113",
+    "commit": "5f5aaf3bfc64b3a44c66a6c235632d8b07fcfc5c",
     "assets": [
       {
         "path": "packaging/native/overlay-o82-private-dnf731.sh",
@@ -39,7 +39,7 @@
       },
       {
         "path": "tests/o82-private-dnf-layer.sh",
-        "sha256": "5ca25c4f8d06b6ba58517aae65ebab64a4bc926e7d893904e5e366fc6f1a3e77"
+        "sha256": "ffe9686d55f5038d643958df67c915b635dd5288a447e78f745cbe57c0b4a4fd"
       }
     ],
     "parent_build": 11260781,
@@ -58,7 +58,16 @@
   },
   "qualification": {
     "state": "pending",
-    "copr_build": null
+    "copr_build": null,
+    "failed_trials": [
+      {
+        "copr_build": 11261432,
+        "phase": "source",
+        "published_source_rpm": false,
+        "cause": "Fixture expected a removed direct posttrans instead of retained final-transaction-v2 with no new scriptlet",
+        "production_native_code_changed": false
+      }
+    ]
   },
   "delivery": {
     "single_coordinator_required": true,
