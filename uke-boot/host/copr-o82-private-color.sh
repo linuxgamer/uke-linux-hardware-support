@@ -16,10 +16,10 @@ curl -fLsS --max-time 45 --get --data-urlencode ownername=mcc45tr \
 jq -e '.items|type=="array" and length>0' "$work/builds.json" >/dev/null
 while IFS= read -r version; do
     [[ $version =~ ^[0-9]+([.][0-9]+)*-[0-9]+([.][a-zA-Z0-9]+)*$ ]]
-    comparison=$(rpm --eval "%{lua:print(rpm.vercmp(\"$version\", \"1.8.94-1.fc46\"))}")
+    comparison=$(rpm --eval "%{lua:print(rpm.vercmp(\"$version\", \"1.8.95-1.fc46\"))}")
     [[ $comparison =~ ^-?[0-9]+$ && $comparison -lt 0 ]]
 done < <(jq -r '.items[]|select(.source_package.name=="uke-boot-integration" and .source_package.url!=null)|
- select(.project_dirname=="uke-linux-unstable" or .source_package.version=="1.8.94-1.fc46")|.source_package.version' "$work/builds.json")
+ select(.project_dirname=="uke-linux-unstable" or .source_package.version=="1.8.95-1.fc46")|.source_package.version' "$work/builds.json")
 curl -fLsS --retry 2 --max-time 90 --proto '=https' --proto-redir '=https' \
  "$(jq -er .parent.url "$manifest")" -o "$work/parent.src.rpm"
 printf '%s  %s\n' "$(jq -er .parent.sha256 "$manifest")" "$work/parent.src.rpm" | sha256sum -c --strict -
@@ -54,6 +54,7 @@ done
 grep -Fxq '%config(noreplace) /etc/senemos/rollback.conf' "$work/rpm/uke-boot-integration.spec"
 [[ $(grep -c 'uke_color::with_prepared' "$native/src/kernel-update.cpp") == 3 ]]
 printf 'All other1.8.93 updater, RTC, policy, services and test sources retained byte-for-byte\n'
+bash "$native/tests/o82-private-color.sh"
 
 # Qualify the three-line kernel metadata layer on the actual complete12101 spec.
 kernel_commit=$(jq -er .kernel_layer.commit "$manifest")
@@ -82,30 +83,30 @@ printf 'Kernel metadata checked only; no revision, Image, module or boot package
 
 spec=$output/uke-boot-integration.spec
 awk '
- /^%changelog$/ {history=1;print;print "* Thu Nov 05 2026 Uke contributors - 1.8.94-1";
+ /^%changelog$/ {history=1;print;print "* Thu Nov 05 2026 Uke contributors - 1.8.95-1";
    print "- Prepare admitted private O82 v5 data before kernel activation.";
    print "- Preserve legacy and dry checks, staging policy, RTC and rollback preferences.";print "";next}
- !history {gsub(/1[.]8[.]93/,"1.8.94")}
+ !history {gsub(/1[.]8[.]93/,"1.8.95")}
  /^%package -n uke-kernel-update$/ {
    print;print "Requires: uke-o82-color-profile >= 0.7.0-1";
    print "Provides: uke-kernel-update(o82-private-color-v5) = 1";packages++;next}
  /^%check$/ {checking=1}
  checking && /^%[a-z]/ && $0!="%check" {
-   print "bash %{_builddir}/uke-boot-integration-1.8.94/work/uke-boot-integration/uke-boot-integration-1.8.94/tests/o82-private-color.sh";
+   print "bash %{_builddir}/uke-boot-integration-1.8.95/work/uke-boot-integration/uke-boot-integration-1.8.95/tests/o82-private-color.sh";
    checking=0;checks++}
  /^%transfiletriggerin -n uke-kernel-update -- \/usr\/lib\/senemos$/ {trigger++}
  {print}
  END {if(packages!=1||checks!=1||trigger!=1)exit 1}' "$work/rpm/uke-boot-integration.spec" > "$spec"
-mv "$native" "$work/inner/uke-boot-integration-1.8.94"
+mv "$native" "$work/inner/uke-boot-integration-1.8.95"
 epoch=$(git -C "$owner" show -s --format=%ct HEAD)
 find "$outer/inputs/uke-boot-integration" -maxdepth 1 -type f -name uke-boot-integration-1.8.93.tar.xz -delete
 tar --sort=name --mtime="@$epoch" --owner=0 --group=0 --numeric-owner -cJf \
- "$outer/inputs/uke-boot-integration/uke-boot-integration-1.8.94.tar.xz" -C "$work/inner" uke-boot-integration-1.8.94
+ "$outer/inputs/uke-boot-integration/uke-boot-integration-1.8.95.tar.xz" -C "$work/inner" uke-boot-integration-1.8.95
 cp "$spec" "$outer/inputs/uke-boot-integration/uke-boot-integration.spec"
 install -m644 "$manifest" "$outer/o82-private-color-source.json"
 git -C "$owner" rev-parse HEAD > "$outer/o82-private-color-source-commit"
-mv "$outer" "$work/outer/uke-boot-integration-1.8.94"
+mv "$outer" "$work/outer/uke-boot-integration-1.8.95"
 tar --sort=name --mtime="@$epoch" --owner=0 --group=0 --numeric-owner -cJf \
- "$output/uke-boot-integration-1.8.94.tar.xz" -C "$work/outer" uke-boot-integration-1.8.94
-[[ $(rpmspec --define 'dist %{nil}' -q --srpm --qf '%{NAME}-%{VERSION}-%{RELEASE}' "$spec") == uke-boot-integration-1.8.94-1.fc46 ]]
+ "$output/uke-boot-integration-1.8.95.tar.xz" -C "$work/outer" uke-boot-integration-1.8.95
+[[ $(rpmspec --define 'dist %{nil}' -q --srpm --qf '%{NAME}-%{VERSION}-%{RELEASE}' "$spec") == uke-boot-integration-1.8.95-1.fc46 ]]
 printf 'Private O82 DNF userspace source prepared; native compilation/checks remain in COPR\n'

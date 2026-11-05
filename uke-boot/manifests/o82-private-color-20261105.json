@@ -48,7 +48,7 @@
     "scope": "Actual complete12101/v5 RPM spec, exact three-line delta and retention; no native kernel build or replacement of queued touch/geometry/GMU features"
   },
   "runtime": {
-    "version": "1.8.94-1.fc46",
+    "version": "1.8.95-1.fc46",
     "capability": "uke-kernel-update(o82-private-color-v5) = 1",
     "utility_requirement": "uke-o82-color-profile >= 0.7.0-1",
     "utility_check": 11261358,
@@ -66,6 +66,17 @@
         "published_source_rpm": false,
         "cause": "Fixture expected a removed direct posttrans instead of retained final-transaction-v2 with no new scriptlet",
         "production_native_code_changed": false
+      },
+      {
+        "copr_build": 11261448,
+        "phase": "native-check",
+        "published_source_rpm": true,
+        "version": "1.8.94-1.fc46",
+        "cause": "Clang reports included legacy static RPM helper unused in new wrapped fixture",
+        "production_native_code_changed": false,
+        "retained_parent_controls": "passed, including four compiler/sanitizer RTC modes",
+        "new_gcc_callback_checks": 60,
+        "correction": "Exercise the real read-only RPM version query; preserve strict diagnostics"
       }
     ]
   },
@@ -83,7 +94,7 @@
     },
     {
       "path": "tests/o82-private-color.cpp",
-      "sha256": "91f2bfb37aec21f71c356b6177a0e71c6042399248ee6224e15b30ff9caf1f0b"
+      "sha256": "eaaeba63e9eeac863f50962d7ff38e2b9b8bb0cfe7ce4f436cd1e39fd7b80221"
     },
     {
       "path": "tests/o82-private-color.sh",
@@ -95,7 +106,7 @@
     },
     {
       "path": "host/copr-o82-private-color.sh",
-      "sha256": "f75649440c5b590fe030be5d19244c7d7cdb97fac4086dcdaa3d3c119f42d843"
+      "sha256": "b2a4670269a061d58abff873692b20c041548d9cdfd94c794221efea7eb56d60"
     },
     {
       "path": "docs/O82-PRIVATE-COLOR.md",

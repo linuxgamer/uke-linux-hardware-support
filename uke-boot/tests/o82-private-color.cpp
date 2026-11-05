@@ -54,6 +54,7 @@ void color_contract() {
     reject([&] { (void)properties("o82_private_color=5\no82_private_color=4\n"); });
 }
 void capture_contract() {
+    color_check(!rpm({"--version"}).empty());
     color_check(uke_video::capture({"/usr/bin/printf", "ok"}, 2) == Bytes({'o', 'k'}));
     color_check(uke_video::capture({"/usr/bin/printf", "ok"}, 2, std::chrono::seconds(120)) == Bytes({'o', 'k'}));
     reject([&] { (void)uke_video::capture({"/usr/bin/printf", "ok"}, 2, std::chrono::milliseconds(0)); });
