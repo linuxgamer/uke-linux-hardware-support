@@ -57,8 +57,8 @@
     "helper_failure_stops_activation": true
   },
   "qualification": {
-    "state": "pending",
-    "copr_build": null,
+    "state": "succeeded",
+    "copr_build": 11261509,
     "failed_trials": [
       {
         "copr_build": 11261432,
@@ -78,7 +78,46 @@
         "new_gcc_callback_checks": 60,
         "correction": "Exercise the real read-only RPM version query; preserve strict diagnostics"
       }
-    ]
+    ],
+    "source_commit": "ae967e08dfc41b786d42316233f4d7089411eafe",
+    "started_on": 1793837895,
+    "ended_on": 1793838226,
+    "environment": "Fedora Rawhide AArch64 COPR; synthetic updater files and read-only native process metadata",
+    "private_gate_checks_per_compiler": 61,
+    "compiler_modes": [
+      "GCC optimized",
+      "Clang ASan/UBSan"
+    ],
+    "source_and_native_private_gate_checks_passed": true,
+    "retained_parent_controls_and_four_rtc_modes_passed": true,
+    "kernel_metadata_required_refusals": 3,
+    "kernel_metadata_idempotence_and_exact_retention": true,
+    "source_log_gzip_sha256": "7dd466b9fdf39348a4e3849e53a9eb5671d99f2aa30de512d2a1b9e047e1b858",
+    "native_log_gzip_sha256": "f8055d6c6f41143b6d038d5481598dca3dfbe32d19d2e410c22e6ddffec52151",
+    "root_primary_sha256": "d1e6e25dc79231955ef66ac5189b62f2d951153cedf4c366a5ace1e1798a4e88",
+    "verified_artifacts": [
+      {
+        "name": "uke-boot-integration",
+        "sha256": "d81789e11d7fad3ba4e4b87506017c255f5e5db2c4ca5d9fd76887ece952ff70",
+        "bytes": 234560
+      },
+      {
+        "name": "uke-installation-profile",
+        "sha256": "1a3588e15ca1ed9d59edd68d7b00aef6b48ad2981cfc28df35d428ad6c1417c9",
+        "bytes": 69587
+      },
+      {
+        "name": "uke-kernel-update",
+        "sha256": "6ec3ec4bbc2a56b1bd746e59a445129d14a638e91138eb8f8e467b14420259d6",
+        "bytes": 205389
+      }
+    ],
+    "trusted_signatures": true,
+    "actual_elf_aarch64_and_private_call_strings": true,
+    "all_three_policy_files_noreplace": true,
+    "rollback_payload_default": "enforced",
+    "no_target_install_or_kernel_profile_operation": true,
+    "physical_color_acceptance": false
   },
   "delivery": {
     "single_coordinator_required": true,

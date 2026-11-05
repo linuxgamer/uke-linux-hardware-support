@@ -1,5 +1,15 @@
 # Uke boot integration
 
+5 November 2026. Unstable userspace1.8.95 passed [COPR11261509](https://copr.fedorainfracloud.org/coprs/mcc45tr/uke-linux-unstable/build/11261509/).
+New v5 kernel bundles can require private fitted-panel preparation before the
+existing guarded activation. GCC/Clang callback checks and retained RTC,
+rollback, userdata and startup controls pass. Published updater/boot/profile
+RPM signatures, dependency/capability, actual AArch64 updater hooks and all
+three policy noreplace flags verify. No installation or kernel/profile selection
+is performed. Full cumulative kernel integration and physical color/HDR
+acceptance remain open. See [the integration](docs/O82-PRIVATE-COLOR.md) and
+[qualification](manifests/o82-private-color-20261105.json).
+
 30 October 2026. Version `1.8.6` adds vendor defaults that restrict kernel
 pointers and kernel logs. Installation applies these two keys using the
 effective sysctl.d configuration, including administrative overrides.
