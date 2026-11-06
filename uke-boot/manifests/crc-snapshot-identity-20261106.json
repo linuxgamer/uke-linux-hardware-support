@@ -1,0 +1,46 @@
+{
+  "date": "2026-11-06",
+  "version": "1.8.102",
+  "parent_build": 11269198,
+  "parent_source": "99fe6e6001377e277b4a289438d6224bbf2339c6",
+  "parent_srpm_sha256": "0c138d890796f905035adde060806267c707fe202d2a79dcc66865e87a438fbc",
+  "source_assets": [
+    {
+      "path": "patches/crc-snapshot-identity.patch",
+      "sha256": "63f2ae9a55d7130d68381faef5e186c40b6f4d6ba0d31e8d2822c30c5e4ebb17"
+    },
+    {
+      "path": "tests/crc-snapshot-identity.sh",
+      "sha256": "1438e64ffe0e15b69beca63ebcc71222ba97d80cb40a854f5002ce087a91c5e8"
+    },
+    {
+      "path": "docs/CRC-SNAPSHOT-IDENTITY.md",
+      "sha256": "8b0a101e457d8b73d51ede93e2625982e0c8b7d615f7801bb3b574f9cf18ffea"
+    },
+    {
+      "path": "host/copr-crc-snapshot-identity.sh",
+      "sha256": "d817485662085dd02db2d7322c99cbebd1772e2dfbd05510befbaca181288c21"
+    }
+  ],
+  "native_source_delta": [
+    {
+      "path": "src/slot-control.hpp",
+      "preimage": "425319a63d52cac57f42ee5e3c86ce246bc3ede1f02c55d7f03d61860b0b77eb",
+      "postimage": "aea7e803a0502abae32c9577773f91b0e9de880781820d82749d6e544812f649"
+    },
+    {
+      "path": "src/metadata-maintenance.hpp",
+      "preimage": "abba9ba6d36334e22360179eb6eb061fe95e65ad322c4366cac0448a9325d4b6",
+      "postimage": "a34f37824ec51b11eb2b1de2118d36c9cd64a54febbc2e29732b1536b6ed8116"
+    },
+    {
+      "path": "tests/slot-control.cpp",
+      "preimage": "536605db9a90ce8a6257fd38965c56a94bd775a93348a274fb8616b6a07391a6",
+      "postimage": "b559c73711a2ef147bf14081eed5eb5afedd491c41d9fe3e9a7c2d434a96a72d"
+    }
+  ],
+  "legacy_journals_preserved": true,
+  "matching_name_contents_must_equal": true,
+  "geometry_flags_ufs_checkpoint_preferences_unchanged": true,
+  "physical_acceptance": false
+}

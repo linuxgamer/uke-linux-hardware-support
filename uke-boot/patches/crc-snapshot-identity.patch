@@ -1,0 +1,108 @@
+From: Uke Linux contributors <75160848+MCC45TR@users.noreply.github.com>
+Subject: [PATCH] boot: key CRC-only journals by the complete observed snapshot
+
+Keep journals immutable while allowing different stale headers for identical
+partition arrays. Preserve legacy records and exact-content refusal.
+
+--- a/src/slot-control.hpp
++++ b/src/slot-control.hpp
+@@ -94,6 +94,11 @@
+         if(fdisk_is_ask(ask,WARN)||fdisk_is_ask(ask,WARNX))*static_cast<bool*>(data)=true;
+         return fdisk_is_ask(ask,INFO)||fdisk_is_ask(ask,WARN)||fdisk_is_ask(ask,WARNX)?0:-EINVAL;
+     }
++    Bytes backup_bytes() const {
++        Bytes data=observed.mbr;
++        for(const auto *part:{&observed.primary,&observed.backup,&observed.entries})data.insert(data.end(),part->begin(),part->end());
++        return data;
++    }
+ public:
+     int fd;uint64_t size;unsigned sector;
+     Snapshot before;
+@@ -131,9 +136,9 @@
+             expected.emplace(name,std::make_pair(type,attrs));
+         }
+     }
++    std::string backup_identity() const {return digest(backup_bytes());}
+     void backup(const fs::path &path) const {
+-        Bytes data=observed.mbr;
+-        for(const auto *part:{&observed.primary,&observed.backup,&observed.entries})data.insert(data.end(),part->begin(),part->end());
++        const auto data=backup_bytes();
+         if(!fs::exists(path))save_new(path,data);
+         need(file(path)==data,"Durable GPT backup differs from current metadata");
+     }
+--- a/src/metadata-maintenance.hpp
++++ b/src/metadata-maintenance.hpp
+@@ -23,7 +23,7 @@
+     if(changed.empty())return false;
+     if(preview)return true;
+     for(const auto &[name,disk]:changed)
+-        disk->backup(state/("crc-only-"+digest(disk->before.entries)+"-"+name+".gpt"));
++        disk->backup(state/("crc-only-v2-"+disk->backup_identity()+"-"+name+".gpt"));
+     try {
+         for(const auto &[name,disk]:changed){(void)name;disk->commit();}
+     } catch(...) {
+--- a/tests/slot-control.cpp
++++ b/tests/slot-control.cpp
+@@ -214,6 +214,12 @@
+         const auto record=fs::path(private_state)/"userdata.state";
+         save_new(record,Bytes{'u','n','a','p','p','r','o','v','e','d'});
+         const auto saved=file(record);
++        // Same partition arrays can have different observed stale header bytes.
++        const auto legacy=fs::path(private_state)/("crc-only-"+digest(trial.entries)+"-fixture.gpt");
++        auto earlier=trial.backup;set32(earlier,88,le32(earlier,88)^4);header_crc(earlier);
++        slot::write_at(fd.value,trial.last*sector,earlier);
++        slot::Disk previous(fd.value,st.st_size,sector,true);previous.backup(legacy);
++        const auto legacy_bytes=file(legacy);
+         auto old=trial.backup;set32(old,88,le32(old,88)^1);header_crc(old);
+         slot::write_at(fd.value,trial.last*sector,old);
+         slot::Disk repair(fd.value,st.st_size,sector,true);
+@@ -221,10 +227,39 @@
+         const auto observed=slot::snapshot(fd.value,st.st_size,sector,true);
+         assert(repair_unaccepted_slot_crc(targets,private_state,true));
+         assert(slot::snapshot(fd.value,st.st_size,sector,true)==observed && fs::is_empty(fs::path(private_state))==false);
+-        assert(std::distance(fs::directory_iterator(private_state),fs::directory_iterator{})==1);
+-        assert(repair_unaccepted_slot_crc(targets,private_state,false));
++        assert(std::distance(fs::directory_iterator(private_state),fs::directory_iterator{})==2);
++        bool completed=false;
++        try {completed=repair_unaccepted_slot_crc(targets,private_state,false);} catch(const std::exception&) {}
++        assert(completed);
+         const auto fixed=slot::snapshot(fd.value,st.st_size,sector);
+         assert(fixed==trial && file(record)==saved);
++        const auto first_key=fs::path(private_state)/("crc-only-v2-"+repair.backup_identity()+"-fixture.gpt");
++        assert(digest(file(first_key))==repair.backup_identity());
++        const auto first_bytes=file(first_key);
++        for(unsigned delta:{2u,1u}) {
++            auto stale=trial.backup;set32(stale,88,le32(stale,88)^delta);header_crc(stale);
++            slot::write_at(fd.value,trial.last*sector,stale);
++            slot::Disk next(fd.value,st.st_size,sector,true);
++            const auto key=fs::path(private_state)/("crc-only-v2-"+next.backup_identity()+"-fixture.gpt");
++            completed=false;
++            try {completed=repair_unaccepted_slot_crc({{"fixture",&next}},private_state,false);} catch(const std::exception&) {}
++            assert(completed && slot::snapshot(fd.value,st.st_size,sector)==trial);
++            assert(digest(file(key))==next.backup_identity() && file(first_key)==first_bytes);
++            assert(file(legacy)==legacy_bytes && file(record)==saved);
++        }
++        assert(std::distance(fs::directory_iterator(private_state),fs::directory_iterator{})==4);
++        // A matching snapshot name with different contents must still refuse.
++        slot::write_at(fd.value,trial.last*sector,old);
++        slot::Disk mismatch(fd.value,st.st_size,sector,true);
++        const auto before_mismatch=slot::snapshot(fd.value,st.st_size,sector,true);
++        auto altered=first_bytes;altered.back()^=1;
++        Fd journal(open(first_key.c_str(),O_RDWR|O_CLOEXEC));assert(journal.value>=0);
++        slot::write_at(journal.value,0,altered);
++        reject([&]{repair_unaccepted_slot_crc({{"fixture",&mismatch}},private_state,false);});
++        assert(slot::snapshot(fd.value,st.st_size,sector,true)==before_mismatch);
++        slot::write_at(journal.value,0,first_bytes);
++        assert(repair_unaccepted_slot_crc({{"fixture",&mismatch}},private_state,false));
++        assert(file(first_key)==first_bytes && file(legacy)==legacy_bytes && file(record)==saved);
+         slot::Disk clean(fd.value,st.st_size,sector);
+         assert(!repair_unaccepted_slot_crc({{"fixture",&clean}},private_state,false));
+         assert(slot::snapshot(fd.value,st.st_size,sector)==fixed && file(record)==saved);
+@@ -236,6 +271,7 @@
+         assert(slot::snapshot(fd.value,st.st_size,sector,true).entries==trial.entries && file(record)==saved);
+         a.restore();fs::remove_all(private_state);
+     }
++    std::cout<<"CRC snapshot identity: same arrays with distinct stale headers, retained legacy journals, exact repeat, immutable collision refusal and unapproved state passed\n";
+     std::cout<<"Rollback-off CRC maintenance: actual preview/commit/idempotence, both slots, unchanged flags/types/approval and pending-mutation refusal passed\n";
+     auto stale=original.entries;stale[0]^=1;slot::write_at(fd.value,original.primary_entries,stale);
+     reject([&]{slot::snapshot(fd.value,st.st_size,sector);});a.restore();
