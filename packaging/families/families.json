@@ -54,7 +54,7 @@
         "uke-boot-integration >= 1.3.4"
       ],
       "suggests": [
-        "uke-adaptive-display = 1.0.16-6%{?dist}",
+        "uke-adaptive-display = 1.0.16-7%{?dist}",
         "uke-battery-observer",
         "uke-charge-control"
       ],
@@ -76,7 +76,7 @@
         ":(exclude)uke-desktop-integration/src/bluetooth-address.cpp",
         ":(exclude)uke-desktop-integration/packaging/uke-bluetooth-address.service"
       ],
-      "release": 5
+      "release": 6
     },
     {
       "name": "uke-sensors",
@@ -89,7 +89,7 @@
         "uke-ssc-fileservice",
         "uke-front-color"
       ],
-      "release": 5,
+      "release": 6,
       "watch_paths": [
         "uke-sensors/packaging/libssc",
         "uke-sensors/patches/libssc",
@@ -160,7 +160,7 @@
         "uke-desktop-packaging/src/native-runtime/runtime-smoke.cpp",
         "uke-desktop-packaging/src/native-runtime/fedora-exported-symbols.txt"
       ],
-      "release": 10
+      "release": 11
     },
     {
       "name": "uke-metas",
@@ -229,23 +229,23 @@
     "uke-installation-profile": "1.8.2"
   },
   "release_overrides": {
-    "iio-sensor-proxy": "23.fc46",
+    "iio-sensor-proxy": "24.fc46",
     "uke-boot-integration": "1.fc46",
     "uke-plymonth": "4.fc46",
-    "upower": "14.fc46",
-    "uke-adaptive-display": "6.fc46",
+    "upower": "15.fc46",
+    "uke-adaptive-display": "7.fc46",
     "uke-firmware": "9.fc46",
     "libssc": "18.fc46",
-    "uke-ssc-fileservice": "23.fc46",
-    "uke-front-color": "13.fc46",
-    "at-spi2-core": "11.fc46",
-    "gstreamer1": "11.fc46",
-    "libaccounts-glib": "39.fc46",
-    "libwacom": "12.fc46",
-    "libstdcxx-uke-runtime": "13.fc46",
-    "mesa": "13.fc46",
-    "uke-battery-observer": "10.fc46",
-    "accountsservice": "10.fc46",
+    "uke-ssc-fileservice": "24.fc46",
+    "uke-front-color": "14.fc46",
+    "at-spi2-core": "12.fc46",
+    "gstreamer1": "12.fc46",
+    "libaccounts-glib": "40.fc46",
+    "libwacom": "13.fc46",
+    "libstdcxx-uke-runtime": "14.fc46",
+    "mesa": "14.fc46",
+    "uke-battery-observer": "11.fc46",
+    "accountsservice": "11.fc46",
     "material-decoration": "6.fc46",
     "uke-desktop-metas": "19.fc46",
     "uke-core-meta": "4.fc46",
