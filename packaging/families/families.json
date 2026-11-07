@@ -160,7 +160,7 @@
         "uke-desktop-packaging/src/native-runtime/runtime-smoke.cpp",
         "uke-desktop-packaging/src/native-runtime/fedora-exported-symbols.txt"
       ],
-      "release": 11
+      "release": 12
     },
     {
       "name": "uke-metas",
@@ -238,14 +238,14 @@
     "libssc": "18.fc46",
     "uke-ssc-fileservice": "24.fc46",
     "uke-front-color": "14.fc46",
-    "at-spi2-core": "12.fc46",
-    "gstreamer1": "12.fc46",
-    "libaccounts-glib": "40.fc46",
-    "libwacom": "13.fc46",
-    "libstdcxx-uke-runtime": "14.fc46",
-    "mesa": "14.fc46",
+    "at-spi2-core": "13.fc46",
+    "gstreamer1": "13.fc46",
+    "libaccounts-glib": "41.fc46",
+    "libwacom": "14.fc46",
+    "libstdcxx-uke-runtime": "15.fc46",
+    "mesa": "15.fc46",
     "uke-battery-observer": "11.fc46",
-    "accountsservice": "11.fc46",
+    "accountsservice": "12.fc46",
     "material-decoration": "6.fc46",
     "uke-desktop-metas": "19.fc46",
     "uke-core-meta": "4.fc46",

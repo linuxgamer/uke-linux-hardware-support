@@ -32,15 +32,15 @@
     },
     {
       "name": "gstreamer1",
-      "version": "1.28.8",
+      "version": "1.28.9",
       "release": "1.fc46",
-      "native_release": "3",
-      "sha256": "70d73cdd13f9a1789cae26a24f873c806d59f31fb0687a79f2a57f9ffd624b83",
+      "native_release": "4",
+      "sha256": "d9f3a268c1e3ac00b8785ddec744e5812b45a82270a7d76c22294d89001cc23e",
       "delta": "Exclude installed host documentation scanners; retain media libraries, native CLI and plugin scanner",
       "family": "uke-additional",
       "binary_name": "gstreamer1",
-      "signed_mirror_sha256": "138bb6e5a3298f8a1c969b3b2ab8b158f5f873981e9c33d191a3b7c9a623fbe2",
-      "source_payload_sha256": "a6ba2417a7bf7110dacfafedaf5781db8a17f48d1b707d01e9356db8f0bb33a1"
+      "signed_mirror_sha256": "ca03d9294528e3705c24735b5bc69a8c133283bb5f844ca3fbf5106294a3b0df",
+      "source_payload_sha256": "73c27f45a2eeae2030e2ef6b009d5eb3429e7c8fcc5ddd5a4fd32dd0470c56e3"
     },
     {
       "name": "libaccounts-glib",
