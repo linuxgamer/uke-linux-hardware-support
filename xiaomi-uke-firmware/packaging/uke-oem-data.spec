@@ -1,4 +1,4 @@
-Name: uke-fedora44-oem-data
+Name: uke-fedora%{fedora}-oem-data
 Version: 3.0.304.0
 Release: 2%{?dist}
 Summary: Xiaomi Pad 7 model firmware and SSC configuration from OS3.0.304.0

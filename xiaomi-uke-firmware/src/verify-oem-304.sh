@@ -5,7 +5,7 @@ set -Eeuo pipefail
 component=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 root=$component/payload/oem-os3.0.304.0
 if (($#)); then
-    [[ $# == 2 && $1 == --root ]] || { echo 'Usage: verify-fedora44-oem-304.sh [--root DIR]' >&2; exit 2; }
+    [[ $# == 2 && $1 == --root ]] || { echo 'Usage: verify-oem-304.sh [--root DIR]' >&2; exit 2; }
     root=$2
 fi
 oem=$component/manifests/oem-runtime-source.json
