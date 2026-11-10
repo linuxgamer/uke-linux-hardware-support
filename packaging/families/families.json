@@ -36,7 +36,7 @@
         "libwacom"
       ],
       "suggests": [],
-      "release": 1,
+      "release": 2,
       "watch_paths": [
         "uke-boot/src",
         "uke-boot/packaging/uke-installation-profile.spec",
@@ -95,7 +95,8 @@
         "uke-platform-runtime/docs/BATTERY-LONGEVITY.md",
         "uke-platform-runtime/tests/battery-pack-variant.cpp"
       ],
-      "release": 2
+      "release": 5
+
     },
     {
       "name": "uke-sensors",
@@ -148,9 +149,9 @@
       "version": "1.0.4",
       "requires": [],
       "suggests": [
-        "uke-plymonth = 1.0.2-5%{?dist}",
-        "uke-orangefox-recovery",
-        "uke-material-decoration"
+        "uke-plymonth = 1.0.2-4%{?dist}",
+        "material-decoration"
+
       ],
       "watch_paths": [
         "uke-desktop-packaging/packaging/plymouth-uke",
@@ -189,7 +190,8 @@
         "uke-video/tests",
         "uke-video/manifests/upstream-pins.json"
       ],
-      "release": 14
+      "release": 10
+
     },
     {
       "name": "uke-metas",
@@ -223,7 +225,8 @@
         "plasma-camera"
       ],
       "status": "selection-only; internal camera graph not qualified",
-      "watch_paths": []
+      "watch_paths": [],
+      "release": 0
     },
     {
       "name": "uke-sound",
@@ -242,19 +245,10 @@
       "suggests": [
         "plasma-pa"
       ],
-      "status": "matched speaker kernel, stock preset and desktop playback policy; physical acceptance remains separate",
-      "watch_paths": [
-        "uke-desktop-integration/src/ucm2",
-        "uke-desktop-integration/src/wireplumber",
-        "uke-desktop-integration/src/kmix",
-        "uke-desktop-integration/packaging/uke-displayport-audio.spec",
-        "uke-desktop-integration/packaging/uke-speaker-controls.spec",
-        "uke-desktop-integration/tests/audio-policy.sh",
-        "uke-desktop-integration/tests/audio-policy.cpp",
-        "uke-desktop-integration/patches/pipewire",
-        "xiaomi-uke-firmware/packaging/speaker-firmware"
-      ],
-      "release": 1
+      "status": "original Fedora audio userspace; internal playback/capture not qualified",
+      "watch_paths": [],
+      "release": 0
+
     }
   ],
   "exceptions": [
@@ -279,36 +273,25 @@
   "release_overrides": {
     "iio-sensor-proxy": "24.fc46",
     "uke-boot-integration": "1.fc46",
-    "uke-plymonth": "5.fc46",
-    "uke-orangefox-recovery": "6.fc46",
-    "upower": "20.fc46",
-    "uke-adaptive-display": "12.fc46",
-    "uke-firmware": "14.fc46",
-    "libssc": "20.fc46",
-    "uke-ssc-fileservice": "24.fc46",
-    "uke-front-color": "14.fc46",
-    "at-spi2-core": "17.fc46",
-    "gstreamer1": "17.fc46",
-    "libaccounts-glib": "45.fc46",
-    "libwacom": "18.fc46",
-    "libstdcxx-uke-runtime": "19.fc46",
-    "mesa": "17.fc46",
-    "uke-battery-observer": "11.fc46",
-    "accountsservice": "16.fc46",
-    "material-decoration": "7.fc46",
-    "uke-desktop-metas": "24.fc46",
-    "uke-core-meta": "12.fc46",
-    "uke-proximity-capture": "6.fc46",
-    "uke-speaker-controls": "4.fc46",
-    "uke-displayport-audio": "8.fc46",
-    "uke-vaapi-v4l2": "8.fc46",
-    "uke-mesa-libclc22-spirv": "7.fc46",
-    "uke-control": "2.fc46",
-    "pipewire": "2.fc46",
-    "uke-speaker-orientation": "5.fc46",
-    "uke-speaker-firmware": "2.fc46"
-  },
-  "retired_selection_releases": {
-    "uke-additional": 16
+    "uke-plymonth": "4.fc46",
+    "upower": "14.fc46",
+    "uke-adaptive-display": "6.fc46",
+    "uke-firmware": "9.fc46",
+    "libssc": "18.fc46",
+    "uke-ssc-fileservice": "23.fc46",
+    "uke-front-color": "13.fc46",
+    "at-spi2-core": "11.fc46",
+    "gstreamer1": "11.fc46",
+    "libaccounts-glib": "39.fc46",
+    "libwacom": "12.fc46",
+    "libstdcxx-uke-runtime": "13.fc46",
+    "mesa": "13.fc46",
+    "uke-battery-observer": "10.fc46",
+    "accountsservice": "10.fc46",
+    "material-decoration": "6.fc46",
+    "uke-desktop-metas": "19.fc46",
+    "uke-core-meta": "4.fc46",
+    "uke-proximity-capture": "5.fc46"
+
   }
 }

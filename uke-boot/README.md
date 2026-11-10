@@ -103,7 +103,7 @@ Nabu binary/geometry defaults cannot supply them. Detailed records are in
 [private engineering documentation](https://github.com/MCC45TR/uke-linux-docs).
 
 Run `make validate`, `make test-native` or `make srpm`. Source archives remain in
-`referances/`; package/host output is ignored under `build/`.
+`source-cache/`; package/host output is ignored under `build/`.
 
 The optional `uke-kernel-update` package validates matched installed kernel
 bundles. The Linux root retains its opt-in `boot_b` writer; version 1.1.0 adds
@@ -171,15 +171,6 @@ Release 7 disables readline editing and systemd terminal reset/hangup for the
 development ACM shell. A production-equivalent runtime override stopped in
 42 ms in two physical trials while retaining the bounded identity/TTY gate.
 Startup still takes about 15 seconds; bidirectional ACM data remains unqualified.
-
-Release 6 removes the system-wide Python conflicts from both native packages.
-A development exception covers Python in signed, original Fedora KDE
-dependencies. A compliant Python-free KDE release remains blocked. Neither package contains or requires Python, and project startup,
-service and test helpers remain native or shell. The default Core image and
-early initramfs retain their independent no-Python audits. A KDE composer must
-record the original signed package closure and audit its extracted payload;
-this packaging change alone does not authorize arbitrary Python applications
-or establish a working graphical session.
 
 The host-only `src/audit-kernel-inputs.sh EXTRACTED_ROOT REPORT_JSON` checks the
 installed kernel configuration and exact Uke DTB, traverses enabled nodes and
@@ -290,6 +281,16 @@ behavior. Release 16 packages the same option as a native chronyd drop-in,
 preserving the original environment options and service sandbox. It does not
 write the RTC or add another clock daemon. Original chronyd remains the single
 enabled time authority on the tested installation.
+
+On the Fedora 44 KDE trial of 25 October, the Uke restore service set the
+saved clock, but `chronyd -s` then moved it back to the RTC's 1970 date.
+Release 1.5.2-3 removes `-s` so chronyd starts from the restored clock and
+can still synchronize with NTP. On a fresh offline Fedora 44 image, the owner
+observed 18 October 04:05 local time after about five minutes of uptime. This
+matches the 18 October 00:00 UTC source-date floor; it prevents a 1970 clock
+but cannot supply the current date without a saved time or working RTC. Flashing
+userdata removes the saved clock. A clean offline reboot after NTP sync still
+needs a tablet test, and elapsed time while powered off remains unqualified.
 
 20 October 2026: boot prerequisite reporting recognizes the explicit userdata
 root selector alongside the existing Linux selectors. This is read-only status;

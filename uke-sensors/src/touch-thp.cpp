@@ -3,8 +3,6 @@
 #include "touch-normal-probe.cpp"
 #include "touch-thp-geometry.hpp"
 #include "touch-thp-packet.hpp"
-#include "touch-panel.hpp"
-#include "touch-input.hpp"
 #include <csignal>
 #include <charconv>
 #include <filesystem>
@@ -63,6 +61,30 @@ struct TouchPowerMonitor {
         }
     }
 };
+static bool touch_dt_string(const std::filesystem::path &path,std::string_view expected) {
+    if(expected.size()>127) return false;
+    std::ifstream file(path,std::ios::binary);
+    std::array<char,129> bytes{};
+    file.read(bytes.data(),bytes.size());
+    return !file.bad() && file.gcount()==std::streamsize(expected.size()+1) &&
+           std::string_view(bytes.data(),expected.size())==expected && bytes[expected.size()]=='\0';
+}
+static bool touch_firmware_handoff(const std::filesystem::path &root="/sys/firmware/devicetree/base") {
+    if(!touch_dt_string(root/"panel-uke-handoff/compatible","xiaomi,uke-panel-handoff") ||
+       !touch_dt_string(root/"panel-uke-handoff/status","disabled")) return false;
+    std::ifstream path(root/"chosen/stdout-path",std::ios::binary);
+    std::array<char,129> bytes{};
+    path.read(bytes.data(),bytes.size());
+    const auto size=path.gcount();
+    if(path.bad() || size<21 || size>=std::streamsize(bytes.size()) || bytes[size-1]!='\0') return false;
+    const std::string_view selected(bytes.data(),size-1);
+    if(!selected.starts_with("/chosen/framebuffer@") ||
+       selected.find('/',8)!=std::string_view::npos ||
+       selected.find(':')!=std::string_view::npos) return false;
+    const auto node=root/std::string(selected.substr(1));
+    return touch_dt_string(node/"compatible","simple-framebuffer") &&
+           touch_dt_string(node/"status","okay");
+}
 struct TouchPanelGuard {
     TouchPanelGuard(int descriptor,TouchPanelState expected) {
         if(descriptor<0) return;
@@ -127,7 +149,10 @@ static std::string touch_gpio(const std::filesystem::path &device,
     require(!selected.empty(),"Touch GPIO controller unavailable");
     return selected;
 }
-static void touch_panel_id_ready(const std::string &controller) {
+static bool panel_id_matches(NormalPanel panel,bool high) {
+    return high == (panel==NormalPanel::Csot);
+}
+static NormalPanel touch_panel_id(const std::string &controller) {
     const int chip=open(controller.c_str(),O_RDONLY|O_CLOEXEC);
     require(chip>=0,"Touch panel-ID controller unavailable");
     gpio_v2_line_info info{}; info.offset=26;
@@ -138,8 +163,18 @@ static void touch_panel_id_ready(const std::string &controller) {
     const int result=safe ? ioctl(chip,GPIO_V2_GET_LINE_IOCTL,&request) : -1;
     close(chip); require(result==0,"Touch panel-ID must already be an available input");
     gpio_v2_line_values values{}; values.mask=1;
-    const bool high=ioctl(request.fd,GPIO_V2_LINE_GET_VALUES_IOCTL,&values)==0 && (values.bits&1);
-    close(request.fd); require(high,"Touch panel-ID must be high; no output is driven");
+    const bool read=ioctl(request.fd,GPIO_V2_LINE_GET_VALUES_IOCTL,&values)==0;
+    const bool high=values.bits&1;
+    close(request.fd);
+    require(read,"Touch panel-ID input read failed");
+    return high ? NormalPanel::Csot : NormalPanel::Tm;
+}
+static void touch_panel_id_ready(const std::string &controller,NormalPanel panel) {
+    require(touch_panel_id(controller)==panel,
+            "Touch panel-ID changed before firmware download; no output is driven");
+}
+static std::filesystem::path touch_firmware_directory(const std::filesystem::path &root,NormalPanel panel) {
+    return root/(panel==NormalPanel::Csot ? "csot" : "tm");
 }
 static int touch_irq(const std::string &controller) {
     const int chip=open(controller.c_str(),O_RDONLY|O_CLOEXEC); require(chip>=0,"GPIO controller unavailable");
@@ -209,6 +244,62 @@ static unsigned consume_touch_irq(int fd) {
     require(bytes>0 && bytes%sizeof(edges[0])==0,"Touch IRQ batch read failed");
     return bytes/sizeof(edges[0]);
 }
+static void input_setup(int fd,const nvt::Geometry &geometry) {
+    require(ioctl(fd,UI_SET_EVBIT,EV_ABS)==0 && ioctl(fd,UI_SET_EVBIT,EV_KEY)==0 &&
+            ioctl(fd,UI_SET_KEYBIT,BTN_TOUCH)==0 && ioctl(fd,UI_SET_PROPBIT,INPUT_PROP_DIRECT)==0,
+            "Touch input capabilities failed");
+    for(const auto &[code,maximum]:std::array<std::pair<unsigned,int>,4>{{
+        {ABS_MT_SLOT,nvt::kFingerSlots-1},{ABS_MT_TRACKING_ID,65535},
+        {ABS_MT_POSITION_X,geometry.width-1},{ABS_MT_POSITION_Y,geometry.height-1}}}) {
+        require(ioctl(fd,UI_SET_ABSBIT,code)==0,"Touch axis capability failed");
+        uinput_abs_setup axis{}; axis.code=code; axis.absinfo.maximum=maximum;
+        if(code==ABS_MT_POSITION_X) axis.absinfo.resolution=geometry.width/237;
+        if(code==ABS_MT_POSITION_Y) axis.absinfo.resolution=geometry.height/158;
+        require(ioctl(fd,UI_ABS_SETUP,&axis)==0,"Touch axis setup failed");
+    }
+    uinput_setup device{};
+    device.id.bustype=BUS_SPI;
+    const char name[]="Novatek NT36532 Uke Touchscreen";
+    std::copy(std::begin(name),std::end(name),device.name);
+    require(ioctl(fd,UI_DEV_SETUP,&device)==0 && ioctl(fd,UI_SET_PHYS,"spi0.0/nt36532-uke-thp")==0 &&
+            ioctl(fd,UI_DEV_CREATE)==0,"Touch input registration failed");
+}
+static void input_report(int fd,const std::vector<nvt::Slot> &slots,std::array<int,nvt::kFingerSlots> &ids,const nvt::Geometry &geometry) {
+    if(slots.empty() && std::all_of(ids.begin(),ids.end(),[](int id){return id<0;}))return;
+    std::array<bool,nvt::kFingerSlots> seen{};
+    for(const auto &slot:slots) {
+        require(slot.number>=0 && slot.number<int(ids.size()) && !seen[slot.number],"Invalid or duplicate touch slot");
+        seen[slot.number]=true;
+        require(slot.tracking_id>=0 && slot.tracking_id<=65535 &&
+                slot.contact.x>=0 && slot.contact.x<geometry.width &&
+                slot.contact.y>=0 && slot.contact.y<geometry.height,"Touch contact outside admitted range");
+        require(std::count_if(slots.begin(),slots.end(),[&](const auto &other){return other.tracking_id==slot.tracking_id;})==1,
+                "Duplicate touch tracking ID");
+    }
+    std::vector<input_event> events;
+    const auto event=[&](unsigned type,unsigned code,int value) {
+        input_event e{}; e.type=type; e.code=code; e.value=value; events.push_back(e);
+    };
+    // Legacy mousedev requires BTN_TOUCH before the coordinate events.
+    event(EV_KEY,BTN_TOUCH,!slots.empty());
+    for(unsigned index=0;index<ids.size();index++) {
+        const auto found=std::find_if(slots.begin(),slots.end(),[&](const auto &s){return s.number==int(index);});
+        const int id=found==slots.end() ? -1 : found->tracking_id;
+        require(id>=-1 && id<=65535,"Touch tracking ID outside admitted range");
+        if(id==ids[index] && id<0) continue;
+        event(EV_ABS,ABS_MT_SLOT,index);
+        if(id!=ids[index]) event(EV_ABS,ABS_MT_TRACKING_ID,id);
+        if(found!=slots.end()) {
+            event(EV_ABS,ABS_MT_POSITION_X,found->contact.x);
+            // The stock framebuffer route is mirrored against the O82 electrode row axis.
+            event(EV_ABS,ABS_MT_POSITION_Y,uke_touch::display_y(found->contact.y,geometry.height));
+        }
+        ids[index]=id;
+    }
+    event(EV_SYN,SYN_REPORT,0);
+    require(::write(fd,events.data(),events.size()*sizeof(input_event))==ssize_t(events.size()*sizeof(input_event)),
+            "Touch event publication failed");
+}
 int main(int argc,char **argv) {
     int spi=-1,input=-1,irq=-1,panel_event=-1;
     const auto started=std::chrono::steady_clock::now();
@@ -232,10 +323,13 @@ int main(int argc,char **argv) {
         require(bool(ceiling.read(reinterpret_cast<char *>(speed.data()),speed.size())) && ceiling.peek()==EOF &&
                 speed==std::array<unsigned char,4>{1,0x24,0xf8,0},"Unqualified SPI ceiling");
         const auto controller=touch_gpio(device);
-        const auto data=std::filesystem::path(installed ? "/var/lib/uke-touch" : "/run");
-        geometry=touch_geometry((data/(installed ? "config.ini" : "uke-touch-config.ini")).c_str());
+        const auto selected_panel=installed ? touch_panel_id(controller) : NormalPanel::Csot;
+        const auto base=std::filesystem::path(installed ? "/var/lib/uke-touch" : "/run");
+        const auto data=installed ? touch_firmware_directory(base,selected_panel) : base;
+        geometry=touch_geometry((data/(installed ? "config.ini" : "uke-touch-config.ini")).c_str(),
+                                selected_panel);
         nvt::TouchCore core(geometry);
-        std::ifstream reference(data/(installed ? "reference.bin" : "uke-touch-reference.bin"),std::ios::binary);
+        std::ifstream reference(base/(installed ? "reference.bin" : "uke-touch-reference.bin"),std::ios::binary);
         std::array<std::uint8_t,uke_touch::frame_size> reference_data{};
         require(bool(reference.read(reinterpret_cast<char *>(reference_data.data()),reference_data.size())) &&
                 reference.peek()==EOF,"No qualified reference packet");
@@ -246,9 +340,9 @@ int main(int argc,char **argv) {
         if(installed) {
             image.resize(245760); std::ifstream file(data/"normal.bin",std::ios::binary);
             require(bool(file.read(reinterpret_cast<char *>(image.data()),image.size())) && file.peek()==EOF,
-                    "Pinned private normal firmware unavailable");
-            normal_image(image);
-            touch_panel_id_ready(controller);
+                    "Pinned normal firmware unavailable");
+            require(normal_image(image)==selected_panel,"Touch panel-ID does not match pinned firmware");
+            touch_panel_id_ready(controller,selected_panel);
             if(std::filesystem::exists(device/"driver")) {
                 require(std::filesystem::canonical(device/"driver").filename()=="spidev",
                         "Touch transport already belongs to another driver");
@@ -275,6 +369,7 @@ int main(int argc,char **argv) {
         require(ioctl(spi,SPI_IOC_RD_MODE,&mode)==0 && mode==SPI_MODE_0,"Unexpected SPI mode");
         std::filesystem::path panel_provider;
         TouchPanelState admitted_panel{0,true};
+        bool firmware_handoff=false;
         if(installed) {
             for(unsigned attempt=0;attempt<100;attempt++) {
                 panel_provider=touch_panel_provider();
@@ -285,12 +380,20 @@ int main(int argc,char **argv) {
                     catch(...) {close(initial);throw;}
                     close(initial);
                     if(admitted_panel.ready) break;
+                } else if(touch_firmware_handoff()) {
+                    firmware_handoff=true;
+                    break;
                 }
                 pause_ms(100);
             }
-            require(!panel_provider.empty() && admitted_panel.ready,"O82 kernel panel-reset provider is not ready");
-            panel_event=open(panel_provider.c_str(),O_RDONLY|O_CLOEXEC);
-            require(panel_event>=0,"O82 panel event provider unavailable");
+            require((!panel_provider.empty() && admitted_panel.ready) || firmware_handoff,
+                    "O82 kernel panel-reset provider is not ready");
+            if(!panel_provider.empty()) {
+                panel_event=open(panel_provider.c_str(),O_RDONLY|O_CLOEXEC);
+                require(panel_event>=0,"O82 panel event provider unavailable");
+            } else {
+                std::cout<<"Touch using qualified Uke firmware framebuffer handoff"<<std::endl;
+            }
         }
         if(probe_rates) {
             TouchPanelGuard guard(panel_event,admitted_panel);
@@ -397,6 +500,7 @@ int main(int argc,char **argv) {
             if(const auto fault=watchdog.observe(packet)) {
                 input_report(input,{},ids,geometry);previous_contacts=0;
                 core.reset();core.process(reference_frame->matrix,reference_frame->counter,reference_frame->scan_mode);
+                require(panel_event>=0,"Touch firmware watchdog in framebuffer handoff; restarting service");
                 recovery.firmware_reset=true;recovery.watchdog_byte=*fault;
                 recovery.failures=0;recovery.next={};
                 std::cerr<<"Touch firmware watchdog 0x"<<std::hex<<unsigned(*fault)<<std::dec

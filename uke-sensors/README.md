@@ -89,6 +89,14 @@ reports and GPIO provider renumbering/ambiguity. Persistent physical startup,
 multi-finger tracking and power-profile/report-rate integration remain unqualified.
 An installed package is not proof of working touch.
 
+23 October 2026: the tested OS3.0.304.0 tablet identifies its O82 panel as TM
+with GPIO 26 low. Fedora 44 images now select the pinned TM firmware and config
+by default; the daemon checks that the GPIO level matches the selected image.
+The TM firmware and firmware-framebuffer handoff produced touch input in KDE on
+the tablet. On 25 October, the [native O82-36 trial](docs/lessons/TOUCH-2026-10-24-NATIVE-O82-36.md)
+also produced finger input in KDE after the reset-provider correction and an
+independent ext4 repair. Panel-reset recovery still needs a tablet test.
+
 17 October 2026: the native-panel candidate requires the O82 driver's
 `touch_reset_state` generation/ready interface. It waits for panel initialization,
 releases contacts during a reset and restores the qualified normal firmware
@@ -176,8 +184,7 @@ Unimplemented targets fail explicitly rather than producing placeholder RPMs.
 
 Use `make validate` to check this repository's manifest contract. Native device
 applications use C++; upstream C/assembly interfaces retain their original
-languages. Host automation uses Bash or Make. Python does not enter tablet
-payloads. Source archives belong in `referances/`, development in `src/`.
+languages. Host automation uses Bash or Make. Source archives belong in `source-cache/`, development in `src/`.
 Public records exclude personal paths, unit identifiers and calibration data.
 
 See [the roadmap](docs/ROADMAP.md), [source policy](docs/SOURCE-POLICY.md) and
@@ -195,7 +202,7 @@ The FastRPC fileservice candidate uses pinned original
 C sources. The read-only backend triggers a SEE registry assertion on Uke.
 The pinned write-capable comparison, identified in `manifests/hexagonrpc-source.json`,
 is qualified with descriptor, native format and OEM `/odm` mapping patches.
-Place its exact archive at `referances/hexagonrpc-write/source.tar.gz`, then run
+Place its exact archive at `source-cache/hexagonrpc-write/source.tar.gz`, then run
 `make test-hexagonrpc` on the host. This exercises RPC, buffer, mapped-file and
 actual registry create/write/rename/read contracts without Python.
 Original `persist` stays read-only; SEE writes belong in a separate runtime cache
@@ -206,7 +213,8 @@ physical sample acceptance. The preview activation guide is linked above.
 ## Normal touch firmware laboratory probe
 
 `touch-normal-probe.cpp` is a separate, gated C++ laboratory tool, not a shipped
-driver or startup service. It admits only the pinned normal O82 CSOT image and
+driver or startup service. Its hardware actions admit only the pinned normal
+O82 CSOT image and
 the measured Uke cascade controller. `manifests/touch-normal-probe-source.json`
 records protocol, image and host SDK provenance; firmware redistribution is not
 admitted. `make test-touch-normal TOUCH_NORMAL_FIRMWARE=PATH` uses a privately

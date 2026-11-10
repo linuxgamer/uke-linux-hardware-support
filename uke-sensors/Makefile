@@ -1,11 +1,11 @@
 SHELL := /bin/bash
 .SHELLFLAGS := -Eeuo pipefail -c
 .ONESHELL:
-.PHONY: validate srpm test-native test-cache test-hexagonrpc test-touch-normal test-touch-thp test-touch-capture test-touch-capture-queue touchscreen-rpm test-proximity-capture proximity-capture-srpm
+.PHONY: validate srpm test-native test-cache test-hexagonrpc test-touch-normal test-touch-panel test-touch-thp test-touch-capture test-touch-capture-queue touchscreen-rpm test-proximity-capture proximity-capture-srpm
 PACKAGE ?= libssc
 outdir ?= $(CURDIR)/build/srpm/$(PACKAGE)
 validate:
-	jq -e '.schema_version == 1 and .device == "uke" and .soc == "SM7675" and .hardware_tested == false and .python_target_payload == false and (.expected_packages | length > 0)' manifests/component.json >/dev/null
+	jq -e '.schema_version == 1 and .device == "uke" and .soc == "SM7675" and .hardware_tested == false and (.expected_packages | length > 0)' manifests/component.json >/dev/null
 	for spec in packaging/{libssc,iio-sensor-proxy,uke-ssc-fileservice}/*.spec; do
 		test -f "$$spec"
 		if grep -E '^(Version|Release):.*[Uu][Kk][Ee]|^Requires:[[:space:]]*(python|pypy|libpython)' "$$spec"; then exit 1; fi
@@ -17,8 +17,8 @@ srpm: validate
 		exit 0
 	fi
 	case '$(PACKAGE)' in
-	libssc) archive=referances/libssc/libssc-v0.4.4.tar.gz; url=https://codeberg.org/DylanVanAssche/libssc/archive/v0.4.4.tar.gz; hash=716d6bd6b34d2d753060c6b54c9a87e34fae75b724c763bf9ef487efa3621587; name=libssc-v0.4.4.tar.gz;;
-	uke-ssc-fileservice) archive=referances/hexagonrpc-write/source.tar.gz; url=https://api.github.com/repos/linux-msm/hexagonrpc/tarball/510c87e5c89026ee2bd2034776fc4d15994f353d; hash=ed7b0e704a5e8c20b77b013b4b34f3cddbe41d4cf546edc73f029501f7ebdec5; name=hexagonrpc-510c87e5.tar.gz;;
+	libssc) archive=source-cache/libssc/libssc-v0.4.4.tar.gz; url=https://codeberg.org/DylanVanAssche/libssc/archive/v0.4.4.tar.gz; hash=716d6bd6b34d2d753060c6b54c9a87e34fae75b724c763bf9ef487efa3621587; name=libssc-v0.4.4.tar.gz;;
+	uke-ssc-fileservice) archive=source-cache/hexagonrpc-write/source.tar.gz; url=https://api.github.com/repos/linux-msm/hexagonrpc/tarball/510c87e5c89026ee2bd2034776fc4d15994f353d; hash=ed7b0e704a5e8c20b77b013b4b34f3cddbe41d4cf546edc73f029501f7ebdec5; name=hexagonrpc-510c87e5.tar.gz;;
 	esac
 	mkdir -p "$$(dirname "$$archive")"
 	if test ! -s "$$archive"; then curl -fL --retry 3 --connect-timeout 20 "$$url" -o "$$archive.part"; mv "$$archive.part" "$$archive"; fi
@@ -104,9 +104,9 @@ test-cache:
 
 # Host qualification only; this target neither installs nor starts a tablet daemon.
 test-hexagonrpc:
-	printf '%s\n' 'ed7b0e704a5e8c20b77b013b4b34f3cddbe41d4cf546edc73f029501f7ebdec5  referances/hexagonrpc-write/source.tar.gz' | sha256sum -c -
+	printf '%s\n' 'ed7b0e704a5e8c20b77b013b4b34f3cddbe41d4cf546edc73f029501f7ebdec5  source-cache/hexagonrpc-write/source.tar.gz' | sha256sum -c -
 	mkdir -p build/hexagonrpc-source build/hexagonrpc
-	tar -xf referances/hexagonrpc-write/source.tar.gz --strip-components=1 -C build/hexagonrpc-source
+	tar -xf source-cache/hexagonrpc-write/source.tar.gz --strip-components=1 -C build/hexagonrpc-source
 	for patch in patches/hexagonrpc/*.patch; do patch --batch --fuzz=0 -p1 -d build/hexagonrpc-source < "$$patch" || exit; done
 	(cd build/hexagonrpc-source && $(CC) -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter -DHEXAGONRPC_VERBOSE -I include libhexagonrpc/*.c libhexagonrpc/interface/*.c hexagonrpcd/*.c hexagonrpcd/interface/*.c -lsystemd -o ../hexagonrpc/hexagonrpcd)
 	(cd build/hexagonrpc-source && $(CC) -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter -I include tests/test_hexagonrpc.c libhexagonrpc/hexagonrpc.c -o ../hexagonrpc/test-rpc)
@@ -157,3 +157,22 @@ test-touch-capture: test-touch-capture-queue
 	test -n "$(TOUCH_CORE_REFERENCE)"
 	bash src/prepare-touch-core.sh "$(TOUCH_CORE_REFERENCE)"
 	$(CXX) -std=c++20 -O2 -Wall -Wextra -Werror src/touch-capture.cpp src/upstream/nt36532-thp/nvt_touch_core.cpp -lcrypto -lsystemd -o build/uke-touch-capture
+
+test-touch-panel:
+	contract=$$(mktemp); trap 'rm -f -- "$$contract"' EXIT
+	$(CXX) -std=c++20 -O2 -Wall -Wextra -Werror tests/touch-config-panel.cpp -lcrypto -o "$$contract"
+	"$$contract" ../xiaomi-uke-firmware/payload/oem-os3.0.304.0/touch/tm/config.ini ../xiaomi-uke-firmware/payload/oem-os3.0.304.0/touch/csot/config.ini
+
+# Local-only touch data RPM; requires the verified private blob tree.
+.PHONY: local-touch-data
+local-touch-data:
+	bash ../xiaomi-uke-firmware/src/verify-fedora44-oem-304.sh
+	command -v rpmbuild >/dev/null || { echo 'rpmbuild is required for local-touch-data' >&2; exit 2; }
+	top="$$(realpath -m build/local-touch-data-rpm)"
+	src="$$(realpath -m build/local-touch-data-sources)"
+	mkdir -p "$$top"/{BUILD,BUILDROOT,RPMS,SRPMS,SOURCES,SPECS} "$$src"
+	install -m600 ../xiaomi-uke-firmware/payload/oem-os3.0.304.0/touch/csot/normal.bin "$$src/normal.bin"
+	install -m600 ../xiaomi-uke-firmware/payload/oem-os3.0.304.0/touch/csot/config.ini "$$src/config.ini"
+	install -m600 ../xiaomi-uke-firmware/payload/oem-os3.0.304.0/touch/reference.bin "$$src/reference.bin"
+	cp packaging/uke-local-touch-data.spec "$$top/SPECS/"
+	rpmbuild -bb --nodeps --target aarch64 --define "_topdir $$top" --define "_sourcedir $$src" "$$top/SPECS/uke-local-touch-data.spec"

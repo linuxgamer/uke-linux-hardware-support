@@ -1,0 +1,7 @@
+[Unit]
+Description=Save last known Uke clock time
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/senemos-uke/uke-clock-state save

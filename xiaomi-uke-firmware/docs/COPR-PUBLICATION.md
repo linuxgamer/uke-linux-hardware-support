@@ -44,9 +44,10 @@ families and inspected source revisions. Existing local payloads remain intact.
 The [candidate manifest](../manifests/local-firmware-candidates.json) pins 74
 files, their sizes, SHA-256 values, source selectors and installation paths.
 WPSS and ADSP match the pinned official OTA modem extraction. The three GPU
-files match the retained device extraction. On 20 October 2026, GMU and SQE
-were also independently matched to the verified OS3.0.304.0 vendor partition;
-the ZAP source container remains unverified. The connected tablet's board and regdb
+files were initially checked against a retained device extraction. GMU and SQE
+match the verified OS3.0.304.0 vendor partition. On 22 October, the ZAP file
+was replaced with the matching OS3.0.304.0 ODM file, and its partition hash
+matched the source manifest. The connected tablet's board and regdb
 hashes match the local OEM O82 Global board and regulatory files. None of these
 identity checks is a redistribution grant.
 
@@ -58,13 +59,13 @@ private touch preparation assets. It does not add public firmware admission.
 For a local evaluation, first extract the pinned official OTA using the
 host-only tool revision recorded in
 [`oem-wifi-source.json`](../manifests/oem-wifi-source.json). Keep that original
-archive and extraction beneath `referances/`. Provide the modem extraction's
+archive and extraction beneath `source-cache/`. Provide the modem extraction's
 `files/` directory, containing `adsp/` and `qca6750/`, and the retained GPU
 directory containing the three `gen71100` files. Then stage the exact selection:
 
 ```bash
 mkdir -p build
-make stage-local MODEM_FILES=referances/oem-extract/files GPU_FILES=referances/device-gpu OUTPUT=build/local-firmware
+make stage-local MODEM_FILES=source-cache/oem-extract/files GPU_FILES=source-cache/device-gpu OUTPUT=build/local-firmware
 ```
 
 This host command checks every byte count and SHA-256, rejects an existing
@@ -93,7 +94,7 @@ distribution `qcom-firmware` update.
 After review, use the existing host audit:
 
 ```bash
-make audit-admission LOCK=reviewed-lock.json ARCHIVE=referances/source-tree REQUESTS=kernel-inputs.json
+make audit-admission LOCK=reviewed-lock.json ARCHIVE=source-cache/source-tree REQUESTS=kernel-inputs.json
 ```
 
 The reviewed lock must contain actual admitted files. A source-only record or

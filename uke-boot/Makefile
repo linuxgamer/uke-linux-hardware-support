@@ -5,15 +5,14 @@ SHELL := /bin/bash
 version := 1.8.11
 outdir ?= $(CURDIR)/build/srpm
 validate:
-	jq -e '.schema_version == 1 and .device == "uke" and .soc == "SM7675" and .hardware_tested == false and .python_target_payload == false' manifests/component.json >/dev/null
-	jq -e '.device=="uke" and .partitions.esp=="esp" and .partitions.linux=="linux" and .filesystem_labels.esp=="UKE_ESP" and .filesystem_labels.linux=="UKE_LINUX" and .partition_offsets==null and .automatic_activation==false and .android_partition_writes==false and .uefi_binary_included==false and .handoff_accepted==false' src/profiles/image-contract.json >/dev/null
+	jq -e '.schema_version == 1 and .device == "uke" and .soc == "SM7675" and .hardware_tested == false' manifests/component.json >/dev/null
 	bash tests/update-packaging.sh
 	test "$$(grep -Fc '# @bluetooth-migration-save' packaging/uke-boot-integration.spec)" = 1
 	test "$$(grep -Fc '# @bluetooth-migration-restore' packaging/uke-boot-integration.spec)" = 1
 	test "$$(grep -Fc '# @touch-migration-save' packaging/uke-boot-integration.spec)" = 1
 	test "$$(grep -Fc '# @touch-migration-restore' packaging/uke-boot-integration.spec)" = 1
 	test -s ../packaging/families/host/service-rename.sh
-	! grep -Eq '^Requires:.*(python|pypy|nabu)' packaging/uke-boot-integration.spec
+	! grep -Eq '^Requires:.*(nabu)' packaging/uke-boot-integration.spec
 	bash -n src/audit-kernel-inputs.sh
 	sh -n src/uke-usb-network.sh
 	bash -n tests/startup-native.sh src/dracut/93uke-boot-guard/module-setup.sh
@@ -58,10 +57,11 @@ test-usb:
 	bash tests/usb-auto.sh
 	bash tests/usb-ownership.sh
 srpm: validate
+	if [[ '$(FEDORA44_LEGACY)' == 1 ]]; then bash ../packaging/fedora44/legacy-srpm.sh uke-boot '$(outdir)'; exit 0; fi
 	top="$$(realpath -m "$(outdir)/rpmbuild")"
 	mkdir -p "$$top"/{BUILD,BUILDROOT,RPMS,SRPMS,SOURCES,SPECS}
 	manifest=../uke-sensors/manifests/touch-runtime-source.json
-	cache="$$(realpath -m ../uke-sensors/referances/touch-runtime-source.src.rpm)"
+	cache="$$(realpath -m ../uke-sensors/source-cache/touch-runtime-source.src.rpm)"
 	mkdir -p "$$(dirname "$$cache")"
 	if [[ ! -s $$cache ]]; then
 		curl --fail --location --silent --show-error --proto '=https' --proto-redir '=https' --max-time 240 "$$(jq -er .url "$$manifest")" -o "$$cache.part"

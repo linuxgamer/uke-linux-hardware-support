@@ -86,14 +86,6 @@ Host entry points are `make all`, `make test-native` and `make srpm`.
 The RPM source produces separate `uke-battery-observer`, `uke-charge-control`
 and `uke-offline-charge` packages for Fedora AArch64. The observer remains read-only. Other
 runtime package names and distribution targets are not implemented by this
-recipe. Python does not enter its target payload. Archives stay in
-`referances/`; original implementation lives in `src/`.
-## Battery supplier identity
+recipe. Archives stay in
+`source-cache/`; original implementation lives in `src/`.
 
-2 November 2026: the observer reads standard `manufacturer` and `model_name`
-fields and reports a bounded NVT/Sunwoda supplier hint. Missing, conflicting or
-unrecognized identities remain explicit. A hint does not select current,
-voltage, termination or thermal limits; the existing firmware charging owner
-and unqualified electrical-profile gates remain in effect. Source fixtures
-cover both names, token boundaries and conflicting/malformed data. Hardware
-acceptance and the selected pack's electrical qualification remain separate.

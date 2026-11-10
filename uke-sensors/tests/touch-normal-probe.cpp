@@ -172,6 +172,15 @@ int main(int argc,char **argv) {
     assert(fast_bank_reads==bank_transfers && fast_bank_writes==bank_transfers);
     assert(writes.front()==std::make_pair(0x1fb43eU,Bytes{0x69}));
     assert(writes.back()==std::make_pair(0x1fb50dU,Bytes{1}) && status_reads==2);
+    const auto checksum_write=[&](unsigned address) {
+        return std::find_if(writes.begin(),writes.end(),[&](const auto &write) {
+            return write.first==address;
+        });
+    };
+    const auto ilm=checksum_write(0x1fb500),dlm=checksum_write(0x1fb504);
+    assert(ilm!=writes.end() && dlm!=writes.end());
+    assert(std::equal(ilm->second.begin(),ilm->second.end(),data.begin()+24));
+    assert(std::equal(dlm->second.begin(),dlm->second.end(),data.begin()+28));
     std::size_t bank=0,offset=0;
     for(std::size_t i=8;i<writes.size()-3;i++) {
         const auto &b=banks[bank]; const auto &[address,bytes]=writes[i];

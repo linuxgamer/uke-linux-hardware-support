@@ -11,6 +11,7 @@ These rules apply to the workspace and every project-owned component. Read compo
 - User-authorized exception, 1 November 2026: unmodified original Fedora packages may retain distribution-provided Python helpers and dependencies on the Fedora root, including GNU C++ GDB helpers in console profiles. Prefer native or shell code for project components. This does not authorize project-owned Python, Python hardware/startup services, or Python in recovery, initramfs or installers.
 - An unavoidable upstream Python build tool may run on the host only after documenting its purpose, pin and lack of a practical alternative. Android `repo`, AOSP boot tools and dt-schema are possible host-only dependencies; they are not approved tablet payloads.
 - Keep source archives below the owning component's `referances/`. Do not modify or execute donor scripts as a shortcut. Development happens in `src/`, patches, configuration and project code.
+
 - Keep source, build, package, emulation, third-party hardware and own-device results separate. Never infer hardware success from a build.
 - Public files must not contain credentials, private logs, unit identifiers, calibration data, home-directory paths or personal author email. Use the account's GitHub no-reply email locally.
 - Preserve stock early firmware and a documented recovery route. Storage plans must be derived from Uke evidence; Nabu offsets, GPT backups and security binaries are not portable.

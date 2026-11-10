@@ -57,11 +57,19 @@
       "component": "uke-desktop-packaging",
       "imported_commit": "4e4efac3958abd02423bf725bbf29545c3a2e01d",
       "historical_repository": "https://github.com/MCC45TR/uke-desktop-packaging"
+    }
+  ],
+  "packaged_sources": [
+    {
+      "component": "uke-console-input",
+      "repository": "https://gitlab.postmarketos.org/postmarketOS/buffybox.git",
+      "tag": "3.6.0",
+      "commit": "d0f52495f7f3afa8839eef4b19f43f4ca1243107"
     },
     {
-      "component": "uke-orangefox-packaging",
-      "imported_commit": "98fefcb78c2f356f841024b89a5ba2b90fe2db3c",
-      "historical_repository": "https://github.com/MCC45TR/uke-orangefox-packaging"
+      "component": "uke-console-input",
+      "repository": "https://github.com/lvgl/lvgl.git",
+      "commit": "85aa60d18b3d5e5588d7b247abf90198f07c8a63"
     }
   ]
 }

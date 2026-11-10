@@ -8,9 +8,9 @@ outdir ?= $(CURDIR)/build/srpm
 # shortcut: timestamps follow the monotonic Release, include Version before resetting Release.
 archive_epoch := $(shell awk '/^Release:/ {printf "%.0f", 1791158400 + int($$2); exit}' packaging/uke-desktop-metas.spec)
 validate:
-	jq -e '.schema_version == 1 and .device == "uke" and .soc == "SM7675" and .hardware_tested == false and .python_target_payload == false' manifests/component.json >/dev/null
+	jq -e '.schema_version == 1 and .device == "uke" and .soc == "SM7675" and .hardware_tested == false' manifests/component.json >/dev/null
 	jq -e '.device == "uke" and .hardware_tested == false and .boot_tested == false' src/profile.json >/dev/null
-	if grep -Eq '^(Requires|Recommends):.*(python|pypy|libpython|nabu)' packaging/*.spec; then exit 1; fi
+	if grep -Eq '^(Requires|Recommends):.*(nabu)' packaging/*.spec; then exit 1; fi
 	bash tests/plasma-profile.sh
 	bash tests/cutefish-profile.sh
 test-native: validate

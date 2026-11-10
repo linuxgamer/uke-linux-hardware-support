@@ -4,6 +4,13 @@
 and local file preparation. No new tablet installation, firmware reload or
 physical acceptance was performed.
 
+22 October 2026 update: the Fedora 44 image bundle now uses only the
+OS3.0.304.0 boot template and OEM files. Its 218-file payload is checked by
+`src/verify-fedora44-oem-304.sh`. The remaining GPU ZAP file was found in the
+verified OS3.0.304.0 ODM partition and replaced the earlier local candidate;
+see `manifests/local-firmware-candidates.json`. The comparisons below describe
+the earlier source review, not an active 3.303 image input.
+
 The newest Global release found in the dated search was
 **OS3.0.304.0.WOZMIXM**, Android 16, security patch 1 September 2026.
 The [Global release index](https://mirom.ezbox.idv.tw/en/phone/uke/roms-global-stable/)
@@ -54,16 +61,16 @@ files used `mcopy` from the FAT image. No OEM script or extracted program ran.
 
 4. **Other known inputs:** the existing modem/ADSP and GPU staging interface
    remains available. GMU and SQE were independently matched to the 304 vendor
-   partition and their existing pinned hashes. The GPU ZAP source container
-   remains unresolved; this review did not find a matching file in the selected
-   vendor firmware directory or modem image directory. Public admission remains
+   partition and their existing pinned hashes. This review did not find GPU ZAP
+   in the selected vendor firmware or modem image directory; the 22 October
+   update above resolves it from the ODM partition. Public admission remains
    closed. No audio, camera, charging, GPU-driver or Wi-Fi-driver fix is inferred
    from the 143-file subset.
 
 ## Host preparation
 
 Keep the original OTA, extracted subset and any resulting archive below this
-component's ignored `referances/`. The extracted subset has the same
+component's ignored `source-cache/`. The extracted subset has the same
 `ssc/`, `touch/` and `bt/` source layout as the supplied archive, without
 the private touch reference.
 
@@ -71,7 +78,7 @@ From this component, with an extracted `oem-blobs/` tree:
 
 ```bash
 mkdir -p build
-make stage-oem-local OEM_FILES=referances/oem-304/oem-blobs OUTPUT=build/oem-runtime-304
+make stage-oem-local OEM_FILES=source-cache/oem-304/oem-blobs OUTPUT=build/oem-runtime-304
 (cd build/oem-runtime-304 && sha256sum -c --strict MANIFEST.sha256)
 ```
 
@@ -107,8 +114,8 @@ The local packaging target builds one `xiaomi-uke-firmware`
 3.0.304.0-1.local data RPM from both verified staging profiles:
 
 ```bash
-make local-rpms OEM_FILES=referances/oem-304/oem-blobs \
-  MODEM_FILES=referances/oem-304/files GPU_FILES=referances/qualified-gpu
+make local-rpms OEM_FILES=source-cache/oem-304/oem-blobs \
+  MODEM_FILES=source-cache/oem-304/files GPU_FILES=source-cache/qualified-gpu
 ```
 
 The noarch RPM contains 217 payload files and no scriptlets, applications,

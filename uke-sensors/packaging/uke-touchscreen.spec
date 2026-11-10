@@ -1,20 +1,27 @@
 %global debug_package %{nil}
+%if 0%{?fedora} == 44
+%global uke_cxx_runtime libstdc++
+%else
+%global uke_cxx_runtime senemos-native-runtime(libstdc++)
+%endif
 Name: uke-touchscreen
 Version: 0.1.0
-Release: 13%{?dist}
+Release: 18%{?dist}
 Summary: Native Novatek NT36532 touchscreen input for Xiaomi Uke
 License: GPL-3.0-or-later AND Apache-2.0
 ExclusiveArch: aarch64
 Source0: %{name}-%{version}.tar.xz
 BuildRequires: gcc-c++ openssl-devel systemd-devel systemd-rpm-macros
 Requires: senemos-uke-linux-kernel-mainline-modules >= 7.2.9-1.53.native53
-Requires: libstdc++%{?_isa} >= 16.2.1 kmod systemd systemd-udev
+Requires: %{uke_cxx_runtime} kmod systemd systemd-udev
+
 
 %description
 Native C++ THP processing with standard Linux multitouch input. The foreground
 service resolves the GPIO controller from DT and validates the exact Uke SPI,
-panel-ID, controller, private firmware and geometry before publishing input.
-Private per-device inputs are provisioned separately and never redistributed.
+panel-ID, controller, pinned OEM firmware and geometry before publishing input.
+The image contains pinned OEM inputs for both touch variants and selects one
+from the GPIO panel ID before firmware loading.
 No panel voltage, GPIO output, factory calibration or Android partition write.
 
 %prep
@@ -65,6 +72,19 @@ install -Dm644 LICENSE.GPL-3.0 %{buildroot}/usr/share/licenses/%{name}/GPL-3.0
 %license /usr/share/licenses/%{name}/GPL-3.0
 
 %changelog
+* Sun Oct 25 2026 Uke Fedora Maintainers <linuxgamer@users.noreply.github.com> - 0.1.0-18
+- Select the pinned TM or CSOT touch pair from GPIO26 before reading firmware.
+
+* Sat Oct 24 2026 Uke Fedora Maintainers <linuxgamer@users.noreply.github.com> - 0.1.0-17
+- Follow the reset generation of either exact O82 native panel variant.
+
+* Sat Oct 24 2026 Uke Fedora Maintainers <linuxgamer@users.noreply.github.com> - 0.1.0-15
+- Admit touch when the Uke boot recipe explicitly retains its firmware framebuffer.
+- Restart the service on a firmware watchdog without a native panel reset provider.
+
+* Fri Oct 23 2026 Uke Fedora Maintainers <linuxgamer@users.noreply.github.com> - 0.1.0-14
+- Admit pinned O82 TM firmware only when panel-ID GPIO is low.
+
 * Mon Oct 19 2026 Senemos Maintainers <75160848+MCC45TR@users.noreply.github.com> - 0.1.0-13
 - Bound palm-history counters and test lifetime counter saturation.
 

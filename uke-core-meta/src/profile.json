@@ -9,7 +9,8 @@
   "hardware_tested": false,
   "firmware_delivery": "COPR-generic-files-and-separate-per-device-calibration",
   "boot_selection": "preserve-installed-linux-or-userdata-profile",
-  "runtime_policy": "project-native-code-with-original-Fedora-package-dependencies",
+  "runtime_policy": "Fedora distribution dependencies are allowed, including Python",
+
   "native_runtime_capabilities": [
     "libstdc++(aarch-64) >= 16.2.1"
   ],
