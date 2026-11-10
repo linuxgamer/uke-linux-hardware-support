@@ -166,7 +166,7 @@ test-touch-panel:
 # Local-only touch data RPM; requires the verified private blob tree.
 .PHONY: local-touch-data
 local-touch-data:
-	bash ../xiaomi-uke-firmware/src/verify-fedora44-oem-304.sh
+	bash ../xiaomi-uke-firmware/src/verify-oem-304.sh
 	command -v rpmbuild >/dev/null || { echo 'rpmbuild is required for local-touch-data' >&2; exit 2; }
 	top="$$(realpath -m build/local-touch-data-rpm)"
 	src="$$(realpath -m build/local-touch-data-sources)"

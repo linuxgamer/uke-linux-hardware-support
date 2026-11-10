@@ -13,7 +13,7 @@ Per-device calibration and identifiers are read from the tablet's read-only
 The Fedora 44 image package also includes 74 pinned WPSS, ADSP, WLAN board
 and GPU files under `firmware/`. Their individual sources, paths, sizes and
 hashes are in `manifests/local-firmware-candidates.json`; run
-`src/verify-fedora44-oem-304.sh` to check the complete bundle. WPSS and ADSP
+`src/verify-oem-304.sh` to check the complete bundle. WPSS and ADSP
 come from the matching `NON-HLOS.bin`; the manifest records the exact GPU file
 hashes. This checks file identity, not tablet function. The redistribution
 document is still pending in this checkout.
@@ -59,7 +59,7 @@ payload/oem-os3.0.304.0/
 
 The two OS3.0.304.0 manifests list the model files, their source partitions,
 sizes and SHA-256 values. The separate measured `touch/reference.bin` has a
-pinned hash in `src/verify-fedora44-oem-304.sh`.
+pinned hash in `src/verify-oem-304.sh`.
 
 ## 1. Shared blobs from the stock OTA
 
@@ -137,7 +137,7 @@ helpers read these files at runtime. Do not copy them into an image or a bundle.
 ## 4. Verify
 
 ```sh
-bash uke-linux-hardware-support/xiaomi-uke-firmware/src/verify-fedora44-oem-304.sh
+bash uke-linux-hardware-support/xiaomi-uke-firmware/src/verify-oem-304.sh
 ```
 
 Exit 0 means all 218 pinned payload files match; a nonzero exit means the
@@ -146,7 +146,7 @@ bundle is missing files, has unexpected files or fails a size/hash check.
 ## 5. Build wiring
 
 - Fedora 44 image: `uke-fedora-builder/build-rootfs.sh` uses the
-  bundled payload and runs `verify-fedora44-oem-304.sh` before
+  bundled payload and runs `verify-oem-304.sh` before
   composing. It copies the selected panel's `normal.bin`, `config.ini` and
   measured `reference.bin` into `/var/lib/uke-touch/` in every rootfs. CSOT is
   the default; `--touch-panel tm` selects the TM files. The same recipe is used

@@ -6,7 +6,7 @@ physical acceptance was performed.
 
 22 October 2026 update: the Fedora 44 image bundle now uses only the
 OS3.0.304.0 boot template and OEM files. Its 218-file payload is checked by
-`src/verify-fedora44-oem-304.sh`. The remaining GPU ZAP file was found in the
+`src/verify-oem-304.sh`. The remaining GPU ZAP file was found in the
 verified OS3.0.304.0 ODM partition and replaced the earlier local candidate;
 see `manifests/local-firmware-candidates.json`. The comparisons below describe
 the earlier source review, not an active 3.303 image input.
