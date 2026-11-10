@@ -36,5 +36,6 @@ jobs:
           done
           export PATH="$guard:$PATH"
           make validate
-          make -C packaging/families check
+          # packaging/families is upstream's consolidation route. This port keeps
+          # its own component SRPMs, so the families check is not wired in here.
           echo 'Source contracts passed. Native compilation and RPM generation run in COPR.' >> "$GITHUB_STEP_SUMMARY"

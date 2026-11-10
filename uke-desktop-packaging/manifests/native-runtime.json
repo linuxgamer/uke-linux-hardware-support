@@ -13,7 +13,6 @@
       "native_release": "6",
       "sha256": "e4436e377ad56b57ee128323901b123782857979d970120921cd59d71829d448",
       "delta": "Preserve AArch64 JIT feature detection; name exact Adreno 732 chips and accept their fuse-ID wildcard without changing GPU properties",
-
       "family": "uke-additional",
       "binary_name": "mesa-dri-drivers",
       "signed_mirror_sha256": "0177e970471353f39af77ea08d50b39deb30884fbce6a84d7ea73d071e35602e",
@@ -42,7 +41,6 @@
       "binary_name": "gstreamer1",
       "signed_mirror_sha256": "138bb6e5a3298f8a1c969b3b2ab8b158f5f873981e9c33d191a3b7c9a623fbe2",
       "source_payload_sha256": "a6ba2417a7bf7110dacfafedaf5781db8a17f48d1b707d01e9356db8f0bb33a1"
-
     },
     {
       "name": "libaccounts-glib",
@@ -50,7 +48,7 @@
       "release": "28.fc46",
       "native_release": "31",
       "sha256": "d9895473a2e6fe342f8a3975148166aa3bbf74580dee7da4bf57300664efdbcb",
-      "delta": "Preserve upstream destructor fix 270a66d5 missing from the reviewed Fedora 1.25-28 source; retain the native account API and project-fork helper exclusions",
+      "delta": "Exclude optional Python GI override and its matching explicit dependency; retain native account API",
       "family": "uke-additional",
       "binary_name": "libaccounts-glib",
       "signed_mirror_sha256": "1bd0ec5118012f8adc415bb544e18145dc4738526e465efa38f3800bbc013177",
@@ -82,15 +80,14 @@
       "source_payload_sha256": "142c3c9d57106e90d1007556627e61256cac1eb3bc82166a201261a72900978d"
     },
     {
-
       "name": "upower",
       "family": "uke-power",
       "binary_name": "upower",
       "version": "1.91.5",
       "release": "1.fc46",
-      "native_release": "7",
+      "native_release": "5",
       "sha256": "130bb7f071104e10ea4960c5c4b4bb3fdd3f9d582d16488102fbb7cb4eebc5de",
-      "delta": "Propagate threshold errors, preserve reported health, recognize wireless sources and recover late capacity units; controls remain qualified separately; deterministic host history self-test clock without changing production history",
+      "delta": "Propagate required threshold errors; preserve reported learned capacity; retain AC-online/net-discharge host fixture; no charger controls enabled",
       "signed_mirror_sha256": "ae102a4e75d4f1a214e28713ff6ea4ca0d8e1395b0b87e8e8a621c698e36a4ee",
       "source_payload_sha256": "4accbe303d13122222490032e4627ea199fed204daf51233dc58c545875fb858"
     },
@@ -166,71 +163,6 @@
       "reason": "Native kernel profiles replace this overlay; use the original distribution daemon. Retained signed archives cover explicit older-kernel rollback.",
       "automatic_build": false,
       "target_admitted": false
-    },
-    {
-      "name": "at-spi2-core",
-      "version": "2.62.1",
-      "release": "1.fc46",
-      "native_release": "3",
-      "sha256": "00ddc6c26c5e30e22f47c3e022ef22582455afcbb69ecb16a972512483c9548b",
-      "delta": "Exclude the optional Python GI override; retain native accessibility libraries and service",
-      "family": "uke-additional",
-      "binary_name": "at-spi2-core",
-      "signed_mirror_sha256": "4949a0ecf2e79348f973d9a8f8d5768185b426640e9b2956b2c83ba72196b3bf",
-      "source_payload_sha256": "421871de01ef5a443c9cfb48606920119145d7a68191b5cba030a5329182d10f",
-      "automatic_build": false,
-      "target_admitted": false,
-      "withdrawn_date": "2026-11-01",
-      "reason": "Use the original Fedora package and its distribution-provided helpers on the Fedora root; retained source provenance is for rollback"
-    },
-    {
-      "name": "gstreamer1",
-      "version": "1.28.8",
-      "release": "1.fc46",
-      "native_release": "3",
-      "sha256": "70d73cdd13f9a1789cae26a24f873c806d59f31fb0687a79f2a57f9ffd624b83",
-      "delta": "Exclude installed host documentation scanners; retain media libraries, native CLI and plugin scanner",
-      "family": "uke-additional",
-      "binary_name": "gstreamer1",
-      "signed_mirror_sha256": "138bb6e5a3298f8a1c969b3b2ab8b158f5f873981e9c33d191a3b7c9a623fbe2",
-      "source_payload_sha256": "a6ba2417a7bf7110dacfafedaf5781db8a17f48d1b707d01e9356db8f0bb33a1",
-      "automatic_build": false,
-      "target_admitted": false,
-      "withdrawn_date": "2026-11-01",
-      "reason": "Use the original Fedora package and its distribution-provided helpers on the Fedora root; retained source provenance is for rollback"
-    },
-    {
-      "name": "libwacom",
-      "version": "2.20.0",
-      "release": "1.fc46",
-      "native_release": "4",
-      "sha256": "1578133a5ae62096e74c53540aea79b38f537f8e65ff59ecc373c61fd964ae89",
-      "delta": "Exclude Python DB updater and Python stylus viewer; retain native library, device listings and upstream data",
-      "family": "uke-additional",
-      "binary_name": "libwacom",
-      "signed_mirror_sha256": "1463346554806de0929722a32b283497d66a23b191d65cf99546eb4b2379a4f0",
-      "source_payload_sha256": "83d524d267d9a2f993151193ceb11dc5fad0b0336c3e5a1f62f7818bddf7dd36",
-      "automatic_build": false,
-      "target_admitted": false,
-      "withdrawn_date": "2026-11-01",
-      "reason": "Use the original Fedora package and its distribution-provided helpers on the Fedora root; retained source provenance is for rollback"
-    },
-    {
-      "name": "libstdcxx-uke-runtime",
-      "source_name": "gcc",
-      "version": "16.2.1",
-      "release": "2.fc46.1",
-      "native_release": "5",
-      "sha256": "b8f6cc1f055a057233a3b807bf5e9cc2a43836c025ba664b1231c79d86271175",
-      "delta": "Compile the native GNU C++ runtime without optional GDB Python helpers; verify the original versioned symbol set and run a native smoke fixture",
-      "family": "uke-additional",
-      "binary_name": "libstdc++",
-      "signed_mirror_sha256": "7de21e95d3a0d126aeb16b238e39af9bfb97d21eebb7a03797b30a89ac57a2e2",
-      "source_payload_sha256": "1a07f0f3aa43b26865ad5511205f738eb8a94708ab3ef04d5a4d5e66aff03729",
-      "automatic_build": false,
-      "target_admitted": false,
-      "withdrawn_date": "2026-11-01",
-      "reason": "Use the original Fedora package and its distribution-provided helpers on the Fedora root; retained source provenance is for rollback"
     }
   ],
   "tracking": {
