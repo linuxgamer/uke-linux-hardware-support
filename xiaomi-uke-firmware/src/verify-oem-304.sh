@@ -16,7 +16,7 @@ firmware=$component/manifests/local-firmware-candidates.json
 jq -e '.device=="uke" and .source.release=="OS3.0.304.0.WOZMIXM" and
        (.files|length)==143 and .public_upload_allowed==false' "$oem" >/dev/null
 jq -e '.device=="uke" and .sources.modem.release=="OS3.0.304.0.WOZMIXM" and
-       (.files|length)==74 and .public_upload_allowed==false' "$firmware" >/dev/null
+       (.files|length)==75 and .public_upload_allowed==false' "$firmware" >/dev/null
 
 expected=$(mktemp)
 actual=$(mktemp)

@@ -853,6 +853,17 @@
       "redistribution_review_complete": false,
       "identity_evidence": "Connected-device file SHA-256 matched to local OEM regdb file",
       "selection": "The OTA icnss2 REGDB branch requests regdb_xiaomi.bin; this is not the separate generic regdb.bin"
+    },
+    {
+      "package": "uke-owner-video-firmware",
+      "package_version": "3.0.304.0-1.owner",
+      "package_license_label": "LicenseRef-Owner-OEM-Evaluation",
+      "source_group": "odm",
+      "source_path": "odm/firmware/vpu30_2v.mbn",
+      "target_path": "qcom/vpu/vpu30_2v.mbn",
+      "bytes": 2331336,
+      "sha256": "2ad782a1eace4556f13178c82480e672bb2063818f438864f45067347ccdeb2a",
+      "redistribution_review_complete": false
     }
   ]
 }
