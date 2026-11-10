@@ -97,6 +97,6 @@ image-data-srpm: verify-oem-304
 	tar -C "$$root" --sort=name --mtime='@0' --owner=0 --group=0 --numeric-owner \
 	    --transform='s#^#uke-fedora$(fedora)-oem-data-3.0.304.0/#' \
 	    -czf "$$top/SOURCES/uke-fedora$(fedora)-oem-data-3.0.304.0.tar.gz" ssc bt firmware
-	cp packaging/uke-fedora$(fedora)-oem-data.spec "$$top/SPECS/"
+	cp packaging/uke-oem-data.spec "$$top/SPECS/"
 	rpmbuild -bs --nodeps --target noarch --define "_topdir $$top" \
-	    "$$top/SPECS/uke-fedora$(fedora)-oem-data.spec"
+	    "$$top/SPECS/uke-oem-data.spec"
