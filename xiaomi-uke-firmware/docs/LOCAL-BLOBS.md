@@ -145,7 +145,7 @@ bundle is missing files, has unexpected files or fails a size/hash check.
 
 ## 5. Build wiring
 
-- Fedora 44 image: `uke-fedora-builder/build-fedora44-rootfs.sh` uses the
+- Fedora 44 image: `uke-fedora-builder/build-rootfs.sh` uses the
   bundled payload and runs `verify-fedora44-oem-304.sh` before
   composing. It copies the selected panel's `normal.bin`, `config.ini` and
   measured `reference.bin` into `/var/lib/uke-touch/` in every rootfs. CSOT is
