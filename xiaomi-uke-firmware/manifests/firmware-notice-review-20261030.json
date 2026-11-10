@@ -8,10 +8,10 @@
     "installed payload identity"
   ],
   "package_inspected": "uke-firmware-3.0.304.0-14.fc46.noarch",
-  "payload_files": 217,
-  "installed_hashes_verified": 217,
+  "payload_files": 218,
+  "installed_hashes_verified": 218,
   "exact_notice_matches": 7,
-  "missing_original_notice_paths": 74,
+  "missing_original_notice_paths": 75,
   "unmatched_named_notice_paths": 136,
   "redistribution_review_complete": false,
   "firmware_blob_package_ready": false,
