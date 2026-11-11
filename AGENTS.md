@@ -81,8 +81,9 @@ when a full image is required.
 - Keep proofs, logs and long trial histories in the private records, not in this
   public repository. Do not commit credentials, serial numbers, calibration,
   OEM blobs or home-directory paths.
-- Documents created before November 2026 were removed in the 2026-11-11
-  documentation cleanup; recover them from git history when needed.
+- The top-level `docs/` tree and documents created before November 2026 were
+  removed in the 2026-11-11 cleanup; recover them from git history when needed.
+  Do not recreate `referances/`, `reports/` or the top-level `docs/` tree.
 - Link only to files that exist in this repository or to absolute URLs of other
   repositories. Do not link to the umbrella `private/`, `build/` or
   `artifacts/` paths, and do not recreate the removed `referances/README.md` or
@@ -91,9 +92,11 @@ when a full image is required.
 ### Evidence and lessons
 
 - Record every material research, implementation, build, packaging and test
-  finding, including failed trials and corrections, in `docs/lessons/` using its
-  template and index: date, stable lesson ID, environment, exact evidence,
-  practical consequence, uncertainty and next validation.
+  finding, including failed trials and corrections, in the private engineering
+  records and, where a component defines one, in that component's
+  `docs/lessons/`; do not recreate the removed top-level `docs/` tree. Include
+  the date, stable lesson ID, environment, exact evidence, practical
+  consequence, uncertainty and next validation.
 - Before hardware changes, consult the pinned source inventory in this
   repository (`SOURCE-IMPORTS.json`, component `source-lock.json` files and
   `manifests/`) plus the umbrella hardware policy

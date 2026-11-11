@@ -7,7 +7,8 @@ with only `fedora-rawhide-aarch64` enabled. The existing
 definitions, for 43 rows in total. The nine umbrella recipes and earlier
 observations below remain the legacy stable/test path.
 
-27 October 2026: the [hardware update cohort](../../docs/DNF-UPDATE-20261027.md)
+27 October 2026: the hardware update cohort (the revision was removed with
+ the top-level docs tree; recover it from git history)
 joins Core `1.15.1-3`, hardware `1.8.5-1`, power `1.3.3-4`, sensors `1.0.9-5`,
 extras `1.0.4-2`, additional `1.0.0-13`, metas `1.4.0-4`, camera `1.0.0-3`
 and sound `1.0.5-1`. Non-kernel children now all use the `uke-` prefix.
