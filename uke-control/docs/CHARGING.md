@@ -25,7 +25,7 @@ No full-charge setting, worker or timer is installed by a preview.
 Thermal/current proposals require qualified battery-current control and
 firmware-owned CV/protection. A voltage ceiling is a safety constraint, not a
 voltage request. Permission release is not restoration of a firmware setting.
-See the runtime [longevity contract](../uke-platform-runtime/docs/BATTERY-LONGEVITY.md).
+See the runtime [longevity contract](../../uke-platform-runtime/docs/BATTERY-LONGEVITY.md).
 
 29 October 2026 protocol follow-up: `charge protocols` remains cache-only and
 separates the six manufacturer-listed receiver protocols from excluded QC4/4+,
@@ -34,7 +34,7 @@ the default-off EXPERT kernel interface. It reads exactly USB adapter7 and
 real-type11, checks provider/boot/source epochs and preserves OEM type names.
 It performs no XM access, protocol selection or charging SET. Do not run it
 until active firmware ABI review and an attended test window are available.
-See the runtime [protocol coverage](../uke-platform-runtime/docs/CHARGING-PROTOCOLS.md).
+See the runtime [protocol coverage](../../uke-platform-runtime/docs/CHARGING-PROTOCOLS.md).
 
 29 October 2026 source integration: `charge review FILE` accepts an absolute
 path to a root-owned private artifact review. The helper verifies profile and

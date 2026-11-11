@@ -17,7 +17,7 @@ dependency plans passed; tablet migration remains untested. See the
 30 October 2026: release 2.3.1-5 recognizes the driver's automatic DSC policy
 and live DRM control interface. Policy and cached activation are reported
 separately; older boolean drivers retain their existing restrictions.
-See [DISPLAY.md](DISPLAY.md). Physical compression acceptance remains open.
+See [DISPLAY.md](docs/DISPLAY.md). Physical compression acceptance remains open.
 
 30 October 2026: **2.6.0** organizes the C++ terminal interface into ten task
 categories with explicit Back/Continue buttons, keyboard navigation and terminal
@@ -40,7 +40,7 @@ are historical. The current application version comes from `src/version.hpp`.
 
 29 October 2026: version 1.18.0 adds a qualified 70/80 preset and a duration-only
 temporary-full preview. Temporary full activation remains unavailable without
-a reviewed device-side return path. See [CHARGING.md](CHARGING.md) for limits;
+a reviewed device-side return path. See [CHARGING.md](docs/CHARGING.md) for limits;
 source preparation does not establish installed or electrical acceptance.
 
 29 October 2026: version 1.16.0 adds explicit `charge review FILE` and
@@ -48,7 +48,7 @@ source preparation does not establish installed or electrical acceptance.
 a private identity with a maximum 15-minute lifetime and performs no firmware
 request. Restore requires admission and a successful automatic-worker stop;
 it is not a factory reset. Host checks pass. No tablet operation or electrical
-qualification was performed. See [CHARGING.md](CHARGING.md).
+qualification was performed. See [CHARGING.md](docs/CHARGING.md).
 
 27 October 2026: version 1.15.1 records logind and UPower lid states separately
 and queries the current session's screensaver state without activation. Sleep
@@ -60,7 +60,7 @@ monitor behavior. The CLI version banner is corrected to match the package.
 MST support in `display profiles`. The dual-display request requires both,
 plus a unique standard Type-C C/E control. Missing firmware controls remain
 unavailable. Host fixtures pass; native delivery and physical four-lane/MST
-output remain unvalidated. See [DISPLAY.md](DISPLAY.md).
+output remain unvalidated. See [DISPLAY.md](docs/DISPLAY.md).
 
 25 October 2026: version 1.14.0 adds an experimental disconnected DSC request
 and cached driver-state query. Missing kernel support is reported explicitly.
@@ -144,7 +144,7 @@ per-device USB runtime-power selection and RTL8153 capability queries/link
 advertisement profiles through the original Fedora ethtool. It retains the
 published 1.8.1 internal-panel correction and 1.8.0 Type-C admission guards.
 Host fixtures and package checks are separate from physical link acceptance.
-See [display and dock controls](DISPLAY.md).
+See [display and dock controls](docs/DISPLAY.md).
 
 24 October 2026: version 1.8.1 resolves the unique internal DSI output for
 session controls. A connected external display can change its connector number;
@@ -156,7 +156,7 @@ Type-C pin-assignment requests for USB3/display or four-lane display. It reports
 the driver cache separately from requested settings and refuses unavailable
 firmware controls. The current Uke firmware exposes no manual DP alternate-mode
 control; MST remains unavailable in the current driver. The original KScreen
-controls from 1.7.0 are retained. See [DISPLAY.md](DISPLAY.md).
+controls from 1.7.0 are retained. See [DISPLAY.md](docs/DISPLAY.md).
 
 24 October 2026: version 1.7.0 adds `desktop plasma`, `desktop rotation on|off`
 and `desktop brightness on|off` for the original Fedora KScreen interface.
@@ -293,7 +293,7 @@ automatic charging workers disabled. One existing70/80-band application request
 receives an opaque16-byte firmware reply and unchanged setting readback; actual
 charge cutoff and bypass remain unqualified. Physical display/touch after the
 latest reboot, powered HDMI, Ethernet traffic and offline charging remain
-separate gates. See [charging boundaries](CHARGING.md) and the
+separate gates. See [charging boundaries](docs/CHARGING.md) and the
 [offline interface](../uke-platform-runtime/docs/OFFLINE-CHARGING.md).
 
 Release15 changes only swap candidate discovery: GPT partition labels come from
@@ -308,8 +308,8 @@ first-boot snapshot and refusing a concurrent settings writer.
 
 ## Commands
 
-Source release14 adds [channel synchronization and updates](CHANNELS.md) and
-the [live sensor view](SENSORS.md). These changes are prepared and tested on the
+Source release14 adds [channel synchronization and updates](docs/CHANNELS.md) and
+the [live sensor view](docs/SENSORS.md). These changes are prepared and tested on the
 host; the bounded installed application14 observations above remain separate
 from an actual channel transition.
 
@@ -375,12 +375,12 @@ Charging previews describe 80% cap, 80-90% autonomous hold, slow and automatic
 profiles without applying them. Explicit requests use the separately installed
 `uke-charge-control` helper and its per-boot qualification. The shipped backend
 profile is unqualified. An active automatic worker is reported separately from
-an applied current setting. See [charging policy limits](CHARGING.md).
+an applied current setting. See [charging policy limits](docs/CHARGING.md).
 
 The source command `uke-control display sensor` reads the optional native
 front-color snapshot without starting collection. It exposes raw values with
 unverified units and independently checks publisher/sample recency. See
-[the display and front-color interface](DISPLAY.md) for the exact contract and
+[the display and front-color interface](docs/DISPLAY.md) for the exact contract and
 remaining coordinator/package/device validation. This is not calibrated Kelvin
 or an automatic white-point setting.
 

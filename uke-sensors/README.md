@@ -93,7 +93,7 @@ An installed package is not proof of working touch.
 with GPIO 26 low. Fedora 44 images now select the pinned TM firmware and config
 by default; the daemon checks that the GPIO level matches the selected image.
 The TM firmware and firmware-framebuffer handoff produced touch input in KDE on
-the tablet. On 25 October, the [native O82-36 trial](docs/lessons/TOUCH-2026-10-24-NATIVE-O82-36.md)
+the tablet. On 25 October, the native O82-36 trial
 also produced finger input in KDE after the reset-provider correction and an
 independent ext4 repair. Panel-reset recovery still needs a tablet test.
 
@@ -152,7 +152,6 @@ Front light, proximity and compass remain unavailable. Rear-light units,
 controlled movement, calibrated axes, automatic desktop controls and permanent
 startup still need testing. Factory sensor files remain unchanged. These bounded
 results do not qualify the preview RPMs for permanent sensor operation.
-See [the desktop integration notes](docs/SSC-DESKTOP.md).
 
 Protocol provenance: [Qualcomm sensinghub](https://github.com/qualcomm/sensinghub/tree/329551963bcc063f6a89f6cbca259c5b5c9c4e0b).
 The trim/event register evidence is cross-checked between a retained direct-Uke

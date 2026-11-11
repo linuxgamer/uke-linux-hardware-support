@@ -124,7 +124,7 @@ install the declared new package together; a virtual Provide alone is
 insufficient. Kernel packages, including the old KVM namespace, remain retained.
 The normal-kernel selector does not infer a normal kernel from an isolated KVM
 core. Source families and child names are defined in
-[`packaging/families`](../packaging/families/README.md).
+[`packaging/families`](../../packaging/families/README.md).
 
 The withdrawn Fastfetch fork is a deliberate exception: the exact replacement
 must come from Fedora's `rawhide` repository, including a necessary downgrade.

@@ -275,7 +275,7 @@ package map. COPR lists source packages in a flat list; it has no nested package
 folders. Each family is one source RPM producing separately installable child
 RPMs. Installing a metadata parent starts no process by itself.
 
-The [runtime responsibility map](RESPONSIBILITIES.md) records which functions
+The runtime responsibility map records which functions
 belong to kernel/DT, original distribution services and bounded Uke helpers.
 
 | Source family | Child responsibilities |

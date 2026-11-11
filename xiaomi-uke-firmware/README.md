@@ -9,7 +9,7 @@ the other 210 files and hardware qualification remain incomplete.
 built inside the combined `uke-hw` source family. `make copr-srpm` creates
 the complete firmware source input for that family, with pinned OTA notices.
 It requires an explicit publisher request; the earlier redistribution review
-remains incomplete. See [publication preparation](docs/COPR-PUBLICATION.md).
+remains incomplete.
 The source-family integration adds no application, service or private calibration.
 
 File-level firmware provenance, acquisition and redistribution policy for Xiaomi Pad 7 / POCO Pad X1 (`uke`, SM7675).
@@ -32,7 +32,7 @@ support repository. The Fedora 44 image builder uses the hash-pinned
 `payload/oem-os3.0.304.0/` touch, SSC, Bluetooth, WPSS, ADSP and GPU set.
 The separate generic firmware RPM lock admits no WPSS, ADSP or GPU bytes, so
 `make srpm` still fails explicitly.
-The [15 October publication review](docs/COPR-PUBLICATION.md) identifies the
+The 15 October publication review (removed with the October documents; see git history) identifies the
 local WPSS, ADSP and Adreno package families and the remaining source and
 redistribution checks. No local OEM firmware was uploaded by that review.
 
