@@ -4,5 +4,4 @@
 *.key
 *.pem
 .env*
-/referances/
 /docs/

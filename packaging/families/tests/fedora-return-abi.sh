@@ -5,7 +5,7 @@ root=$(cd -- "$(dirname -- "$0")/../../.."; pwd)
 manifest="$root/packaging/families/consolidation/fedora-return-inputs.json"
 stage=$(mktemp -d)
 trap 'rm -rf -- "$stage"' EXIT
-cache="$root/uke-desktop-packaging/referances/fedora-returns-20261101"
+cache="$root/uke-desktop-packaging/source-cache/fedora-returns-20261101"
 mkdir -p "$cache" "$stage/keys"
 for tool in rpm rpmkeys rpm2cpio cpio jq readelf nm comm; do command -v "$tool" >/dev/null; done
 for key in fedora-46.asc; do rpmkeys --dbpath "$stage/keys" --import "$root/packaging/families/keys/$key"; done

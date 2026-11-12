@@ -12,7 +12,7 @@ new="$top/SPECS/uke-control.spec"
 # The imported nested archives contain the existing DNF/boot/device behavior.
 stage=$(mktemp -d)
 trap 'rm -rf -- "$stage"' EXIT
-rpm2cpio referances/uke-control-2.8.1-5.fc46.src.rpm > "$stage/source.cpio"
+rpm2cpio source-cache/uke-control-2.8.1-5.fc46.src.rpm > "$stage/source.cpio"
 (cd "$stage"; cpio -idm --quiet --no-absolute-filenames < source.cpio)
 cmp "$stage/uke-control-2.8.1.tar.xz" "$top/SOURCES/uke-control-2.8.1.tar.xz"
 cmp "$stage/uke-control.spec" "$old"

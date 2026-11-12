@@ -3,8 +3,8 @@ SHELL := /bin/bash
 .ONESHELL:
 .DEFAULT_GOAL := validate
 fedora ?= $(shell rpm --eval '%{fedora}')
-SPEAKER_PRESET ?= $(CURDIR)/referances/speaker-preset-3.0.304.0/fs19xx.fsm
-SPEAKER_NOTICE ?= $(CURDIR)/referances/speaker-preset-3.0.304.0/odm-NOTICE.xml.gz
+SPEAKER_PRESET ?= $(CURDIR)/source-cache/speaker-preset-3.0.304.0/fs19xx.fsm
+SPEAKER_NOTICE ?= $(CURDIR)/source-cache/speaker-preset-3.0.304.0/odm-NOTICE.xml.gz
 .PHONY: validate srpm
 .PHONY: speaker-srpm
 speaker-srpm:

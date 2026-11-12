@@ -7,9 +7,16 @@
       "id": "chromium-report-source",
       "url": "https://chromium.googlesource.com/chromium/src",
       "commit": "5869fe313571d75152b77813cf0a4ee26a4e6df0",
-      "local_path": "referances/chromium-gpu-20261018",
       "classification": "exact_browser_report_revision",
-      "files": ["docs/gpu/vaapi.md", "gpu/config/software_rendering_list.json", "gpu/config/gpu_finch_features.cc", "cc/base/features.cc", "services/webnn/BUILD.gn", "services/webnn/features.gni", "ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc"],
+      "files": [
+        "docs/gpu/vaapi.md",
+        "gpu/config/software_rendering_list.json",
+        "gpu/config/gpu_finch_features.cc",
+        "cc/base/features.cc",
+        "services/webnn/BUILD.gn",
+        "services/webnn/features.gni",
+        "ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc"
+      ],
       "license": "Chromium BSD-style license; source headers retained locally",
       "finding": "Linux DrDc is unsupported; normal Graphite feature activation is disallowed; Vulkan and TreesInViz default off; WebGPU Vulkan/GL interop has an explicit blocklist entry. WebNN has Linux build backends but package capability remains unverified."
     },
@@ -17,18 +24,23 @@
       "id": "uke-oem-dt",
       "url": "https://github.com/MiCode/kernel_devicetree",
       "commit": "94c84aeb9e517dbde546fc732033c184094c8e57",
-      "workspace_path": "senemos-uke-kernel/referances/xiaomi/xiaomi-devicetree",
       "classification": "direct_uke_oem",
-      "files": ["qcom/cliffs.dtsi", "qcom/cliffs-reserved-memory.dtsi"],
+      "files": [
+        "qcom/cliffs.dtsi",
+        "qcom/cliffs-reserved-memory.dtsi"
+      ],
       "finding": "OEM videocc and reserved video memory cross-check the live Uke DT. A complete exact-Uke video driver release was not identified in the inspected acquisition."
     },
     {
       "id": "same-soc-cliffs-video",
       "url": "https://github.com/OnePlusOSS/android_kernel_modules_and_devicetree_oneplus_sm7675",
       "commit": "1138e00fee63582a0cc6a53af3286621786827b7",
-      "workspace_path": "senemos-uke-kernel/referances/donors/oneplus-nord4-android16-modules-dt",
       "classification": "same_soc_android",
-      "files": ["vendor/qcom/proprietary/video-devicetree/cliffs-vidc.dtsi", "vendor/qcom/opensource/video-driver/driver/platform/cliffs/src/msm_vidc_cliffs.c", "vendor/qcom/opensource/video-driver/driver/platform/cliffs/src/cliffs.c"],
+      "files": [
+        "vendor/qcom/proprietary/video-devicetree/cliffs-vidc.dtsi",
+        "vendor/qcom/opensource/video-driver/driver/platform/cliffs/src/msm_vidc_cliffs.c",
+        "vendor/qcom/opensource/video-driver/driver/platform/cliffs/src/cliffs.c"
+      ],
       "license": "Driver files: GPL-2.0-only, Qualcomm Innovation Center; inspect DT licensing independently before copying",
       "finding": "Cliffs uses vpu30_2v, PAS 9 and VPU_VERSION_IRIS33_2P. Board-specific firmware and resource qualification remains necessary."
     },
@@ -36,10 +48,19 @@
       "id": "palawan-iris",
       "url": "https://codeberg.org/palawan-mainline/linux",
       "commit": "0d9f7fdf720ae9f4ecfbee4fadaf1e3b5c442e95",
-      "workspace_path": "senemos-uke-kernel/referances/donors/palawan-mainline",
       "classification": "same_platform_family_mainline_donor",
-      "files": ["arch/arm64/boot/dts/qcom/palawan.dtsi", "arch/arm64/boot/dts/qcom/lamma-qrd.dts", "drivers/media/platform/qcom/iris/iris_platform_palawan.h", "drivers/media/platform/qcom/iris/iris_platform_vpu3x.c", "drivers/media/platform/qcom/iris/iris_probe.c", "drivers/clk/qcom/videocc-sm8550.c"],
-      "selected_changes": ["2a803979d33c67e782d61bcdd537a654b039e58f", "60647fdca59abd5bca202c8379839f34833e7549"],
+      "files": [
+        "arch/arm64/boot/dts/qcom/palawan.dtsi",
+        "arch/arm64/boot/dts/qcom/lamma-qrd.dts",
+        "drivers/media/platform/qcom/iris/iris_platform_palawan.h",
+        "drivers/media/platform/qcom/iris/iris_platform_vpu3x.c",
+        "drivers/media/platform/qcom/iris/iris_probe.c",
+        "drivers/clk/qcom/videocc-sm8550.c"
+      ],
+      "selected_changes": [
+        "2a803979d33c67e782d61bcdd537a654b039e58f",
+        "60647fdca59abd5bca202c8379839f34833e7549"
+      ],
       "license": "GPL-2.0-only driver changes; Qualcomm Innovation Center and Alexandr Zubtsov attribution retained",
       "finding": "Useful Iris and VIDEOCC implementation exists, but Palawan selects a four-pipe VPU33 firmware descriptor while Cliffs Android describes two pipes. Do not enable this table unchanged on Uke."
     },
@@ -47,9 +68,10 @@
       "id": "linux-current-iris",
       "url": "https://github.com/torvalds/linux",
       "commit": "32c52ec87d6245ee2d12ed5dd509e40062939b50",
-      "local_path": "referances/chromium-gpu-20261018/linux-current-iris-probe.c",
       "classification": "current_upstream_snapshot",
-      "files": ["drivers/media/platform/qcom/iris/iris_probe.c"],
+      "files": [
+        "drivers/media/platform/qcom/iris/iris_probe.c"
+      ],
       "license": "GPL-2.0-only",
       "finding": "The inspected match table has no Cliffs/SM7675/Palawan compatible. The installed 7.2.10-23 module aliases also do not match qcom,cliffs-vidc."
     },
@@ -57,18 +79,23 @@
       "id": "mesa-existing-inventory",
       "url": "https://gitlab.freedesktop.org/mesa/mesa.git",
       "commit": "ed729f3fab71e267326f3156c80026859377ec58",
-      "workspace_path": "uke-linux-hardware-support/referances/donors/mesa-upstream-20261014",
       "classification": "pinned_upstream_comparison",
-      "files": ["src/gallium/drivers/freedreno/freedreno_screen.c"],
+      "files": [
+        "src/gallium/drivers/freedreno/freedreno_screen.c"
+      ],
       "finding": "Freedreno rendering and Turnip Vulkan are separate from the missing V4L2/VA-API codec path. This pin does not identify the Fedora Mesa 26.2.4 package source."
     },
     {
       "id": "iris-vaapi",
       "url": "https://github.com/radxa-pkg/libva-v4l2",
       "commit": "0e4ce1e05da1d0a92b342efc2090b9e4987035e1",
-      "local_path": "referances/libva-v4l2-20261018",
       "classification": "shared_stateful_v4l2_userspace_candidate",
-      "files": ["README.md", "LICENSE", "meson.build", "src/backend.cpp"],
+      "files": [
+        "README.md",
+        "LICENSE",
+        "meson.build",
+        "src/backend.cpp"
+      ],
       "license": "MIT; kernel patches retain GPL-2.0-only",
       "finding": "Experimental Iris stateful backend, documented on SC8280XP. Uke protocol, format and buffer compatibility remain untested. Optional FastCV/CDSP must remain disabled for initial qualification."
     },
@@ -76,9 +103,11 @@
       "id": "sm8750-video-experience",
       "url": "https://github.com/code002-2/sm8750-video-accel",
       "commit": "8437bcc932e137e8df61f2196fa6fcb5fa9c316c",
-      "local_path": "referances/sm8750-video-accel-20261018",
       "classification": "third_party_different_soc_experience",
-      "files": ["README.md", "PROVENANCE.md"],
+      "files": [
+        "README.md",
+        "PROVENANCE.md"
+      ],
       "license": "GPL-2.0 kernel changes; backend separately licensed",
       "finding": "Source lead for stateful VA-API and Iris queue requirements. SM8750 firmware and its reported hardware results are not Uke evidence."
     }

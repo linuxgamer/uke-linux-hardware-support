@@ -7,7 +7,6 @@
       "id": "chromium-154-installed",
       "url": "https://chromium.googlesource.com/chromium/src",
       "commit": "334b65d254ccc35df4fca82706d1753227b01039",
-      "local_path": "referances/chromium-gpu-20261024",
       "classification": "exact_installed_browser_revision",
       "files": [
         "gpu/config/gpu_finch_features.cc",
@@ -28,7 +27,6 @@
       "url": "https://github.com/KhronosGroup/VK-GL-CTS",
       "commit": "067e8832315e79817ede1c4863804e440f5d1c80",
       "ref": "opengl-es-cts-3.2.14.1",
-      "local_path": "referances/vk-gl-cts-20261024",
       "archive_sha256": "ce9f37f536373b6d616cdf854876477be79503999b655d90bb2e0e9483d502df",
       "classification": "upstream_conformance_suite",
       "files": [
@@ -45,7 +43,6 @@
       "url": "https://github.com/KhronosGroup/VK-GL-CTS",
       "commit": "f6a29701220f34dd1407513bfe80d74ca7b392ce",
       "ref": "vulkan-cts-1.4.6.2",
-      "local_path": "referances/vulkan-cts-20261024",
       "archive_sha256": "d8741d45c2663193cc43b17d8f4e6fa230fa238f943bb4db3fa538ecb07503f3",
       "classification": "upstream_conformance_suite",
       "files": [
@@ -61,27 +58,66 @@
       "id": "mesa-cts-selection-comparison",
       "url": "https://gitlab.freedesktop.org/mesa/mesa",
       "commit": "ed729f3fab71e267326f3156c80026859377ec58",
-      "workspace_path": "uke-linux-hardware-support/referances/donors/mesa-upstream-20261014",
       "classification": "build_recipe_comparison_only",
-      "files": [".gitlab-ci/container/build-deqp.sh"],
+      "files": [
+        ".gitlab-ci/container/build-deqp.sh"
+      ],
       "finding": "Supplies the GLES release selection and comparison flags. The donor recipe was read, not run; its backport queue is not claimed as part of the unmodified release build."
     }
   ],
   "cts_dependencies": [
-    {"name": "spirv-tools", "commit": "65b2ace21293057714b7fa1e87bd764d3dcef305"},
-    {"name": "glslang", "commit": "7881226269b1596feb604515743f528f02041375"},
-    {"name": "spirv-headers", "commit": "babee77020ff82b571d723ce2c0262e2ec0ee3f1"},
-    {"name": "amber", "commit": "83c140b6f67f45220956b1971e83a53588b4c426"},
-    {"name": "jsoncpp", "commit": "9059f5cad030ba11d37818847443a53918c327b1"},
-    {"name": "libpng", "ref": "v1.6.50", "archive_sha256": "71158e53cfdf2877bc99bcab33641d78df3f48e6e0daad030afe9cb8c031aa46"}
+    {
+      "name": "spirv-tools",
+      "commit": "65b2ace21293057714b7fa1e87bd764d3dcef305"
+    },
+    {
+      "name": "glslang",
+      "commit": "7881226269b1596feb604515743f528f02041375"
+    },
+    {
+      "name": "spirv-headers",
+      "commit": "babee77020ff82b571d723ce2c0262e2ec0ee3f1"
+    },
+    {
+      "name": "amber",
+      "commit": "83c140b6f67f45220956b1971e83a53588b4c426"
+    },
+    {
+      "name": "jsoncpp",
+      "commit": "9059f5cad030ba11d37818847443a53918c327b1"
+    },
+    {
+      "name": "libpng",
+      "ref": "v1.6.50",
+      "archive_sha256": "71158e53cfdf2877bc99bcab33641d78df3f48e6e0daad030afe9cb8c031aa46"
+    }
   ],
   "vulkan_cts_dependencies": [
-    {"name": "spirv-tools", "commit": "2d14d2e76aa7de72404b17078eda15c20a6a0389"},
-    {"name": "glslang", "commit": "715c8500e7cd67f2eba9e60e98852a1ed49d2f15"},
-    {"name": "spirv-headers", "commit": "6dd7ba990830f7c15ac1345ff3b43ef6ffdad216"},
-    {"name": "amber", "commit": "53a4c8934bf7335d27c694e9fdac9ae1b180c0d2"},
-    {"name": "jsoncpp", "commit": "9059f5cad030ba11d37818847443a53918c327b1"},
-    {"name": "libpng", "ref": "v1.6.50", "archive_sha256": "71158e53cfdf2877bc99bcab33641d78df3f48e6e0daad030afe9cb8c031aa46"}
+    {
+      "name": "spirv-tools",
+      "commit": "2d14d2e76aa7de72404b17078eda15c20a6a0389"
+    },
+    {
+      "name": "glslang",
+      "commit": "715c8500e7cd67f2eba9e60e98852a1ed49d2f15"
+    },
+    {
+      "name": "spirv-headers",
+      "commit": "6dd7ba990830f7c15ac1345ff3b43ef6ffdad216"
+    },
+    {
+      "name": "amber",
+      "commit": "53a4c8934bf7335d27c694e9fdac9ae1b180c0d2"
+    },
+    {
+      "name": "jsoncpp",
+      "commit": "9059f5cad030ba11d37818847443a53918c327b1"
+    },
+    {
+      "name": "libpng",
+      "ref": "v1.6.50",
+      "archive_sha256": "71158e53cfdf2877bc99bcab33641d78df3f48e6e0daad030afe9cb8c031aa46"
+    }
   ],
   "upstream_build_python": "Host-only SPIRV-Tools generators; purpose and exact SDK are documented in UKE-GPU-L019. No Python target payload is authorized.",
   "donor_scripts_executed": false,

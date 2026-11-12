@@ -7,7 +7,7 @@ set -Eeuo pipefail
 test ! -e /etc/senemos/kernel-update.conf
 project=$(cd -- "$(dirname -- "$0")/.."; pwd)
 root=$(cd -- "$project/.."; pwd)
-cache=$root/uke-desktop-packaging/referances/fedora-returns-20261101
+cache=$root/uke-desktop-packaging/source-cache/fedora-returns-20261101
 bash "$root/packaging/families/tests/fedora-return-abi.sh"
 fixture=$(mktemp -d)
 trap 'rm -rf -- "$fixture"' EXIT

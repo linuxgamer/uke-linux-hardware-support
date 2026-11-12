@@ -7,7 +7,7 @@ set -Eeuo pipefail
 [[ $(rpm --eval '%{_host_cpu}') == aarch64 && $(rpm --eval '%{fedora}') == 46 ]]
 test ! -e /etc/senemos/kernel-update.conf
 root=$(cd -- "$(dirname -- "$0")/../../.."; pwd)
-cache=$root/uke-desktop-packaging/referances/fedora-returns-20261101
+cache=$root/uke-desktop-packaging/source-cache/fedora-returns-20261101
 fixture=$(mktemp -d)
 trap 'rm -rf -- "$fixture"' EXIT
 mkdir -p "$fixture"/{baseline,current,candidate,originals,kernel,roots,cache,keys}

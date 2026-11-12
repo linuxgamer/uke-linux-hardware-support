@@ -8,10 +8,10 @@ validate:
 srpm: validate
 	root="$(CURDIR)"
 	top="$$(realpath -m '$(outdir)/rpmbuild')"
-	mkdir -p "$$root/referances" "$$top"/{SOURCES,SPECS,SRPMS}
+	mkdir -p "$$root/source-cache" "$$top"/{SOURCES,SPECS,SRPMS}
 	jq -r '.inputs[]|[.filename,.url,.sha256]|@tsv' source-lock.json >"$$top/inputs.tsv"
 	while IFS=$$'\t' read -r filename url sha; do
-		cached="$$root/referances/$$filename"
+		cached="$$root/source-cache/$$filename"
 		if [[ ! -s $$cached ]]; then
 			curl --fail --location --silent --show-error --retry 3 --max-time 300 --proto '=https' --proto-redir '=https' "$$url" -o "$$cached.part"
 			mv "$$cached.part" "$$cached"

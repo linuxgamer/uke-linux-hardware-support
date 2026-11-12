@@ -10,87 +10,70 @@
     "source_files": [
       {
         "sha256": "6484df28cc337258695fdcb99b44f4c28e741e2bb229adde75fefc6fd5612f05",
-        "local_path": "referances/chromium-gpu-20261025/content_common_gpu_pre_sandbox_hook_linux.cc",
         "upstream_path": "content/common/gpu_pre_sandbox_hook_linux.cc"
       },
       {
         "sha256": "027692154cf0480c49bedae0f89110b711c82ffbf7ae966e2d5028e37f963da3",
-        "local_path": "referances/chromium-gpu-20261025/content_gpu_gpu_main.cc",
         "upstream_path": "content/gpu/gpu_main.cc"
       },
       {
         "sha256": "eef13b1c4bb30db66de9235c0941e5487d51ac86adad537724f15c9ed395c496",
-        "local_path": "referances/chromium-gpu-20261025/gpu_config_gpu_finch_features.cc",
         "upstream_path": "gpu/config/gpu_finch_features.cc"
       },
       {
         "sha256": "6a6e9c2e7a4428e23227e4e7cac34283ddac50b505434e9e3d56492fbd28a779",
-        "local_path": "referances/chromium-gpu-20261025/gpu_ipc_service_gpu_init.cc",
         "upstream_path": "gpu/ipc/service/gpu_init.cc"
       },
       {
         "sha256": "b1e51dbd3a611e5b50163861487e2f95884e92fe1b12c9e11ff3060f4e45cecc",
-        "local_path": "referances/chromium-gpu-20261025/media_base_media_switches.cc",
         "upstream_path": "media/base/media_switches.cc"
       },
       {
         "sha256": "aca4e45b5db81b5a66e0c7a5f3c8b8c36aeca9ca3e405d12420c56f066291e45",
-        "local_path": "referances/chromium-gpu-20261025/media_gpu_vaapi_vaapi_wrapper.cc",
         "upstream_path": "media/gpu/vaapi/vaapi_wrapper.cc"
       },
       {
         "sha256": "99170df4712990922dde39fd3fd641818dae9679c27a1c9a96dfcd225435ebfc",
-        "local_path": "referances/chromium-gpu-20261025/sandbox_policy_linux_bpf_gpu_policy_linux.cc",
         "upstream_path": "sandbox/policy/linux/bpf_gpu_policy_linux.cc"
       },
       {
         "sha256": "35c62d065e2f2f8eab5cfe9d75c83c6285581ffac9d3f23be710652eb7736567",
-        "local_path": "referances/chromium-gpu-20261025/sandbox_policy_linux_sandbox_linux.cc",
         "upstream_path": "sandbox/policy/linux/sandbox_linux.cc"
       },
       {
         "sha256": "05aa43e5714f4d9943c59aea0abc9df284acdbc41d0e9e902f0acff646b03ba1",
-        "local_path": "referances/chromium-gpu-20261025/ui_gfx_linux_drm_util_linux.cc",
         "upstream_path": "ui/gfx/linux/drm_util_linux.cc"
       },
       {
         "sha256": "4c46e40f55d9d77a096e6cf21adc90c73cd9a2feac032f2b05c7070e05740380",
-        "local_path": "referances/chromium-gpu-20261025/ui_ozone_platform_wayland_host_wayland_connection.cc",
         "upstream_path": "ui/ozone/platform/wayland/host/wayland_connection.cc"
       },
       {
         "sha256": "fad164f830723c85facbf8b741b97dbbabf3dd8321af6ca11b1bc672e57e3eb8",
-        "local_path": "referances/chromium-gpu-20261025/ui_ozone_platform_wayland_host_wayland_drm.cc",
         "upstream_path": "ui/ozone/platform/wayland/host/wayland_drm.cc"
       },
       {
         "sha256": "37095b3421195cee76d6e3d2eb378bfd2b243b798df6dd766f8bea837baccff0",
-        "local_path": "referances/chromium-gpu-20261025/ui_ozone_platform_wayland_host_wayland_zwp_linux_dmabuf.cc",
         "upstream_path": "ui/ozone/platform/wayland/host/wayland_zwp_linux_dmabuf.cc"
       },
       {
         "sha256": "5c0fe87e9143cb3d34b1e46f8584e8dc0c12804218b92670eac4e42169617ea7",
-        "local_path": "referances/chromium-gpu-20261025/gpu_config_gpu_driver_bug_list.json",
         "upstream_path": "gpu/config/gpu_driver_bug_list.json"
       },
       {
         "sha256": "eb2c88cc8c4d8e1039f96e8d6435cd7002b6b5192a0ff6ea43b547dcc17bb7b0",
-        "local_path": "referances/chromium-gpu-20261025/gpu_config_software_rendering_list.json",
         "upstream_path": "gpu/config/software_rendering_list.json"
       },
       {
         "sha256": "dc086fa0014f9b7bbdf1cd2b6371998e04b3c333b5df55dc7264a48596aff591",
-        "local_path": "referances/chromium-gpu-20261025/media_gpu_vaapi_vaapi_video_decoder.cc",
         "upstream_path": "media/gpu/vaapi/vaapi_video_decoder.cc"
       },
       {
         "sha256": "3cd2c610e2531f47efef9105cc5f2b5e6ced7e598b04ed31d58ee2e8b01c3235",
-        "local_path": "referances/chromium-gpu-20261025/media_gpu_chromeos_video_decoder_pipeline.cc",
         "upstream_path": "media/gpu/chromeos/video_decoder_pipeline.cc"
       },
       {
         "sha256": "a3487445016152a8a52784fc89c4dd7e625ea40bed71fb1a0edd9ddeb1c5216e",
-        "local_path": "referances/chromium-gpu-20261025/media_gpu_gpu_video_decode_accelerator_factory.cc",
         "upstream_path": "media/gpu/gpu_video_decode_accelerator_factory.cc"
       }
     ]
@@ -101,11 +84,9 @@
     "url": "https://github.com/intel/libva",
     "files": [
       {
-        "component_path": "uke-video/referances/libva-2.24.1-source/va.c",
         "sha256": "606e3ef011fec333c88c81239fdc123db4db73a4961ba6b12944d63c7fdff201"
       },
       {
-        "component_path": "uke-video/referances/libva-2.24.1-source/va_drm_utils.c",
         "sha256": "167dbf62cfb05612923bcfd3cfc976f00311590f0634d4f6b93d5f27e5f84cf3"
       }
     ]

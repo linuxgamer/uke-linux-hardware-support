@@ -64,7 +64,7 @@ if [[ $integration == true ]]; then
             *) echo 'Unreviewed integration source URL' >&2; exit 1;;
         esac
         [[ $hash =~ ^[a-f0-9]{64}$ ]]
-        input="$root/packaging/families/referances/integrations/$key.src.rpm"
+        input="$root/packaging/families/source-cache/integrations/$key.src.rpm"
         mkdir -p "$(dirname "$input")"
         if [[ ! -s $input ]]; then
             curl --fail --location --silent --show-error --proto '=https' --proto-redir '=https' --max-time 240 "$url" -o "$input.part"

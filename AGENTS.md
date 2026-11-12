@@ -83,11 +83,10 @@ when a full image is required.
   OEM blobs or home-directory paths.
 - The top-level `docs/` tree and documents created before November 2026 were
   removed in the 2026-11-11 cleanup; recover them from git history when needed.
-  Do not recreate `referances/`, `reports/` or the top-level `docs/` tree.
+  Do not recreate the removed local-evidence, report or top-level docs tree.
 - Link only to files that exist in this repository or to absolute URLs of other
   repositories. Do not link to the umbrella `private/`, `build/` or
-  `artifacts/` paths, and do not recreate the removed `referances/README.md` or
-  `uke-linux-docs/` trees.
+  `artifacts/` paths, and do not recreate the removed evidence trees.
 
 ### Evidence and lessons
 

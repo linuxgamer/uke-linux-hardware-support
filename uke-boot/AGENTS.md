@@ -7,7 +7,7 @@ These rules apply to the workspace and every project-owned component. Read compo
 - Use C++ for new native device applications and recovery management tools. Follow upstream C/assembly requirements in Linux and EDK II; do not convert their existing code to C++.
 - Prefer Bash for host automation and Go only when shell is unsuitable. Python is allowed for host tooling where it is the clearer choice.
 - Keep device payloads small: prefer native or POSIX-shell helpers for tablet startup, and audit transitive packages and extracted payloads.
-- Keep source archives below the owning component's `referances/`. Do not modify or execute donor scripts as a shortcut. Development happens in `src/`, patches, configuration and project code.
+- Keep source archives below the owning component's `source-cache/`. Do not modify or execute donor scripts as a shortcut. Development happens in `src/`, patches, configuration and project code.
 
 - Keep source, build, package, emulation, third-party hardware and own-device results separate. Never infer hardware success from a build.
 - Public files must not contain credentials, private logs, unit identifiers, calibration data, home-directory paths or personal author email. Use the account's GitHub no-reply email locally.

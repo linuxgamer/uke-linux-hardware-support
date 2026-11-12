@@ -30,7 +30,7 @@ case $key in
         else
             entry=$(jq -ce --arg key "$key" '.[]|select(.name==$key)' packaging/families/source-inputs.json)
             group=$(jq -er .family <<<"$entry")
-            input="$root/packaging/families/referances/inputs/$key.src.rpm"
+            input="$root/packaging/families/source-cache/inputs/$key.src.rpm"
             mkdir -p "$(dirname "$input")"
             url=$(jq -er .url <<<"$entry")
             case $url in

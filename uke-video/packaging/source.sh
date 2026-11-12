@@ -6,8 +6,8 @@ output=$(realpath -m "${1:?source RPM output directory}")
 cd "$root"
 commit=$(jq -er '.upstream.commit|select(test("^[a-f0-9]{40}$"))' manifests/upstream-pins.json)
 digest=$(jq -er '.upstream.archive_sha256|select(test("^[a-f0-9]{64}$"))' manifests/upstream-pins.json)
-archive="referances/libva-v4l2-$commit.tar.gz"
-mkdir -p referances "$output"/{SOURCES,SPECS,SRPMS,BUILD,BUILDROOT,RPMS}
+archive="source-cache/libva-v4l2-$commit.tar.gz"
+mkdir -p source-cache "$output"/{SOURCES,SPECS,SRPMS,BUILD,BUILDROOT,RPMS}
 if [[ ! -s $archive ]]; then
     curl --disable --fail --location --silent --show-error --proto '=https' --proto-redir '=https' \
         --connect-timeout 15 --max-time 180 \

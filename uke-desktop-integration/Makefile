@@ -82,8 +82,8 @@ opencl-probe:
 	mkdir -p $(BUILD_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++17 -Wall -Wextra -Werror src/opencl-probe.cpp $(LDFLAGS) -lOpenCL -o $(BUILD_DIR)/uke-opencl-probe
 mesa-libclc-srpm:
-	@test "$$(sha256sum referances/mesa-libclc-20261024/mesa-libclc-87f66007242ff10e9e84bf32be84f9057f6abc75.tar.gz | cut -d ' ' -f1)" = 85ed6be5a3be9ae8928bb6c19b67cd9646779fe7e6dc25e66794d43d9635280a
+	@test "$$(sha256sum source-cache/mesa-libclc-20261024/mesa-libclc-87f66007242ff10e9e84bf32be84f9057f6abc75.tar.gz | cut -d ' ' -f1)" = 85ed6be5a3be9ae8928bb6c19b67cd9646779fe7e6dc25e66794d43d9635280a
 	mkdir -p "$(BUILD_DIR)/mesa-libclc-rpm/SOURCES" "$(BUILD_DIR)/mesa-libclc-rpm/SPECS"
-	cp referances/mesa-libclc-20261024/mesa-libclc-87f66007242ff10e9e84bf32be84f9057f6abc75.tar.gz "$(BUILD_DIR)/mesa-libclc-rpm/SOURCES/"
+	cp source-cache/mesa-libclc-20261024/mesa-libclc-87f66007242ff10e9e84bf32be84f9057f6abc75.tar.gz "$(BUILD_DIR)/mesa-libclc-rpm/SOURCES/"
 	cp packaging/uke-mesa-libclc22-spirv.spec "$(BUILD_DIR)/mesa-libclc-rpm/SPECS/"
 	rpmbuild -bs --target aarch64 --define '_buildhost uke-builder' --define "_topdir $$(realpath "$(BUILD_DIR)/mesa-libclc-rpm")" "$(BUILD_DIR)/mesa-libclc-rpm/SPECS/uke-mesa-libclc22-spirv.spec"
